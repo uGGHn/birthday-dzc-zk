@@ -11,14 +11,14 @@
   --wall:#3a1619;--wall-deep:#260d10;--floor:#1c0b0d;--void:#120607;
   --L:255,224,173;
   --brass:#c9a46a;--brass-ink:#8a6634;--card:#f2efe9;--ink:#2b1b1c;--ink-2:#7a6a66;
-  --chalk:#f3e7d8;--chalk-2:rgba(243,231,216,.64);
+  --chalk:#f3e7d8;--chalk-2:rgba(243,231,216,.8);
   --serif:"Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC","Noto Serif SC",serif;
   --display:"Didot","Bodoni 72","Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC","Noto Serif SC",serif;
   --sans:"PingFang SC","HarmonyOS Sans SC","MiSans","Noto Sans CJK SC","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
   --ease:cubic-bezier(.2,.8,.2,1);
   --W:100vw;--hud:48px;
   --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);
-  --floor-h:calc(160px + var(--sb));
+  --floor-h:calc(192px + var(--sb));
   /* 颗粒：灰度噪点，用柔光叠在墙、地面和纸上 */
   --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='.36' intercept='.32'/%3E%3CfeFuncG type='linear' slope='.36' intercept='.32'/%3E%3CfeFuncB type='linear' slope='.36' intercept='.32'/%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='192' height='192' filter='url(%23g)'/%3E%3C/svg%3E");
 }
@@ -61,7 +61,6 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .room::before,.room::after{content:"";position:absolute;top:0;width:40px;bottom:var(--floor-h);pointer-events:none}
 .room::before{left:0;background:linear-gradient(to right,rgba(var(--L),.1) 0,rgba(var(--L),.04) 12px,rgba(0,0,0,.5) 16px,rgba(0,0,0,.24) 20px,transparent 40px)}
 .room::after{right:0;background:linear-gradient(to left,rgba(var(--L),.1) 0,rgba(var(--L),.04) 12px,rgba(0,0,0,.5) 16px,rgba(0,0,0,.24) 20px,transparent 40px)}
-.lights{position:absolute;inset:0;pointer-events:none}
 .defs{position:absolute;width:0;height:0;overflow:hidden}
 .dimmer{position:absolute;inset:0;z-index:3;background:#050303;opacity:0;pointer-events:none}
 
@@ -96,21 +95,18 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .piece.swap{opacity:0;transform:translateY(8px)}
 .plinth{flex:none;position:relative;width:208px;height:96px;
   background:
-    linear-gradient(to right,rgba(0,0,0,.06) 0,transparent 16%,transparent 68%,rgba(0,0,0,.18) 100%),
+    linear-gradient(to right,rgba(0,0,0,.14) 0,transparent 20%,transparent 80%,rgba(0,0,0,.14) 100%),
     linear-gradient(to bottom,#fffbf4 0,#f4efe7 2px,#ece5da 8px,#dbd2c5 8px,#c6bcae 100%);
   box-shadow:inset 0 -1px 0 rgba(0,0,0,.14)}
 .plinth::before{content:"";position:absolute;left:24px;right:24px;top:0;height:8px;
   background:radial-gradient(ellipse 50% 100% at 50% 0,rgba(0,0,0,.28),transparent 100%)}
 .plinth::after{content:"";position:absolute;left:-24px;right:-24px;top:calc(100% - 4px);height:16px;
   background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(0,0,0,.56),transparent 100%)}
-.plaque{width:184px;height:56px;padding:8px 12px;border-radius:4px;color:var(--ink);
-  display:grid;grid-template-columns:28px 1fr;column-gap:8px}
-.plinth .plaque{position:absolute;left:12px;top:16px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.plaque{display:block;padding:8px 12px;border-radius:2px;color:var(--ink);white-space:nowrap}
+.plinth .plaque{position:absolute;left:0;right:0;top:calc(50% + 4px);transform:translateY(-50%);width:max-content;margin:0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 .plaque.on-wall{flex:none;margin:16px 0 40px;box-shadow:0 4px 8px rgba(0,0,0,.32)}
-.pn{font:20px/24px var(--display);color:var(--ink-2);transition:color .4s}
-.pa{display:block;font:16px/20px var(--serif);white-space:nowrap}
+.pa{display:block;font:16px/16px var(--serif);white-space:nowrap}
 .pb{display:block;margin-top:4px;font:12px/16px var(--sans);color:var(--ink-2);white-space:nowrap}
-.room.clear .pn{color:var(--brass-ink)}
 
 /* 拆解揭晓的引线 */
 .co{position:absolute;white-space:nowrap;font:12px/16px var(--sans);letter-spacing:0;color:var(--brass);
@@ -122,9 +118,9 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .vit{position:relative;width:152px;height:136px;display:flex;align-items:center;justify-content:center}
 .glass{position:absolute;inset:0;border:1px solid rgba(255,255,255,.34);border-bottom:0;
   background:
-    linear-gradient(115deg,transparent 0 14%,rgba(255,255,255,.16) 14% 20%,transparent 20% 26%,rgba(255,255,255,.08) 26% 29%,transparent 29%),
+    linear-gradient(90deg,transparent 0 8%,rgba(255,255,255,.14) 8% 12%,transparent 12% 88%,rgba(255,255,255,.14) 88% 92%,transparent 92%),
     linear-gradient(to bottom,rgba(255,255,255,.12),rgba(255,255,255,.03) 36%,rgba(255,255,255,.06));
-  box-shadow:inset 2px 0 0 rgba(255,255,255,.14),inset -1px 0 0 rgba(255,255,255,.08);
+  box-shadow:inset 1px 0 0 rgba(255,255,255,.12),inset -1px 0 0 rgba(255,255,255,.12);
   transition:transform .8s var(--ease),opacity .8s}
 .glass::before{content:"";position:absolute;left:-1px;right:-1px;top:-12px;height:12px;border-top:1px solid rgba(255,255,255,.42);
   background:linear-gradient(to bottom,rgba(255,255,255,.04),rgba(255,255,255,.16));
@@ -146,7 +142,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   box-shadow:0 0 0 2px #e9d08f,0 0 0 3px rgba(60,40,10,.55),0 8px 16px rgba(0,0,0,.36);
   transition:transform .8s var(--ease),box-shadow .8s}
 .ring{position:absolute;inset:0;border:12px solid #b08a4f;
-  border-image:linear-gradient(135deg,#6e5023 0,#e6c98f 16%,#a37b43 32%,#f3dca2 48%,#9a7238 64%,#dcbb7d 80%,#6e5023 100%) 1;
+  border-image:linear-gradient(to bottom,#f3dca2 0,#dcbb7d 16%,#b08a4f 40%,#94703a 72%,#5e4320 100%) 1;
   outline:1px solid rgba(255,240,205,.5);outline-offset:-1px;
   box-shadow:0 16px 32px rgba(0,0,0,.5);transition:transform .8s var(--ease),opacity .8s}
 .ring::before{content:"";position:absolute;inset:-7px;border:1px solid rgba(70,48,16,.5);box-shadow:0 0 0 1px rgba(255,240,200,.22);pointer-events:none}
@@ -172,6 +168,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .gift .lid{transition:transform .8s var(--ease)}
 .gco{opacity:0;transition:opacity .4s 1s}
 .gcot{font-family:var(--sans);font-size:12px;fill:var(--brass)}
+.gnum{font-family:var(--display);font-size:12px;fill:#241707}
 .torn .gift .lid{transform:translateY(-40px)}
 .torn .gco{opacity:1}
 
@@ -179,13 +176,13 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .deck{position:absolute;left:0;right:0;bottom:0;height:var(--floor-h);padding:16px 16px calc(16px + var(--sb))}
 .play{display:flex;align-items:center;justify-content:center;gap:32px;height:72px}
 .btn{flex:none;width:72px;height:72px;padding:0;border:0;border-radius:50%;
-  font:16px/20px var(--display);color:#3b2a14;text-shadow:0 1px 0 rgba(255,244,214,.6),0 -1px 0 rgba(60,40,10,.3);
+  font:16px/20px var(--display);color:#22170a;text-shadow:0 1px 0 rgba(255,236,196,.32),0 -1px 0 rgba(30,20,4,.32);
   background:
-    radial-gradient(circle at 50% 28%,rgba(255,250,235,.55) 0,rgba(255,250,235,0) 36%),
-    repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.07) 0deg 2deg,rgba(0,0,0,.05) 2deg 4deg),
-    radial-gradient(circle at 50% 40%,#f0d9a6 0,#c9a46a 52%,#8a6634 100%);
-  box-shadow:0 0 0 4px #241311,0 0 0 5px rgba(var(--L),.22),0 0 0 8px rgba(var(--L),.08),0 8px 16px rgba(0,0,0,.5),
-    inset 0 -4px 8px rgba(0,0,0,.28),inset 0 2px 2px rgba(255,248,230,.5);
+    radial-gradient(circle at 50% 24%,rgba(255,244,214,.28) 0,rgba(255,244,214,0) 36%),
+    repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.05) 0deg 2deg,rgba(0,0,0,.05) 2deg 4deg),
+    radial-gradient(circle at 50% 40%,#c4a46c 0,#977440 52%,#58401e 100%);
+  box-shadow:0 0 0 4px #241311,0 0 0 5px rgba(var(--L),.14),0 0 0 8px rgba(var(--L),.05),0 8px 16px rgba(0,0,0,.5),
+    inset 0 -4px 8px rgba(0,0,0,.32),inset 0 2px 2px rgba(255,240,210,.3);
   transition:transform .12s,box-shadow .3s,background .3s}
 .btn:active:not(:disabled){transform:translateY(4px)}
 .btn:disabled{cursor:default}
@@ -199,10 +196,12 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .btn:focus-visible{outline:2px solid var(--chalk);outline-offset:8px}
 .lamps{display:flex;gap:12px}
 .lamps i{width:12px;height:12px;border-radius:50%;
-  background:radial-gradient(circle at 36% 30%,rgba(255,255,255,.32) 0 1px,rgba(255,255,255,0) 3px),radial-gradient(circle at 50% 60%,#3a2422,#160c0c);
+  background:radial-gradient(circle at 50% 24%,rgba(255,255,255,.32) 0 1px,rgba(255,255,255,0) 3px),radial-gradient(circle at 50% 60%,#3a2422,#160c0c);
   box-shadow:0 0 0 2px #8a6634,0 0 0 3px rgba(0,0,0,.5),inset 0 -2px 3px rgba(0,0,0,.6);transition:background .24s,box-shadow .24s}
-.lamps i.on{background:radial-gradient(circle at 36% 30%,#fff 0 1px,rgba(255,255,255,0) 3px),radial-gradient(circle at 50% 56%,#fff6dc 0,#ffd98f 52%,#e0a24a 100%);
+.lamps i.on{background:radial-gradient(circle at 50% 24%,#fff 0 1px,rgba(255,255,255,0) 3px),radial-gradient(circle at 50% 56%,#fff6dc 0,#ffd98f 52%,#e0a24a 100%);
   box-shadow:0 0 0 2px #c9a46a,0 0 12px 4px rgba(var(--L),.6),0 0 24px 8px rgba(var(--L),.24)}
+.ask{height:24px;margin-bottom:8px;font:16px/24px var(--serif);color:var(--chalk);text-align:center}
+.room.ready .s0{transition-delay:.48s}
 .res{margin-top:12px;height:20px;font:16px/20px var(--serif);color:var(--chalk);text-align:center}
 .sub{margin-top:4px;height:20px;font:12px/20px var(--sans);color:var(--chalk-2);text-align:center}
 .docent{margin:-12px 0;padding:12px 16px;border:0;background:none;font:12px/20px var(--sans);color:var(--brass);
@@ -212,7 +211,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .done{position:absolute;left:16px;right:16px;top:16px;bottom:calc(16px + var(--sb));
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   opacity:0;pointer-events:none;transition:opacity .6s .6s}
-.room.clear .play,.room.clear .res,.room.clear .sub{opacity:0;pointer-events:none}
+.room.clear .ask,.room.clear .play,.room.clear .res,.room.clear .sub{opacity:0;pointer-events:none}
 .room.clear .done{opacity:1;pointer-events:auto}
 .done>*{flex:none}
 .dk{font:12px/16px var(--sans);color:var(--brass)}
@@ -220,12 +219,13 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 /* 滑动提示：文字上有一道光扫过，方向就是该滑的方向 */
 .swipe{display:inline-flex;align-items:center;gap:8px;border:0;background:none;padding:0;color:var(--chalk-2)}
 .swipe svg{flex:none;width:16px;height:16px}
-.shine{background:linear-gradient(90deg,rgba(243,231,216,.48) 0,rgba(243,231,216,.48) 40%,#fff6e0 50%,rgba(243,231,216,.48) 60%,rgba(243,231,216,.48) 100%);
-  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 2.4s linear infinite}
-.shine.rtl{animation-name:shine-rtl}
-@keyframes shine{from{background-position:100% 0}to{background-position:0 0}}
-@keyframes shine-rtl{from{background-position:0 0}to{background-position:100% 0}}
-.next{margin-top:12px;height:48px;padding:0 16px;font:16px/24px var(--serif);letter-spacing:4px}
+.swipe.down svg{animation:go-down 1.6s ease-in-out infinite}
+.swipe.up svg{animation:go-up 1.6s ease-in-out infinite}
+.swipe.left svg{animation:go-left 1.6s ease-in-out infinite}
+@keyframes go-down{50%{transform:translateY(4px)}}
+@keyframes go-up{50%{transform:translateY(-4px)}}
+@keyframes go-left{50%{transform:translateX(-4px)}}
+.next{margin-top:12px;height:48px;padding:0 16px;font:16px/24px var(--serif)}
 /* 到厅后依次入场：灯亮之后，左按钮、连对灯、右按钮、提示依次从地面升起 */
 .slot{display:block;transition:opacity .48s,transform .64s var(--ease)}
 .room:not(.ready) .slot{opacity:0;transform:translateY(16px)}
@@ -255,7 +255,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .dates{margin-top:8px;font:16px/24px var(--display);color:var(--chalk-2)}
 .pre{margin-top:24px;font:16px/28px var(--serif);color:var(--chalk-2)}
 .credit{margin-top:24px;font:12px/16px var(--sans);color:var(--chalk-2)}
-#intro .deck{padding-top:8px;display:flex;flex-direction:column;align-items:center;
+#intro .deck{display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:
     linear-gradient(to bottom,rgba(255,226,186,.22) 0,rgba(255,226,186,0) 2px),
     radial-gradient(ellipse 64% 88% at 50% 0,rgba(var(--L),.14),transparent 100%),
@@ -279,7 +279,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .trow.sp{justify-content:space-between}
 .ttl{font:24px/32px var(--serif);letter-spacing:4px;color:transparent;-webkit-background-clip:text;background-clip:text;
   background-image:linear-gradient(100deg,#7d5a2b 0,#c9a051 24%,#f3dca2 40%,#a87b3c 56%,#e2c07e 76%,#7d5a2b 100%)}
-.tt{font:12px/16px var(--sans);letter-spacing:4px;color:var(--brass-ink)}
+.tt{font:12px/16px var(--sans);color:var(--brass-ink)}
 .tl{font:12px/16px var(--sans);color:var(--ink-2)}
 .tn{font:20px/24px var(--display);letter-spacing:4px}
 .tf{font:12px/16px var(--sans);color:var(--ink-2)}
@@ -293,7 +293,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 @keyframes tug{0%,80%,100%{transform:none}86%{transform:rotate(6deg)}92%{transform:rotate(2deg)}}
 .ticket.drag .stub{transition:none;animation:none}
 .ticket.torn .stub{animation:none;transform:translate(-24px,36px) rotate(14deg);transition:transform .56s cubic-bezier(.3,1.3,.5,1)}
-.thint{margin-top:8px;font:12px/16px var(--sans);letter-spacing:4px;transition:opacity .4s}
+.thint{margin-top:8px;font:12px/16px var(--sans);transition:opacity .4s}
 .ticket.torn+.thint{opacity:0}
 
 /* 结语：一个大礼盒，点开后盒子从中间裂开，祝福卡升起，纸屑落下 */
@@ -312,16 +312,17 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .plaque.solo{display:block;text-align:center}
 .lwrap{position:absolute;left:24px;right:24px;top:calc(var(--hud) + var(--st));bottom:var(--floor-h);
   display:flex;align-items:center;justify-content:center;pointer-events:none}
-.letter{position:relative;width:100%;max-width:312px;padding:32px 24px;border-radius:4px;color:var(--ink);
+.letter{position:relative;width:100%;max-width:312px;padding:24px;border-radius:4px;color:var(--ink);
   box-shadow:0 24px 48px rgba(0,0,0,.5);opacity:0;transform:translateY(var(--dy,0px)) scale(.16);
   transition:transform 1.2s var(--ease) .32s,opacity .6s .32s}
 .letter::before{content:"";position:absolute;inset:8px;border:1px solid rgba(201,164,106,.6);pointer-events:none}
-#end.open .letter{opacity:1;transform:none}
-.lh{display:flex;justify-content:space-between;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(201,164,106,.56);
+#end.open .letter{opacity:1;transform:scale(var(--fit,1))}
+.lh{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(201,164,106,.56);
   font:12px/16px var(--sans);color:var(--ink-2)}
-.letter .k{font:12px/16px var(--sans);color:var(--brass-ink)}
-.letter .m{margin-top:16px;font:24px/40px var(--serif)}
-.letter .s{margin-top:24px;display:flex;align-items:center;justify-content:flex-end;gap:12px;font:16px/24px var(--serif);color:var(--ink-2)}
+.letter .lp{font:16px/24px var(--serif);color:var(--ink-2)}
+.letter .m{margin-top:12px;font:24px/36px var(--serif)}
+.letter .k{margin-top:12px;font:16px/24px var(--serif)}
+.letter .s{margin-top:12px;display:flex;align-items:center;justify-content:flex-end;gap:12px;font:16px/24px var(--serif);color:var(--ink-2)}
 .seal{display:grid;grid-template-rows:16px 16px;align-content:center;justify-items:center;width:40px;height:40px;border-radius:4px;
   font:700 16px/16px var(--serif);color:#f8efe4;background:#a3261d var(--grain);background-size:96px 96px;background-blend-mode:multiply;
   box-shadow:inset 0 0 0 2px rgba(248,239,228,.24);opacity:0;transform:rotate(-6deg) scale(1.6);
@@ -331,7 +332,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #end.drag .bigbox .half,#end.drag .bigbox .blid{transition:none;animation:none}
 #end .deck{display:flex;justify-content:center}
-.ehint{height:48px;font:16px/24px var(--serif);letter-spacing:4px;transition:opacity .4s}
+.ehint{height:48px;font:16px/24px var(--serif);transition:opacity .4s}
 #end.open .ehint{opacity:0}
 
 /* 固定在镜头上的顶栏 */
@@ -339,7 +340,6 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   display:flex;align-items:center;justify-content:space-between;font:16px/24px var(--serif);color:var(--chalk-2)}
 .hud .t{transition:opacity .6s}
 .hud.at-intro .t{opacity:0}
-.hud .c{font-family:var(--display)}
 .hud .r{display:flex;align-items:center;gap:8px}
 .snd{pointer-events:auto;width:40px;height:40px;margin-right:-12px;padding:12px;border:0;background:none;color:var(--chalk-2)}
 .snd svg{display:block;width:16px;height:16px}
@@ -359,11 +359,10 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   <linearGradient id="gRib" x1="0" x2="1"><stop offset="0" stop-color="#8f6a30"/><stop offset=".32" stop-color="#ecd59e"/><stop offset=".5" stop-color="#c9a46a"/><stop offset="1" stop-color="#83602b"/></linearGradient>
   <linearGradient id="gRibH" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8f6a30"/><stop offset=".32" stop-color="#ecd59e"/><stop offset=".5" stop-color="#c9a46a"/><stop offset="1" stop-color="#83602b"/></linearGradient>
   <linearGradient id="gFront" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f8f2e7"/><stop offset="1" stop-color="#e0d5c2"/></linearGradient>
-  <linearGradient id="gSide" x1="0" x2="1"><stop offset="0" stop-color="#d9ccb6"/><stop offset="1" stop-color="#bcad96"/></linearGradient>
   <linearGradient id="gLid" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fffbf3"/><stop offset="1" stop-color="#e9dfcd"/></linearGradient>
   <radialGradient id="gBow" cx=".42" cy=".36" r=".72"><stop offset="0" stop-color="#f4dfae"/><stop offset=".55" stop-color="#c9a46a"/><stop offset="1" stop-color="#7e5c29"/></radialGradient>
-  <linearGradient id="gPost" x1="0" x2="1"><stop offset="0" stop-color="#5c431d"/><stop offset=".3" stop-color="#f0d9a2"/><stop offset=".52" stop-color="#c9a46a"/><stop offset="1" stop-color="#4a3616"/></linearGradient>
-  <radialGradient id="gKnob" cx=".36" cy=".3" r=".74"><stop offset="0" stop-color="#fff2cf"/><stop offset=".45" stop-color="#d9b97c"/><stop offset="1" stop-color="#6a4e22"/></radialGradient>
+  <linearGradient id="gPost" x1="0" x2="1"><stop offset="0" stop-color="#4a3616"/><stop offset=".36" stop-color="#c9a46a"/><stop offset=".5" stop-color="#f0d9a2"/><stop offset=".64" stop-color="#c9a46a"/><stop offset="1" stop-color="#4a3616"/></linearGradient>
+  <radialGradient id="gKnob" cx=".5" cy=".24" r=".8"><stop offset="0" stop-color="#fff2cf"/><stop offset=".45" stop-color="#d9b97c"/><stop offset="1" stop-color="#6a4e22"/></radialGradient>
   <radialGradient id="gFoot" cx=".5" cy=".2" r=".85"><stop offset="0" stop-color="#e3c88f"/><stop offset="1" stop-color="#4a3616"/></radialGradient>
 </defs></svg>
 <div id="app">
@@ -392,21 +391,20 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
             </span>
             <span class="stub"><span class="sno">No.</span><span class="snum">1009</span><span class="snum">1020</span></span>
           </button>
-          <p class="thint swipe"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="shine">按住票根，往下撕</span></p>
+          <p class="thint swipe down"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>按住票根，往下撕</span></p>
         </div>
         <div class="dimmer"></div>
       </section>
       <section class="room" id="end">
-        <div class="lights"><div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div></div>
+        <div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div>
         <div class="stage">
           <button class="present" type="button" aria-label="拆开礼物">
             <svg class="bigbox" viewBox="0 0 208 168" width="208" height="168" aria-hidden="true">
               <ellipse class="half" cx="104" cy="168" rx="84" ry="4" fill="#000" opacity=".28"/>
               <g class="half l"><rect x="32" y="64" width="72" height="104" fill="url(#gFront)"/>
                 <rect x="96" y="64" width="8" height="104" fill="url(#gRib)"/><rect x="32" y="104" width="72" height="12" fill="url(#gRibH)"/></g>
-              <g class="half r"><rect x="104" y="64" width="72" height="104" fill="url(#gSide)"/>
-                <rect x="104" y="64" width="8" height="104" fill="url(#gRib)"/><rect x="104" y="104" width="72" height="12" fill="url(#gRibH)"/>
-                <rect x="104" y="64" width="72" height="104" fill="#000" opacity=".06"/></g>
+              <g class="half r"><rect x="104" y="64" width="72" height="104" fill="url(#gFront)"/>
+                <rect x="104" y="64" width="8" height="104" fill="url(#gRib)"/><rect x="104" y="104" width="72" height="12" fill="url(#gRibH)"/></g>
               <g class="blid"><rect x="24" y="44" width="160" height="24" fill="url(#gLid)"/><rect x="24" y="44" width="160" height="1" fill="#fff" opacity=".7"/>
                 <rect x="24" y="64" width="160" height="4" fill="#cdbfa9"/>
                 <rect x="96" y="44" width="16" height="24" fill="url(#gRib)"/>
@@ -418,21 +416,22 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
           <div class="plinth"><div class="plaque solo paper"><span><span class="pa">给 DZC 和 ZK</span><span class="pb">本件展品，请动手拆开</span></span></div></div>
         </div>
         <div class="lwrap"><div class="letter paper" aria-live="polite">
-          <p class="lh"><span>生日特展图录</span><span>第 4 页</span></p>
-          <p class="k">DZC、ZK，生日快乐</p>
+          <p class="lh"><span>生日特展图录</span><span>后记</span></p>
+          <p class="lp">前面三件展品，都藏着规则。<br>这一件没有规则，只有一句话：</p>
           <p class="m">希望你们的所有担忧，<br>都是虚惊一场。</p>
+          <p class="k">DZC、ZK，生日快乐。</p>
           <p class="s">花花和佳佳<span class="seal" aria-hidden="true"><i>花</i><i>佳</i></span></p>
         </div></div>
         <canvas class="confetti" aria-hidden="true"></canvas>
         <div class="dimmer"></div>
-        <div class="deck"><p class="ehint swipe slot s4"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="shine">往上掀开盒盖</span></p></div>
+        <div class="deck"><p class="ehint swipe up slot s4"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>往上掀开盒盖</span></p></div>
         <div class="shade"></div>
       </section>
     </div>
     <div id="rope"></div>
   </div>
   <div class="vignette"></div>
-  <header class="hud at-intro"><span class="t">生日特展</span><span class="r"><span class="c">前言</span>
+  <header class="hud at-intro"><span class="t">生日特展</span><span class="r">
     <button class="snd" type="button" aria-label="静音" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true">
       <path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/>
       <path class="w" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6 6 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
@@ -451,14 +450,15 @@ const LEVELS = [
     rule: '名字是两个字的就能带，跟生日没关系。' },
   { title: '主厨这道菜', ask: '好吃，还是不好吃？', opts: ['好吃', '不好吃'], kind: 'painting',
     pool: ['红烧肉','番茄炒蛋','清蒸鲈鱼','白灼虾','拍黄瓜','宫保鸡丁','隔夜饭','煮糊的粥','白水煮菜'],
+    pick: a => ({ dir: a === 0 ? 'L' : 'R' }),
     hint: '菜名不重要，看看盘子旁边摆着什么。',
     rule: '看筷子尖：朝左好吃，朝右不好吃，\n菜是什么都不管。' },
   { title: '这份礼物给谁', ask: '给 DZC，还是给 ZK？', opts: ['DZC', 'ZK'], kind: 'gift',
     pool: ['口红','香水','耳环','发夹','领带','剃刀','球鞋','键盘','手表','公仔',
            '剃须刀','游戏机','篮球鞋','护手霜','卷发棒','化妆包','毛绒熊','洗面奶','保温杯'],
-    ans: w => [...w].length === 3 ? 0 : 1,
-    hint: '数一数礼物名字，再数一数他们的缩写。',
-    rule: '吊牌上几个字，就给缩写几个字母的人：\n三个字给 DZC，两个字给 ZK。' }
+    pick: a => ({ n: a === 0 ? 3 : 2 }),
+    hint: '吊牌是障眼法，看看盒子上绑了什么。',
+    rule: '数丝带：三道给 DZC，两道给 ZK，\n跟缩写的字母一样多，吊牌不用管。' }
 ];
 const STREAK = 4, HINT_AT = 6, REVEAL_AT = 12;
 
@@ -527,15 +527,14 @@ const CHOP = '<rect x="36" y="124" width="16" height="20" rx="4" fill="#a7bdb4"/
   + '<polygon points="156,127.5 172,127 172,133 156,133" fill="#2b1a16"/>'
   + '<polygon points="40,137 172,137 172,143 40,139" fill="#7b4a2f"/>'
   + '<polygon points="156,137 172,137 172,143 156,142.5" fill="#2b1a16"/>';
-const BODY = '<ellipse cx="80" cy="136" rx="64" ry="4" fill="#000" opacity=".28"/>'
-  + '<rect x="24" y="52" width="80" height="84" fill="url(#gFront)"/>'
-  + '<rect x="104" y="52" width="32" height="84" fill="url(#gSide)"/>'
-  + '<rect x="72" y="56" width="16" height="80" fill="url(#gRib)"/>'
-  + '<path d="M72 56v80M88 56v80" stroke="#000" stroke-opacity=".12" stroke-width="1"/>';
-const LID = '<rect x="16" y="36" width="128" height="20" fill="url(#gLid)"/>'
+// 礼盒正面视角；丝带道数就是答案：3 道给 DZC，2 道给 ZK
+const RIB = { 3: [52, 80, 108], 2: [66, 94] };
+const ribbon = (n, y, h) => RIB[n].map(x => `<rect x="${x - 4}" y="${y}" width="8" height="${h}" fill="url(#gRib)"/>`).join('');
+const BODY = n => '<ellipse cx="80" cy="136" rx="64" ry="4" fill="#000" opacity=".28"/>'
+  + '<rect x="24" y="52" width="112" height="84" fill="url(#gFront)"/>' + ribbon(n, 56, 80);
+const LID = n => '<rect x="16" y="36" width="128" height="20" fill="url(#gLid)"/>'
   + '<rect x="16" y="36" width="128" height="1" fill="#fff" opacity=".7"/>'
-  + '<rect x="16" y="52" width="128" height="4" fill="#cdbfa9"/>'
-  + '<rect x="72" y="36" width="16" height="20" fill="url(#gRib)"/>'
+  + '<rect x="16" y="52" width="128" height="4" fill="#cdbfa9"/>' + ribbon(n, 36, 16)
   + '<path d="M80 36C64 12 44 20 60 34Z" fill="url(#gBow)"/>'
   + '<path d="M80 36C96 12 116 20 100 34Z" fill="url(#gBow)"/>'
   + '<path d="M78 34C68 22 58 22 62 30M82 34C92 22 102 22 98 30" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/>'
@@ -553,16 +552,18 @@ const VIEW = {
     + `<text class="menu" x="36" y="24" text-anchor="middle">${it.key}</text>`
     + `<g${it.dir === 'R' ? ' transform="translate(216 0) scale(-1 1)"' : ''}>${CHOP}</g></svg>`
     + `<div class="ring"></div><span class="tipmark"></span><span class="co">筷子尖</span></div>`,
-  gift: it => `<svg class="gift" viewBox="0 0 208 136" width="208" height="136" aria-hidden="true"><g>${BODY}</g>`
-    + `<g class="lid">${LID}<g transform="rotate(-6 168 76)"><rect x="136" y="60" width="64" height="32" rx="4" fill="#f5f2ec" stroke="#cbbfac"/>`
+  gift: it => `<svg class="gift" viewBox="0 0 208 136" width="208" height="136" aria-hidden="true"><g>${BODY(it.n)}</g>`
+    + `<g class="lid">${LID(it.n)}<g transform="rotate(-6 168 76)"><rect x="136" y="60" width="64" height="32" rx="4" fill="#f5f2ec" stroke="#cbbfac"/>`
     + `<circle cx="144" cy="68" r="2" fill="#8d7a5f"/><text class="tagt" x="172" y="82" text-anchor="middle">${it.key}</text></g></g>`
-    + `<g class="gco"><line x1="166" y1="14" x2="166" y2="-12" stroke="#c9a46a" stroke-width="1"/>`
-    + `<text class="gcot" x="166" y="-20" text-anchor="middle">吊牌上几个字</text></g></svg>`
+    + '<g class="gco">' + RIB[it.n].map((x, j) => `<circle cx="${x}" cy="112" r="8" fill="#c9a46a"/>`
+      + `<text class="gnum" x="${x}" y="116" text-anchor="middle">${j + 1}</text>`).join('')
+    + `<line x1="${RIB[it.n][RIB[it.n].length - 1] + 8}" y1="112" x2="148" y2="112" stroke="#c9a46a" stroke-width="1"/>`
+    + '<text class="gcot" x="152" y="116">丝带的道数</text></g></svg>'
 };
 const DESC = {
   vitrine: it => `展柜里放着：${it.key}`,
   painting: it => `一盘${it.key}，盘子下方摆着一双筷子，筷子尖朝${it.dir === 'L' ? '左' : '右'}`,
-  gift: it => `一份礼物，吊牌上写着：${it.key}`
+  gift: it => `一份礼物，绑着 ${it.n} 道丝带，吊牌上写着：${it.key}`
 };
 
 // 出题：最近出过的不重复；同一个答案最多连着出 3 次，一直按同一个按钮过不了关
@@ -573,34 +574,34 @@ function gen(L, hist, keys) {
   let c = L.pool.filter(w => recent.indexOf(w) < 0);
   if (L.ans && ban >= 0) c = c.filter(w => L.ans(w) !== ban);
   const key = c[Math.floor(Math.random() * c.length)];
-  if (!L.ans) {
+  if (L.pick) {
     const a = ban >= 0 ? 1 - ban : (Math.random() < .5 ? 0 : 1);
-    return { key, dir: a === 0 ? 'L' : 'R', ans: a };
+    return Object.assign({ key, ans: a }, L.pick(a));
   }
   return { key, ans: L.ans(key) };
 }
 
-const plaque = (L, i, wall) => `<div class="plaque paper${wall ? ' on-wall' : ''}"><span class="pn">0${i + 1}</span>`
-  + `<span><span class="pa">${L.title}</span><span class="pb">${L.ask}</span></span></div>`;
+const plaque = (L, wall) => `<div class="plaque paper${wall ? ' on-wall' : ''}"><span class="pa">${L.title}</span></div>`;
 const roomHTML = (L, i) => `<section class="room k-${L.kind}">`
   + `<div class="rno" aria-hidden="true">0${i + 1}</div>`
-  + '<div class="lights"><div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div></div>'
+  + '<div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div>'
   + `<div class="stage"><div class="piece" role="img"></div>`
-  + (L.kind === 'painting' ? plaque(L, i, true) : `<div class="plinth">${plaque(L, i)}</div>`) + '</div>'
+  + (L.kind === 'painting' ? plaque(L, true) : `<div class="plinth">${plaque(L)}</div>`) + '</div>'
   + '<div class="deck">'
+  + `<p class="ask slot s0">${L.ask}</p>`
   + `<div class="play"><span class="slot s1"><button class="btn" type="button" disabled>${L.opts[0]}</button></span>`
   + `<span class="slot s2"><span class="lamps" role="img" aria-label="连对 0 次"><i></i><i></i><i></i><i></i></span></span>`
   + `<span class="slot s3"><button class="btn" type="button" disabled>${L.opts[1]}</button></span></div>`
   + '<p class="res" aria-live="polite"></p>'
   + `<p class="sub slot s4"><span class="hint">连对 ${STREAK} 次过关</span><button class="docent" type="button" hidden></button></p>`
   + `<div class="done"><p class="dk"></p><p class="drule"></p>`
-  + `<button class="next swipe" type="button" aria-label="${i === LEVELS.length - 1 ? '走向结语' : '走向下一个展厅'}">`
+  + `<button class="next swipe left" type="button" aria-label="${i === LEVELS.length - 1 ? '走向结语' : '走向下一个展厅'}">`
   + '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 3L4 8l5 5M13 3L8 8l5 5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-  + `<span class="shine rtl">${i === LEVELS.length - 1 ? '向左滑，走向结语' : '向左滑，去下一个展厅'}</span></button></div>`
+  + `<span>${i === LEVELS.length - 1 ? '向左滑，走向结语' : '向左滑，去下一个展厅'}</span></button></div>`
   + '</div><div class="dimmer"></div><div class="shade"></div></section>';
 
 const $ = s => document.querySelector(s);
-const dolly = $('#dolly'), track = $('#track'), rope = $('#rope'), hud = $('.hud'), hudC = $('.hud .c'),
+const dolly = $('#dolly'), track = $('#track'), rope = $('#rope'), hud = $('.hud'),
       intro = $('#intro'), ticket = $('.ticket');
 intro.insertAdjacentHTML('afterend', LEVELS.map(roomHTML).join(''));
 const rooms = [...track.children];
@@ -624,9 +625,8 @@ function setCam(p) {
   const base = Math.floor(p + 1e-6), f = p - base, moved = f > 1e-4 && f < 1 - 1e-4;
   track.style.transform = `translate3d(${-p * W}px,0,0)`;
   rope.style.transform = `translate3d(${-p * W * 1.25}px,0,0)`;
-  // 往前推：中途放大 8%，上下起伏两步
-  const k = Math.sin(Math.PI * f);
-  dolly.style.transform = moved ? `translate3d(0,${(4 * k * Math.sin(4 * Math.PI * f)).toFixed(2)}px,0) scale(${(1 + .08 * k).toFixed(4)})` : '';
+  // 往前推：走到两厅中间时画面放大 8%
+  dolly.style.transform = moved ? `scale(${(1 + .08 * Math.sin(Math.PI * f)).toFixed(4)})` : '';
   // 正在离开的展厅跟着镜头变暗，手指拖回去它又亮回来
   if (dimAt !== base && dimmers[dimAt]) dimmers[dimAt].style.opacity = 0;
   if (dimmers[base]) dimmers[base].style.opacity = moved ? (.72 * f).toFixed(3) : 0;
@@ -665,12 +665,12 @@ function setW() {
   W = innerWidth;
   document.documentElement.style.setProperty('--W', W + 'px');
   buildRope(); setCam(pos);
+  if (endRoom.classList.contains('open')) fitLetter();
 }
 // Safari 顶栏颜色跟着所在展厅的墙色走
 const metaTheme = document.querySelector('meta[name="theme-color"]');
 function hudSet() {
   hud.classList.toggle('at-intro', cur === 0);
-  hudC.textContent = cur === 0 ? '前言' : cur === rooms.length - 1 ? '结语' : `0${cur} / 0${LEVELS.length}`;
   metaTheme.setAttribute('content', getComputedStyle(rooms[cur]).getPropertyValue('--wall-deep').trim());
 }
 async function moveTo(to, ease) {
@@ -688,7 +688,7 @@ async function peek() {
 function prepare(i) {
   const room = rooms[i + 1], q = s => room.querySelector(s);
   S = { i, L: LEVELS[i], room, piece: q('.piece'), btns: [...room.querySelectorAll('.btn')],
-        lights: q('.lights'), lampsEl: q('.lamps'), lamps: [...room.querySelectorAll('.lamps i')], res: q('.res'), hint: q('.hint'),
+        lampsEl: q('.lamps'), lamps: [...room.querySelectorAll('.lamps i')], res: q('.res'), hint: q('.hint'),
         docent: q('.docent'), dk: q('.dk'), drule: q('.drule'), next: q('.next'),
         item: first[i], keys: [first[i].key], hist: [], streak: 0, wrong: 0, hintOpen: false, busy: true, done: false, timer: 0 };
   S.btns.forEach((b, k) => { b.onclick = () => answer(k); });
@@ -731,10 +731,6 @@ function answer(k) {
   S.hist.push(S.item.ans);
   if (ok) S.streak++; else { S.streak = 0; S.wrong++; S.btns[k].classList.add('miss'); }
   right.classList.add('glow');
-  if (!reduce && S.lights.animate) S.lights.animate(ok
-    ? [{ filter: 'brightness(1)' }, { filter: 'brightness(1.6) saturate(1.2)', offset: .3 }, { filter: 'brightness(1)' }]
-    : [{ opacity: 1 }, { opacity: .2, offset: .15 }, { opacity: .9, offset: .3 }, { opacity: .35, offset: .45 }, { opacity: 1 }],
-    { duration: ok ? 640 : 420, easing: 'ease-out' });
   S.lamps.forEach((l, j) => l.classList.toggle('on', j < S.streak));
   S.lampsEl.setAttribute('aria-label', `连对 ${S.streak} 次`);
   S.res.textContent = ok ? '对。' : `不对，是「${S.L.opts[S.item.ans]}」。`;
@@ -744,7 +740,6 @@ function answer(k) {
     S.btns.forEach(b => b.classList.remove('glow', 'miss'));
     S.item = gen(S.L, S.hist, S.keys); S.keys.push(S.item.key);
     S.res.textContent = '';
-    if (!reduce && S.lights.animate) S.lights.animate([{ opacity: 1 }, { opacity: .24, offset: .4 }, { opacity: 1 }], { duration: 560, easing: 'ease-in-out' });
     await show(S.piece, S.L, S.item);
     if (S.done) return;
     S.busy = false; setBtns(true);
@@ -854,9 +849,17 @@ ticket.addEventListener('click', e => {
 // 结语：拆礼盒。祝福卡从盒子的位置升到墙中间，纸屑一部分从盒口炸开、一部分从光里落下
 const endRoom = rooms[rooms.length - 1], present = endRoom.querySelector('.present'),
       letter = endRoom.querySelector('.letter'), cv = endRoom.querySelector('.confetti'),
-      lid = endRoom.querySelector('.blid'), halves = [...endRoom.querySelectorAll('.half')];
+      lid = endRoom.querySelector('.blid'), halves = [...endRoom.querySelectorAll('.half')],
+      lwrap = endRoom.querySelector('.lwrap'), eplaque = endRoom.querySelector('.plaque');
+// 卡片落在展签上方，让「已由寿星拆开」露出来；屏幕太矮放不下时，卡片整体缩小
+function fitLetter() {
+  const room = endRoom.getBoundingClientRect(), pq = eplaque.getBoundingClientRect();
+  lwrap.style.bottom = `${Math.round(room.bottom - pq.top + 8)}px`;
+  letter.style.setProperty('--fit', Math.min(1, lwrap.clientHeight / letter.offsetHeight).toFixed(3));
+}
 function openGift() {
   if (endRoom.classList.contains('open')) return;
+  fitLetter();
   const b = present.getBoundingClientRect(), c = letter.getBoundingClientRect();
   letter.style.transition = 'none';
   letter.style.setProperty('--dy', `${Math.round(b.top + b.height / 2 - (c.top + c.height / 2))}px`);
