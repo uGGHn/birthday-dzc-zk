@@ -57,8 +57,13 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .room.k-gift{--wall:#3e1228;--wall-deep:#210916;--wall-low:#350f22}
 #end{--wall:#3b2816;--wall-deep:#1e140b;--wall-low:#332212}
 #intro{--wall:#331215;--wall-deep:#1f0a0d;--wall-low:#2c1013}
-.room::before{content:"";position:absolute;top:0;left:0;width:16px;bottom:var(--floor-h);
-  background:linear-gradient(to right,rgba(0,0,0,.28),rgba(var(--L),.06) 50%,rgba(0,0,0,.28))}
+/* 门柱：跨在两个展厅交界处，左右各一半；正面受光，两侧往墙上投影 */
+.room::before,.room::after{content:"";position:absolute;top:0;width:40px;bottom:var(--floor-h);pointer-events:none}
+.room::before{left:0;background:linear-gradient(to right,rgba(var(--L),.1) 0,rgba(var(--L),.04) 12px,rgba(0,0,0,.5) 16px,rgba(0,0,0,.24) 20px,transparent 40px)}
+.room::after{right:0;background:linear-gradient(to left,rgba(var(--L),.1) 0,rgba(var(--L),.04) 12px,rgba(0,0,0,.5) 16px,rgba(0,0,0,.24) 20px,transparent 40px)}
+.lights{position:absolute;inset:0;pointer-events:none}
+.defs{position:absolute;width:0;height:0;overflow:hidden}
+.dimmer{position:absolute;inset:0;z-index:3;background:#050303;opacity:0;pointer-events:none}
 
 /* 灯：镜头停稳后才开，闪两下亮起 */
 .beam{position:absolute;top:0;left:50%;width:384px;margin-left:-192px;bottom:var(--floor-h);opacity:0;
@@ -72,7 +77,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .lamp{position:absolute;top:0;left:50%;width:16px;height:20px;margin-left:-8px;background:#160809;border-radius:0 0 4px 4px}
 .lamp::after{content:"";position:absolute;left:4px;right:4px;bottom:-4px;height:4px;border-radius:50%;opacity:0;
   background:rgba(var(--L),.9);box-shadow:0 0 12px 4px rgba(var(--L),.48)}
-.shade{position:absolute;inset:0;background:rgba(10,4,5,.8);pointer-events:none}
+.shade{position:absolute;inset:0;z-index:3;background:rgba(10,4,5,.8);pointer-events:none}
 .room.lit .beam,.room.lit .pool,.room.lit .spill,.room.lit .lamp::after{animation:on 1s linear both}
 .room.lit .shade{animation:off 1s linear both}
 @keyframes on{0%{opacity:0}8%{opacity:.9}16%{opacity:.1}28%{opacity:1}36%{opacity:.4}48%,100%{opacity:1}}
@@ -90,7 +95,12 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .piece{display:flex;flex-direction:column;align-items:center;transition:opacity .24s,transform .24s}
 .piece.swap{opacity:0;transform:translateY(8px)}
 .plinth{flex:none;position:relative;width:208px;height:96px;
-  background:linear-gradient(to bottom,#f4efe7 0,#f4efe7 8px,#ddd4c8 8px,#bdb2a4 100%)}
+  background:
+    linear-gradient(to right,rgba(0,0,0,.06) 0,transparent 16%,transparent 68%,rgba(0,0,0,.18) 100%),
+    linear-gradient(to bottom,#fffbf4 0,#f4efe7 2px,#ece5da 8px,#dbd2c5 8px,#c6bcae 100%);
+  box-shadow:inset 0 -1px 0 rgba(0,0,0,.14)}
+.plinth::before{content:"";position:absolute;left:24px;right:24px;top:0;height:8px;
+  background:radial-gradient(ellipse 50% 100% at 50% 0,rgba(0,0,0,.28),transparent 100%)}
 .plinth::after{content:"";position:absolute;left:-24px;right:-24px;top:calc(100% - 4px);height:16px;
   background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(0,0,0,.56),transparent 100%)}
 .plaque{width:184px;height:56px;padding:8px 12px;border-radius:4px;color:var(--ink);
@@ -110,10 +120,16 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 
 /* 展品 01：展柜，揭晓时玻璃罩升起，字下标出序号 */
 .vit{position:relative;width:152px;height:136px;display:flex;align-items:center;justify-content:center}
-.glass{position:absolute;inset:0;border:1px solid rgba(255,255,255,.3);border-bottom:0;
-  background:linear-gradient(112deg,rgba(255,255,255,.16) 0,rgba(255,255,255,.04) 30%,rgba(255,255,255,0) 56%,rgba(255,255,255,.06) 100%);
+.glass{position:absolute;inset:0;border:1px solid rgba(255,255,255,.34);border-bottom:0;
+  background:
+    linear-gradient(115deg,transparent 0 14%,rgba(255,255,255,.16) 14% 20%,transparent 20% 26%,rgba(255,255,255,.08) 26% 29%,transparent 29%),
+    linear-gradient(to bottom,rgba(255,255,255,.12),rgba(255,255,255,.03) 36%,rgba(255,255,255,.06));
+  box-shadow:inset 2px 0 0 rgba(255,255,255,.14),inset -1px 0 0 rgba(255,255,255,.08);
   transition:transform .8s var(--ease),opacity .8s}
-.vbase{width:160px;height:8px;background:#1d1112}
+.glass::before{content:"";position:absolute;left:-1px;right:-1px;top:-12px;height:12px;border-top:1px solid rgba(255,255,255,.42);
+  background:linear-gradient(to bottom,rgba(255,255,255,.04),rgba(255,255,255,.16));
+  clip-path:polygon(8% 0,92% 0,100% 100%,0 100%)}
+.vbase{width:160px;height:8px;background:linear-gradient(to bottom,#5a4040 0,#150c0c 2px,#241616 100%)}
 .word{position:relative;font:40px/48px var(--serif);letter-spacing:4px;padding-left:4px;white-space:nowrap;
   color:var(--chalk);text-shadow:0 0 24px rgba(var(--L),.4)}
 .ch{position:relative;display:inline-block}
@@ -126,11 +142,14 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 
 /* 展品 02：挂画，揭晓时画往前浮出、画框往后上方退开，圈出筷子尖 */
 .pic{position:relative;width:240px;height:184px}
-.canvas{position:absolute;z-index:1;left:12px;top:12px;display:block;box-shadow:0 8px 16px rgba(0,0,0,.36);
+.canvas{position:absolute;z-index:1;left:12px;top:12px;display:block;
+  box-shadow:0 0 0 2px #e9d08f,0 0 0 3px rgba(60,40,10,.55),0 8px 16px rgba(0,0,0,.36);
   transition:transform .8s var(--ease),box-shadow .8s}
 .ring{position:absolute;inset:0;border:12px solid #b08a4f;
-  border-image:linear-gradient(135deg,#e6c98f 0,#a37b43 38%,#dcbb7d 62%,#8a6634 100%) 1;
+  border-image:linear-gradient(135deg,#6e5023 0,#e6c98f 16%,#a37b43 32%,#f3dca2 48%,#9a7238 64%,#dcbb7d 80%,#6e5023 100%) 1;
+  outline:1px solid rgba(255,240,205,.5);outline-offset:-1px;
   box-shadow:0 16px 32px rgba(0,0,0,.5);transition:transform .8s var(--ease),opacity .8s}
+.ring::before{content:"";position:absolute;inset:-7px;border:1px solid rgba(70,48,16,.5);box-shadow:0 0 0 1px rgba(255,240,200,.22);pointer-events:none}
 .tagt{font-family:var(--serif);font-size:16px;fill:#3a2a22}
 .menu{font-family:var(--serif);font-size:12px;fill:#3a2a22}
 /* 画放大 1.12 倍后，筷子尖落在 (44,152) 或 (196,152) */
@@ -144,7 +163,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .pic .co::before{width:40px}
 .pic.L .co::before{left:calc(100% + 4px)}
 .pic.R .co::before{right:calc(100% + 4px)}
-.torn .canvas{transform:scale(1.12);box-shadow:0 24px 48px rgba(0,0,0,.56)}
+.torn .canvas{transform:scale(1.12);box-shadow:0 0 0 2px #e9d08f,0 0 0 3px rgba(60,40,10,.55),0 24px 48px rgba(0,0,0,.56)}
 .torn .ring{transform:translateY(-48px) scale(.96);opacity:.8}
 .torn .tipmark{opacity:1}
 
@@ -160,21 +179,30 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .deck{position:absolute;left:0;right:0;bottom:0;height:var(--floor-h);padding:16px 16px calc(16px + var(--sb))}
 .play{display:flex;align-items:center;justify-content:center;gap:32px;height:72px}
 .btn{flex:none;width:72px;height:72px;padding:0;border:0;border-radius:50%;
-  font:16px/20px var(--display);color:#3b2a14;
-  background:radial-gradient(circle at 50% 32%,#f2dcaa 0,#c9a46a 48%,#8a6634 100%);
-  box-shadow:0 0 0 4px #241311,0 0 0 8px rgba(var(--L),.1),0 8px 16px rgba(0,0,0,.5),inset 0 -4px 8px rgba(0,0,0,.24);
+  font:16px/20px var(--display);color:#3b2a14;text-shadow:0 1px 0 rgba(255,244,214,.6),0 -1px 0 rgba(60,40,10,.3);
+  background:
+    radial-gradient(circle at 50% 28%,rgba(255,250,235,.55) 0,rgba(255,250,235,0) 36%),
+    repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.07) 0deg 2deg,rgba(0,0,0,.05) 2deg 4deg),
+    radial-gradient(circle at 50% 40%,#f0d9a6 0,#c9a46a 52%,#8a6634 100%);
+  box-shadow:0 0 0 4px #241311,0 0 0 5px rgba(var(--L),.22),0 0 0 8px rgba(var(--L),.08),0 8px 16px rgba(0,0,0,.5),
+    inset 0 -4px 8px rgba(0,0,0,.28),inset 0 2px 2px rgba(255,248,230,.5);
   transition:transform .12s,box-shadow .3s,background .3s}
 .btn:active:not(:disabled){transform:translateY(4px)}
 .btn:disabled{cursor:default}
-.btn.glow{background:radial-gradient(circle at 50% 40%,#fffaf0 0,#ffe7bd 44%,#e0b06a 100%);
-  box-shadow:0 0 0 4px #241311,0 0 0 8px rgba(var(--L),.32),0 0 32px 8px rgba(var(--L),.5),inset 0 -4px 8px rgba(0,0,0,.12)}
+.btn.glow{background:
+    radial-gradient(circle at 50% 28%,rgba(255,255,255,.7) 0,rgba(255,255,255,0) 40%),
+    repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.08) 0deg 2deg,rgba(0,0,0,.03) 2deg 4deg),
+    radial-gradient(circle at 50% 40%,#fffaf0 0,#ffe7bd 44%,#e0b06a 100%);
+  box-shadow:0 0 0 4px #241311,0 0 0 5px rgba(var(--L),.4),0 0 0 8px rgba(var(--L),.32),0 0 32px 8px rgba(var(--L),.5),inset 0 -4px 8px rgba(0,0,0,.12)}
 .btn.miss{animation:miss .32s}
 @keyframes miss{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .btn:focus-visible{outline:2px solid var(--chalk);outline-offset:8px}
-.lamps{display:flex;gap:8px}
-.lamps i{width:12px;height:12px;border-radius:50%;background:#2a1414;
-  box-shadow:inset 0 4px 4px rgba(0,0,0,.7),0 0 0 1px rgba(var(--L),.12);transition:background .24s,box-shadow .24s}
-.lamps i.on{background:#ffe7bd;box-shadow:0 0 8px 4px rgba(var(--L),.45)}
+.lamps{display:flex;gap:12px}
+.lamps i{width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 36% 30%,rgba(255,255,255,.32) 0 1px,rgba(255,255,255,0) 3px),radial-gradient(circle at 50% 60%,#3a2422,#160c0c);
+  box-shadow:0 0 0 2px #8a6634,0 0 0 3px rgba(0,0,0,.5),inset 0 -2px 3px rgba(0,0,0,.6);transition:background .24s,box-shadow .24s}
+.lamps i.on{background:radial-gradient(circle at 36% 30%,#fff 0 1px,rgba(255,255,255,0) 3px),radial-gradient(circle at 50% 56%,#fff6dc 0,#ffd98f 52%,#e0a24a 100%);
+  box-shadow:0 0 0 2px #c9a46a,0 0 12px 4px rgba(var(--L),.6),0 0 24px 8px rgba(var(--L),.24)}
 .res{margin-top:12px;height:20px;font:16px/20px var(--serif);color:var(--chalk);text-align:center}
 .sub{margin-top:4px;height:20px;font:12px/20px var(--sans);color:var(--chalk-2);text-align:center}
 .docent{margin:-12px 0;padding:12px 16px;border:0;background:none;font:12px/20px var(--sans);color:var(--brass);
@@ -198,29 +226,53 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 @keyframes shine{from{background-position:100% 0}to{background-position:0 0}}
 @keyframes shine-rtl{from{background-position:0 0}to{background-position:100% 0}}
 .next{margin-top:12px;height:48px;padding:0 16px;font:16px/24px var(--serif);letter-spacing:4px}
+/* 到厅后依次入场：灯亮之后，左按钮、连对灯、右按钮、提示依次从地面升起 */
+.slot{display:block;transition:opacity .48s,transform .64s var(--ease)}
+.room:not(.ready) .slot{opacity:0;transform:translateY(16px)}
+.room.ready .s1{transition-delay:.56s}
+.room.ready .s2{transition-delay:.68s}
+.room.ready .s3{transition-delay:.8s}
+.room.ready .s4{transition-delay:1s}
+.room.ready .lamps i{animation:lampin .32s ease-out .76s}
+.room.ready .lamps i:nth-child(2){animation-delay:.84s}
+.room.ready .lamps i:nth-child(3){animation-delay:.92s}
+.room.ready .lamps i:nth-child(4){animation-delay:1s}
+@keyframes lampin{40%{background:radial-gradient(circle at 50% 56%,#fff6dc 0,#ffd98f 52%,#e0a24a 100%);box-shadow:0 0 0 2px #c9a46a,0 0 12px 4px rgba(var(--L),.6)}}
 
 /* 前言和门票 */
-.wallwash{position:absolute;top:0;left:0;right:0;height:72%;opacity:0;transition:opacity 1.2s;
-  background:radial-gradient(ellipse 80% 64% at 24% 0,rgba(var(--L),.22),transparent 100%)}
+.wallwash{position:absolute;top:0;left:0;right:0;height:80%;opacity:0;transition:opacity 1.2s;
+  background:
+    radial-gradient(ellipse 36% 72% at 16% 0,rgba(var(--L),.2),transparent 100%),
+    radial-gradient(ellipse 90% 56% at 40% 0,rgba(var(--L),.1),transparent 100%)}
 .wallc{position:absolute;left:24px;right:24px;top:calc(var(--hud) + var(--st));bottom:var(--floor-h);
   display:flex;align-items:center;justify-content:center}
-.intro{display:grid;grid-template-columns:auto 1fr;column-gap:24px;width:100%;max-width:480px;opacity:0;transition:opacity 1.2s .32s}
+.intro{display:grid;grid-template-columns:auto 1px 1fr;column-gap:20px;width:100%;max-width:480px;opacity:0;transition:opacity 1.2s .32s}
+.vr{align-self:stretch;background:linear-gradient(to bottom,transparent,rgba(201,164,106,.72) 12%,rgba(201,164,106,.72) 88%,transparent)}
 #intro.on .wallwash,#intro.on .intro{opacity:1}
-.vt{margin:0;writing-mode:vertical-rl;font:400 48px/64px var(--serif);letter-spacing:16px;color:var(--chalk);
-  text-shadow:0 0 32px rgba(var(--L),.3)}
+.vt{margin:0;writing-mode:vertical-rl;font:400 56px/64px var(--serif);letter-spacing:16px;color:#f8eee0;
+  text-shadow:0 0 1px rgba(255,248,236,.6),0 0 40px rgba(var(--L),.36)}
 .names{font:24px/32px var(--display);color:var(--chalk)}
 .dates{margin-top:8px;font:16px/24px var(--display);color:var(--chalk-2)}
 .pre{margin-top:24px;font:16px/28px var(--serif);color:var(--chalk-2)}
 .credit{margin-top:24px;font:12px/16px var(--sans);color:var(--chalk-2)}
-#intro .deck{padding-top:8px;display:flex;flex-direction:column;align-items:center}
+#intro .deck{padding-top:8px;display:flex;flex-direction:column;align-items:center;
+  background:
+    linear-gradient(to bottom,rgba(255,226,186,.22) 0,rgba(255,226,186,0) 2px),
+    radial-gradient(ellipse 64% 88% at 50% 0,rgba(var(--L),.14),transparent 100%),
+    var(--grain),
+    repeating-linear-gradient(93deg,rgba(0,0,0,.2) 0 2px,rgba(0,0,0,0) 2px 12px,rgba(255,214,170,.05) 12px 13px,rgba(0,0,0,0) 13px 24px),
+    linear-gradient(to bottom,#3b2519,#1f120c);
+  background-size:auto,auto,192px 192px,auto,auto;background-blend-mode:normal,normal,soft-light,normal,normal}
 .ticket{position:relative;display:flex;flex:none;width:100%;max-width:344px;height:112px;padding:0;border:0;
-  border-radius:4px;color:var(--ink);text-align:left;box-shadow:0 8px 24px rgba(0,0,0,.45);
-  opacity:0;transition:opacity 1.2s .8s}
+  background:none;color:var(--ink);text-align:left;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5)) drop-shadow(0 12px 12px rgba(0,0,0,.4));
+  transform:rotate(-2deg);opacity:0;transition:opacity 1.2s .8s}
 #intro.on .ticket{opacity:1}
-.ticket::before,.ticket::after{content:"";position:absolute;right:64px;width:16px;height:16px;border-radius:50%;background:#1c1415}
-.ticket::before{top:-8px}
-.ticket::after{bottom:-8px;background:#0f0b0b}
-.tmain{position:relative;flex:1;min-width:0;padding:12px 16px;display:flex;flex-direction:column;justify-content:space-between;
+/* 齿孔两端的半圆缺口：真的挖空，台面和墙从缺口里透出来 */
+.tmain{-webkit-mask-image:radial-gradient(circle at 100% 0,transparent 8px,#000 8.5px),radial-gradient(circle at 100% 100%,transparent 8px,#000 8.5px);
+  -webkit-mask-composite:source-in;mask-composite:intersect}
+.stub{-webkit-mask-image:radial-gradient(circle at 0 0,transparent 8px,#000 8.5px),radial-gradient(circle at 0 100%,transparent 8px,#000 8.5px);
+  -webkit-mask-composite:source-in;mask-composite:intersect}
+.tmain{position:relative;flex:1;min-width:0;padding:12px 16px;border-radius:4px 0 0 4px;display:flex;flex-direction:column;justify-content:space-between;
   border-right:1px dashed rgba(43,27,28,.32)}
 .tmain::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;right:0;border:1px solid rgba(201,164,106,.56);border-right:0;pointer-events:none}
 .trow{display:flex;align-items:baseline;gap:12px}
@@ -240,8 +292,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 #intro.on .ticket:not(.drag):not(.torn) .stub{animation:tug 4s 2.4s infinite}
 @keyframes tug{0%,80%,100%{transform:none}86%{transform:rotate(6deg)}92%{transform:rotate(2deg)}}
 .ticket.drag .stub{transition:none;animation:none}
-.ticket.torn .stub{animation:none;transform:translate(32px,160px) rotate(56deg);opacity:0;
-  transition:transform .64s cubic-bezier(.5,0,.75,0),opacity .64s .16s}
+.ticket.torn .stub{animation:none;transform:translate(-24px,36px) rotate(14deg);transition:transform .56s cubic-bezier(.3,1.3,.5,1)}
 .thint{margin-top:8px;font:12px/16px var(--sans);letter-spacing:4px;transition:opacity .4s}
 .ticket.torn+.thint{opacity:0}
 
@@ -255,8 +306,9 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 #end.lit:not(.open):not(.drag) .bigbox .blid{animation:nudge 4s 1.6s infinite}
 @keyframes nudge{0%,84%,100%{transform:none}88%{transform:translateY(-4px) rotate(-2deg)}92%{transform:none}96%{transform:translateY(-4px) rotate(2deg)}}
 #end.open .bigbox .blid{animation:none;transform:translateY(-96px) rotate(-16deg);opacity:0}
-#end.open .bigbox .half.l{transform:translateX(-32px) rotate(-10deg);opacity:.32}
-#end.open .bigbox .half.r{transform:translateX(32px) rotate(10deg);opacity:.32}
+#end.open .bigbox .half{opacity:0;transition:transform 1s var(--ease),opacity .8s 1.4s}
+#end.open .bigbox .half.l{transform:translateX(-32px) rotate(-10deg)}
+#end.open .bigbox .half.r{transform:translateX(32px) rotate(10deg)}
 .plaque.solo{display:block;text-align:center}
 .lwrap{position:absolute;left:24px;right:24px;top:calc(var(--hud) + var(--st));bottom:var(--floor-h);
   display:flex;align-items:center;justify-content:center;pointer-events:none}
@@ -303,6 +355,17 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 </style>
 </head>
 <body>
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
+  <linearGradient id="gRib" x1="0" x2="1"><stop offset="0" stop-color="#8f6a30"/><stop offset=".32" stop-color="#ecd59e"/><stop offset=".5" stop-color="#c9a46a"/><stop offset="1" stop-color="#83602b"/></linearGradient>
+  <linearGradient id="gRibH" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8f6a30"/><stop offset=".32" stop-color="#ecd59e"/><stop offset=".5" stop-color="#c9a46a"/><stop offset="1" stop-color="#83602b"/></linearGradient>
+  <linearGradient id="gFront" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f8f2e7"/><stop offset="1" stop-color="#e0d5c2"/></linearGradient>
+  <linearGradient id="gSide" x1="0" x2="1"><stop offset="0" stop-color="#d9ccb6"/><stop offset="1" stop-color="#bcad96"/></linearGradient>
+  <linearGradient id="gLid" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fffbf3"/><stop offset="1" stop-color="#e9dfcd"/></linearGradient>
+  <radialGradient id="gBow" cx=".42" cy=".36" r=".72"><stop offset="0" stop-color="#f4dfae"/><stop offset=".55" stop-color="#c9a46a"/><stop offset="1" stop-color="#7e5c29"/></radialGradient>
+  <linearGradient id="gPost" x1="0" x2="1"><stop offset="0" stop-color="#5c431d"/><stop offset=".3" stop-color="#f0d9a2"/><stop offset=".52" stop-color="#c9a46a"/><stop offset="1" stop-color="#4a3616"/></linearGradient>
+  <radialGradient id="gKnob" cx=".36" cy=".3" r=".74"><stop offset="0" stop-color="#fff2cf"/><stop offset=".45" stop-color="#d9b97c"/><stop offset="1" stop-color="#6a4e22"/></radialGradient>
+  <radialGradient id="gFoot" cx=".5" cy=".2" r=".85"><stop offset="0" stop-color="#e3c88f"/><stop offset="1" stop-color="#4a3616"/></radialGradient>
+</defs></svg>
 <div id="app">
   <div id="dolly">
     <div id="track">
@@ -311,6 +374,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
         <div class="wallc">
           <div class="intro">
             <h1 class="vt">生日特展</h1>
+            <span class="vr" aria-hidden="true"></span>
             <div>
               <p class="names">DZC &amp; ZK</p>
               <p class="dates">展期 10.09 至 10.20</p>
@@ -320,8 +384,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
           </div>
         </div>
         <div class="deck">
-          <button class="ticket paper" type="button" aria-label="生日特展入场券，按住票根往下撕">
-            <span class="tmain">
+          <button class="ticket" type="button" aria-label="生日特展入场券，按住票根往下撕">
+            <span class="tmain paper">
               <span class="trow sp"><span class="ttl">生日特展</span><span class="tt">入场券</span></span>
               <span class="trow"><span class="tl">持票人</span><span class="tn">DZC　ZK</span></span>
               <span class="trow sp"><span class="tf">展期 10.09 至 10.20</span><span class="tf">两人同行</span></span>
@@ -330,20 +394,25 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
           </button>
           <p class="thint swipe"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="shine">按住票根，往下撕</span></p>
         </div>
+        <div class="dimmer"></div>
       </section>
       <section class="room" id="end">
-        <div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div>
+        <div class="lights"><div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div></div>
         <div class="stage">
           <button class="present" type="button" aria-label="拆开礼物">
             <svg class="bigbox" viewBox="0 0 208 168" width="208" height="168" aria-hidden="true">
-              <g class="half l"><rect x="32" y="64" width="72" height="104" fill="#eae1d2"/>
-                <rect x="96" y="64" width="8" height="104" fill="#c9a46a"/><rect x="32" y="104" width="72" height="12" fill="#c9a46a"/></g>
-              <g class="half r"><rect x="104" y="64" width="72" height="104" fill="#d9cdb9"/>
-                <rect x="104" y="64" width="8" height="104" fill="#b8925a"/><rect x="104" y="104" width="72" height="12" fill="#b8925a"/></g>
-              <g class="blid"><rect x="24" y="44" width="160" height="24" fill="#f4ede2"/><rect x="24" y="64" width="160" height="4" fill="#cdbfa9"/>
-                <rect x="96" y="44" width="16" height="24" fill="#c9a46a"/>
-                <path d="M104 44C84 12 56 22 76 42Z" fill="#b38c55"/><path d="M104 44C124 12 152 22 132 42Z" fill="#b38c55"/>
-                <circle cx="104" cy="42" r="8" fill="#c9a46a"/></g>
+              <ellipse class="half" cx="104" cy="168" rx="84" ry="4" fill="#000" opacity=".28"/>
+              <g class="half l"><rect x="32" y="64" width="72" height="104" fill="url(#gFront)"/>
+                <rect x="96" y="64" width="8" height="104" fill="url(#gRib)"/><rect x="32" y="104" width="72" height="12" fill="url(#gRibH)"/></g>
+              <g class="half r"><rect x="104" y="64" width="72" height="104" fill="url(#gSide)"/>
+                <rect x="104" y="64" width="8" height="104" fill="url(#gRib)"/><rect x="104" y="104" width="72" height="12" fill="url(#gRibH)"/>
+                <rect x="104" y="64" width="72" height="104" fill="#000" opacity=".06"/></g>
+              <g class="blid"><rect x="24" y="44" width="160" height="24" fill="url(#gLid)"/><rect x="24" y="44" width="160" height="1" fill="#fff" opacity=".7"/>
+                <rect x="24" y="64" width="160" height="4" fill="#cdbfa9"/>
+                <rect x="96" y="44" width="16" height="24" fill="url(#gRib)"/>
+                <path d="M104 44C84 12 56 22 76 42Z" fill="url(#gBow)"/><path d="M104 44C124 12 152 22 132 42Z" fill="url(#gBow)"/>
+                <path d="M102 42C90 26 76 26 80 36M106 42C118 26 132 26 128 36" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/>
+                <circle cx="104" cy="42" r="8" fill="url(#gRib)"/></g>
             </svg>
           </button>
           <div class="plinth"><div class="plaque solo paper"><span><span class="pa">给 DZC 和 ZK</span><span class="pb">本件展品，请动手拆开</span></span></div></div>
@@ -355,7 +424,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
           <p class="s">花花和佳佳<span class="seal" aria-hidden="true"><i>花</i><i>佳</i></span></p>
         </div></div>
         <canvas class="confetti" aria-hidden="true"></canvas>
-        <div class="deck"><p class="ehint swipe"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="shine">往上掀开盒盖</span></p></div>
+        <div class="dimmer"></div>
+        <div class="deck"><p class="ehint swipe slot s4"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="shine">往上掀开盒盖</span></p></div>
         <div class="shade"></div>
       </section>
     </div>
@@ -457,15 +527,19 @@ const CHOP = '<rect x="36" y="124" width="16" height="20" rx="4" fill="#a7bdb4"/
   + '<polygon points="156,127.5 172,127 172,133 156,133" fill="#2b1a16"/>'
   + '<polygon points="40,137 172,137 172,143 40,139" fill="#7b4a2f"/>'
   + '<polygon points="156,137 172,137 172,143 156,142.5" fill="#2b1a16"/>';
-const BODY = '<rect x="24" y="52" width="112" height="84" fill="#eae1d2"/>'
-  + '<rect x="104" y="52" width="32" height="84" fill="#d9cdb9"/>'
-  + '<rect x="72" y="56" width="16" height="80" fill="#c9a46a"/>';
-const LID = '<rect x="16" y="36" width="128" height="20" fill="#f4ede2"/>'
+const BODY = '<ellipse cx="80" cy="136" rx="64" ry="4" fill="#000" opacity=".28"/>'
+  + '<rect x="24" y="52" width="80" height="84" fill="url(#gFront)"/>'
+  + '<rect x="104" y="52" width="32" height="84" fill="url(#gSide)"/>'
+  + '<rect x="72" y="56" width="16" height="80" fill="url(#gRib)"/>'
+  + '<path d="M72 56v80M88 56v80" stroke="#000" stroke-opacity=".12" stroke-width="1"/>';
+const LID = '<rect x="16" y="36" width="128" height="20" fill="url(#gLid)"/>'
+  + '<rect x="16" y="36" width="128" height="1" fill="#fff" opacity=".7"/>'
   + '<rect x="16" y="52" width="128" height="4" fill="#cdbfa9"/>'
-  + '<rect x="72" y="36" width="16" height="20" fill="#c9a46a"/>'
-  + '<path d="M80 36C64 12 44 20 60 34Z" fill="#b38c55"/>'
-  + '<path d="M80 36C96 12 116 20 100 34Z" fill="#b38c55"/>'
-  + '<circle cx="80" cy="34" r="6" fill="#c9a46a"/>'
+  + '<rect x="72" y="36" width="16" height="20" fill="url(#gRib)"/>'
+  + '<path d="M80 36C64 12 44 20 60 34Z" fill="url(#gBow)"/>'
+  + '<path d="M80 36C96 12 116 20 100 34Z" fill="url(#gBow)"/>'
+  + '<path d="M78 34C68 22 58 22 62 30M82 34C92 22 102 22 98 30" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/>'
+  + '<circle cx="80" cy="34" r="6" fill="url(#gRib)"/>'
   + '<path d="M86 36C112 40 132 50 142 62" fill="none" stroke="#8d7a5f" stroke-width="1"/>';
 
 // 每件展品的样子；.co 和 .gco 是揭晓时才出现的引线
@@ -510,20 +584,20 @@ const plaque = (L, i, wall) => `<div class="plaque paper${wall ? ' on-wall' : ''
   + `<span><span class="pa">${L.title}</span><span class="pb">${L.ask}</span></span></div>`;
 const roomHTML = (L, i) => `<section class="room k-${L.kind}">`
   + `<div class="rno" aria-hidden="true">0${i + 1}</div>`
-  + '<div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div>'
+  + '<div class="lights"><div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div></div>'
   + `<div class="stage"><div class="piece" role="img"></div>`
   + (L.kind === 'painting' ? plaque(L, i, true) : `<div class="plinth">${plaque(L, i)}</div>`) + '</div>'
   + '<div class="deck">'
-  + `<div class="play"><button class="btn" type="button" disabled>${L.opts[0]}</button>`
-  + `<span class="lamps" role="img" aria-label="连对 0 次"><i></i><i></i><i></i><i></i></span>`
-  + `<button class="btn" type="button" disabled>${L.opts[1]}</button></div>`
+  + `<div class="play"><span class="slot s1"><button class="btn" type="button" disabled>${L.opts[0]}</button></span>`
+  + `<span class="slot s2"><span class="lamps" role="img" aria-label="连对 0 次"><i></i><i></i><i></i><i></i></span></span>`
+  + `<span class="slot s3"><button class="btn" type="button" disabled>${L.opts[1]}</button></span></div>`
   + '<p class="res" aria-live="polite"></p>'
-  + `<p class="sub"><span class="hint">连对 ${STREAK} 次过关</span><button class="docent" type="button" hidden></button></p>`
+  + `<p class="sub slot s4"><span class="hint">连对 ${STREAK} 次过关</span><button class="docent" type="button" hidden></button></p>`
   + `<div class="done"><p class="dk"></p><p class="drule"></p>`
   + `<button class="next swipe" type="button" aria-label="${i === LEVELS.length - 1 ? '走向结语' : '走向下一个展厅'}">`
   + '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 3L4 8l5 5M13 3L8 8l5 5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   + `<span class="shine rtl">${i === LEVELS.length - 1 ? '向左滑，走向结语' : '向左滑，去下一个展厅'}</span></button></div>`
-  + '</div><div class="shade"></div></section>';
+  + '</div><div class="dimmer"></div><div class="shade"></div></section>';
 
 const $ = s => document.querySelector(s);
 const dolly = $('#dolly'), track = $('#track'), rope = $('#rope'), hud = $('.hud'), hudC = $('.hud .c'),
@@ -543,13 +617,20 @@ const first = LEVELS.map(L => gen(L, [], []));
 LEVELS.forEach((L, i) => paint(rooms[i + 1].querySelector('.piece'), L, first[i]));
 
 // 镜头：pos 是镜头所在的展厅序号，移动中是小数。手指拖动和自动移动都只改 pos
-let W = innerWidth, cur = 0, pos = 0, S = null, moving = false, camTok = 0;
+let W = innerWidth, cur = 0, pos = 0, S = null, moving = false, camTok = 0, dimAt = -1;
+const dimmers = rooms.map(r => r.querySelector('.dimmer'));
 function setCam(p) {
   pos = p;
-  const f = p - Math.floor(p);
+  const base = Math.floor(p + 1e-6), f = p - base, moved = f > 1e-4 && f < 1 - 1e-4;
   track.style.transform = `translate3d(${-p * W}px,0,0)`;
   rope.style.transform = `translate3d(${-p * W * 1.25}px,0,0)`;
-  dolly.style.transform = f > 1e-4 && f < 1 - 1e-4 ? `scale(${1 - .16 * Math.sin(Math.PI * f)})` : '';
+  // 往前推：中途放大 8%，上下起伏两步
+  const k = Math.sin(Math.PI * f);
+  dolly.style.transform = moved ? `translate3d(0,${(4 * k * Math.sin(4 * Math.PI * f)).toFixed(2)}px,0) scale(${(1 + .08 * k).toFixed(4)})` : '';
+  // 正在离开的展厅跟着镜头变暗，手指拖回去它又亮回来
+  if (dimAt !== base && dimmers[dimAt]) dimmers[dimAt].style.opacity = 0;
+  if (dimmers[base]) dimmers[base].style.opacity = moved ? (.72 * f).toFixed(3) : 0;
+  dimAt = base;
 }
 const EASE = { io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, out: t => 1 - Math.pow(1 - t, 3) };
 // 新的移动或手指按下会让旧的移动作废；作废时返回 false
@@ -568,12 +649,16 @@ function tween(to, dur, ease) {
 }
 function buildRope() {
   rope.style.width = `${Math.ceil(W * 1.25 * rooms.length)}px`;
-  const post = x => `<rect x="${x - 4}" y="16" width="8" height="48" fill="#a98445"/>`
-    + `<rect x="${x - 4}" y="16" width="2" height="48" fill="#e3c88f"/>`
-    + `<circle cx="${x}" cy="16" r="6" fill="#d9b97c"/><ellipse cx="${x}" cy="64" rx="12" ry="4" fill="#7d5c2e"/>`;
+  const post = x => `<ellipse cx="${x}" cy="66" rx="16" ry="4" fill="#000" opacity=".4"/>`
+    + `<ellipse cx="${x}" cy="64" rx="12" ry="4" fill="url(#gFoot)"/>`
+    + `<rect x="${x - 4}" y="20" width="8" height="44" fill="url(#gPost)"/>`
+    + `<rect x="${x - 6}" y="20" width="12" height="4" rx="2" fill="url(#gPost)"/>`
+    + `<circle cx="${x}" cy="15" r="7" fill="url(#gKnob)"/>`;
   rope.innerHTML = LEVELS.map((L, i) => `<svg${rooms[i + 1].classList.contains('lit') ? ' class="lit"' : ''} style="left:${(i + 1) * W * 1.25}px" width="${W}" height="72" viewBox="0 0 ${W} 72" aria-hidden="true">`
-    + `<path d="M28 20Q${W / 2} 52 ${W - 28} 20" fill="none" stroke="#5a1720" stroke-width="6" stroke-linecap="round"/>`
-    + `<path d="M28 19Q${W / 2} 49 ${W - 28} 19" fill="none" stroke="#a5414d" stroke-width="2" stroke-linecap="round" opacity=".55"/>`
+    + `<path d="M28 23Q${W / 2} 55 ${W - 28} 23" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" opacity=".3"/>`
+    + `<path d="M28 20Q${W / 2} 52 ${W - 28} 20" fill="none" stroke="#5a1720" stroke-width="7" stroke-linecap="round"/>`
+    + `<path d="M28 19.5Q${W / 2} 51 ${W - 28} 19.5" fill="none" stroke="#86283a" stroke-width="3" stroke-linecap="round"/>`
+    + `<path d="M28 18Q${W / 2} 49 ${W - 28} 18" fill="none" stroke="#d26c78" stroke-width="1.2" stroke-linecap="round" opacity=".55"/>`
     + post(24) + post(W - 24) + '</svg>').join('');
 }
 function setW() {
@@ -603,7 +688,7 @@ async function peek() {
 function prepare(i) {
   const room = rooms[i + 1], q = s => room.querySelector(s);
   S = { i, L: LEVELS[i], room, piece: q('.piece'), btns: [...room.querySelectorAll('.btn')],
-        lampsEl: q('.lamps'), lamps: [...room.querySelectorAll('.lamps i')], res: q('.res'), hint: q('.hint'),
+        lights: q('.lights'), lampsEl: q('.lamps'), lamps: [...room.querySelectorAll('.lamps i')], res: q('.res'), hint: q('.hint'),
         docent: q('.docent'), dk: q('.dk'), drule: q('.drule'), next: q('.next'),
         item: first[i], keys: [first[i].key], hist: [], streak: 0, wrong: 0, hintOpen: false, busy: true, done: false, timer: 0 };
   S.btns.forEach((b, k) => { b.onclick = () => answer(k); });
@@ -631,19 +716,25 @@ async function go(next, fromDrag) {
   await moveTo(target, fromDrag ? EASE.out : EASE.io);
   lights(prev, false);
   lights(target, true);
+  rooms[target].classList.add('ready');
   moving = false;
   if (next < LEVELS.length) {
-    await wait(reduce ? 0 : 720);
+    await wait(reduce ? 0 : 1120);
     S.busy = false; setBtns(true);
   }
 }
 function answer(k) {
   if (S.busy || S.done) return;
   S.busy = true; setBtns(false);
+  tick();
   const ok = k === S.item.ans, right = S.btns[S.item.ans];
   S.hist.push(S.item.ans);
   if (ok) S.streak++; else { S.streak = 0; S.wrong++; S.btns[k].classList.add('miss'); }
   right.classList.add('glow');
+  if (!reduce && S.lights.animate) S.lights.animate(ok
+    ? [{ filter: 'brightness(1)' }, { filter: 'brightness(1.6) saturate(1.2)', offset: .3 }, { filter: 'brightness(1)' }]
+    : [{ opacity: 1 }, { opacity: .2, offset: .15 }, { opacity: .9, offset: .3 }, { opacity: .35, offset: .45 }, { opacity: 1 }],
+    { duration: ok ? 640 : 420, easing: 'ease-out' });
   S.lamps.forEach((l, j) => l.classList.toggle('on', j < S.streak));
   S.lampsEl.setAttribute('aria-label', `连对 ${S.streak} 次`);
   S.res.textContent = ok ? '对。' : `不对，是「${S.L.opts[S.item.ans]}」。`;
@@ -653,6 +744,7 @@ function answer(k) {
     S.btns.forEach(b => b.classList.remove('glow', 'miss'));
     S.item = gen(S.L, S.hist, S.keys); S.keys.push(S.item.key);
     S.res.textContent = '';
+    if (!reduce && S.lights.animate) S.lights.animate([{ opacity: 1 }, { opacity: .24, offset: .4 }, { opacity: 1 }], { duration: 560, easing: 'ease-in-out' });
     await show(S.piece, S.L, S.item);
     if (S.done) return;
     S.busy = false; setBtns(true);
@@ -712,6 +804,17 @@ function pluck(t, f, v) {
     o.connect(e); e.connect(master); o.start(t); o.stop(t + 1.7);
   });
 }
+function tick() {
+  if (!audio()) return;
+  const t = actx.currentTime;
+  [[1568, .1], [2349, .04]].forEach(([f, g]) => {
+    const o = actx.createOscillator(), e = actx.createGain();
+    o.frequency.value = f;
+    e.gain.setValueAtTime(g, t);
+    e.gain.exponentialRampToValueAtTime(.0001, t + .09);
+    o.connect(e); e.connect(master); o.start(t); o.stop(t + .1);
+  });
+}
 function playSong(sparkle) {
   if (!audio()) return;
   let t = actx.currentTime + .08;
@@ -763,6 +866,14 @@ function openGift() {
   present.disabled = true;
   playSong(true);
   confetti(b);
+  const pb = endRoom.querySelector('.plaque .pb');
+  setTimeout(() => {
+    if (reduce || !pb.animate) { pb.textContent = '本件展品，已由寿星拆开'; return; }
+    pb.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, fill: 'forwards' }).onfinish = () => {
+      pb.textContent = '本件展品，已由寿星拆开';
+      pb.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 480, fill: 'forwards' });
+    };
+  }, 1600);
 }
 present.addEventListener('click', e => {
   if (endRoom.classList.contains('open') || performance.now() - justDragged < 400) return;
