@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#260d10">
+<title>DZC & ZK 生日特展</title>
+<style>
+:root{
+  --wall:#3a1619;--wall-deep:#260d10;--floor:#1c0b0d;--void:#120607;
+  --L:255,224,173;
+  --brass:#c9a46a;--brass-ink:#8a6634;--card:#f2efe9;--ink:#2b1b1c;--ink-2:#7a6a66;
+  --chalk:#f3e7d8;--chalk-2:rgba(243,231,216,.64);
+  --serif:"Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC","Noto Serif SC",serif;
+  --display:"Didot","Bodoni 72","Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC","Noto Serif SC",serif;
+  --sans:"PingFang SC","HarmonyOS Sans SC","MiSans","Noto Sans CJK SC","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --W:100vw;--hud:48px;
+  --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);
+  --floor-h:calc(160px + var(--sb));
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--void);color:var(--chalk);font-family:var(--sans);
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none}
+p{margin:0}
+button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webkit-appearance:none;appearance:none}
+
+/* 镜头：dolly 推拉，track 平移，rope 是前景隔离带（移动得比展厅快，产生纵深） */
+#app{position:fixed;inset:0;overflow:hidden;background:var(--void);touch-action:none;-webkit-touch-callout:none}
+#dolly{position:absolute;inset:0;transform-origin:50% 56%;will-change:transform}
+#track{position:absolute;top:0;left:0;height:100%;display:flex;will-change:transform}
+#rope{position:absolute;left:0;top:calc(100% - var(--floor-h) - 40px);height:72px;pointer-events:none;will-change:transform}
+#rope svg{position:absolute;top:0;filter:brightness(.32);transition:filter .6s .3s}
+#rope svg.lit{filter:none}
+.vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 72% at 50% 44%,transparent 52%,rgba(0,0,0,.56) 100%)}
+
+/* 展厅 */
+.room{position:relative;flex:none;width:var(--W);height:100%;overflow:hidden;
+  background:
+    linear-gradient(to bottom,transparent calc(100% - var(--floor-h) - 120px),rgba(var(--L),.08) calc(100% - var(--floor-h) - 120px),rgba(var(--L),.08) calc(100% - var(--floor-h) - 119px),transparent calc(100% - var(--floor-h) - 119px)),
+    linear-gradient(to bottom,var(--wall-deep) 0,var(--wall) 40%,#331317 calc(100% - var(--floor-h)),var(--floor) calc(100% - var(--floor-h)),#140708 100%)}
+.room::before{content:"";position:absolute;top:0;left:0;width:16px;bottom:var(--floor-h);
+  background:linear-gradient(to right,rgba(0,0,0,.28),rgba(var(--L),.06) 50%,rgba(0,0,0,.28))}
+
+/* 灯：镜头停稳后才开，闪两下亮起 */
+.beam{position:absolute;top:0;left:50%;width:384px;margin-left:-192px;bottom:var(--floor-h);opacity:0;
+  background:conic-gradient(from 156deg at 50% 0,transparent 0deg,rgba(var(--L),.16) 12deg,rgba(var(--L),.16) 36deg,transparent 48deg);
+  -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 64%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0,#000 64%,transparent 100%)}
+.pool{position:absolute;left:50%;bottom:var(--floor-h);width:320px;height:256px;margin-left:-160px;opacity:0;
+  background:radial-gradient(ellipse 50% 50% at 50% 80%,rgba(var(--L),.16),transparent 100%)}
+.spill{position:absolute;left:50%;top:calc(100% - var(--floor-h));width:320px;height:64px;margin-left:-160px;opacity:0;
+  background:radial-gradient(ellipse 50% 100% at 50% 0,rgba(var(--L),.12),transparent 100%)}
+.lamp{position:absolute;top:0;left:50%;width:16px;height:20px;margin-left:-8px;background:#160809;border-radius:0 0 4px 4px}
+.lamp::after{content:"";position:absolute;left:4px;right:4px;bottom:-4px;height:4px;border-radius:50%;opacity:0;
+  background:rgba(var(--L),.9);box-shadow:0 0 12px 4px rgba(var(--L),.48)}
+.shade{position:absolute;inset:0;background:rgba(10,4,5,.8);pointer-events:none}
+.room.lit .beam,.room.lit .pool,.room.lit .spill,.room.lit .lamp::after{animation:on 1s linear both}
+.room.lit .shade{animation:off 1s linear both}
+@keyframes on{0%{opacity:0}8%{opacity:.9}16%{opacity:.1}28%{opacity:1}36%{opacity:.4}48%,100%{opacity:1}}
+@keyframes off{0%{opacity:1}8%{opacity:.2}16%{opacity:.9}28%{opacity:0}36%{opacity:.6}48%,100%{opacity:0}}
+
+/* 展台和展签 */
+.stage{position:absolute;left:0;right:0;top:calc(var(--hud) + var(--st));bottom:var(--floor-h);
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.piece{display:flex;flex-direction:column;align-items:center;transition:opacity .24s,transform .24s}
+.piece.swap{opacity:0;transform:translateY(8px)}
+.plinth{flex:none;position:relative;width:208px;height:96px;
+  background:linear-gradient(to bottom,#f4efe7 0,#f4efe7 8px,#ddd4c8 8px,#bdb2a4 100%)}
+.plinth::after{content:"";position:absolute;left:-24px;right:-24px;top:calc(100% - 4px);height:16px;
+  background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(0,0,0,.56),transparent 100%)}
+.plaque{width:184px;height:56px;padding:8px 12px;border-radius:4px;background:var(--card);color:var(--ink);
+  display:grid;grid-template-columns:28px 1fr;column-gap:8px}
+.plinth .plaque{position:absolute;left:12px;top:16px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.plaque.on-wall{flex:none;margin:16px 0 40px;box-shadow:0 4px 8px rgba(0,0,0,.32)}
+.pn{font:20px/24px var(--display);color:var(--ink-2);transition:color .4s}
+.pa{display:block;font:16px/20px var(--serif);white-space:nowrap}
+.pb{display:block;margin-top:4px;font:12px/16px var(--sans);color:var(--ink-2);white-space:nowrap}
+.room.clear .pn{color:var(--brass-ink)}
+
+/* 拆解揭晓的引线 */
+.co{position:absolute;white-space:nowrap;font:12px/16px var(--sans);letter-spacing:0;color:var(--brass);
+  text-shadow:none;opacity:0;transition:opacity .4s 1s}
+.co::before{content:"";position:absolute;top:8px;height:1px;background:var(--brass)}
+.torn .co{opacity:1}
+
+/* 展品 01：展柜，揭晓时玻璃罩升起，字下标出序号 */
+.vit{position:relative;width:152px;height:136px;display:flex;align-items:center;justify-content:center}
+.glass{position:absolute;inset:0;border:1px solid rgba(255,255,255,.3);border-bottom:0;
+  background:linear-gradient(112deg,rgba(255,255,255,.16) 0,rgba(255,255,255,.04) 30%,rgba(255,255,255,0) 56%,rgba(255,255,255,.06) 100%);
+  transition:transform .8s var(--ease),opacity .8s}
+.vbase{width:160px;height:8px;background:#1d1112}
+.word{position:relative;font:40px/48px var(--serif);letter-spacing:4px;padding-left:4px;white-space:nowrap;
+  color:var(--chalk);text-shadow:0 0 24px rgba(var(--L),.4)}
+.ch{position:relative;display:inline-block}
+.ch::after{content:attr(data-n);position:absolute;left:0;top:100%;width:40px;text-align:center;
+  font:12px/16px var(--display);letter-spacing:0;color:var(--brass);text-shadow:none;opacity:0;transition:opacity .4s .8s}
+.word .co{left:100%;top:16px;padding-left:40px}
+.word .co::before{left:8px;width:24px}
+.torn .glass{transform:translateY(-96px);opacity:.4}
+.torn .ch::after{opacity:1}
+
+/* 展品 02：挂画，揭晓时画往前浮出、画框往后上方退开，圈出筷子尖 */
+.pic{position:relative;width:240px;height:184px}
+.canvas{position:absolute;z-index:1;left:12px;top:12px;display:block;box-shadow:0 8px 16px rgba(0,0,0,.36);
+  transition:transform .8s var(--ease),box-shadow .8s}
+.ring{position:absolute;inset:0;border:12px solid #b08a4f;
+  border-image:linear-gradient(135deg,#e6c98f 0,#a37b43 38%,#dcbb7d 62%,#8a6634 100%) 1;
+  box-shadow:0 16px 32px rgba(0,0,0,.5);transition:transform .8s var(--ease),opacity .8s}
+.tagt{font-family:var(--serif);font-size:16px;fill:#3a2a22}
+.menu{font-family:var(--serif);font-size:12px;fill:#3a2a22}
+/* 画放大 1.12 倍后，筷子尖落在 (44,152) 或 (196,152) */
+.tipmark{position:absolute;z-index:2;top:144px;width:16px;height:16px;border:1px solid var(--brass);border-radius:50%;
+  opacity:0;transition:opacity .4s .8s}
+.pic.L .tipmark{left:36px}
+.pic.R .tipmark{left:188px}
+.pic .co{z-index:2;top:144px}
+.pic.L .co{right:calc(100% + 8px)}
+.pic.R .co{left:calc(100% + 8px)}
+.pic .co::before{width:40px}
+.pic.L .co::before{left:calc(100% + 4px)}
+.pic.R .co::before{right:calc(100% + 4px)}
+.torn .canvas{transform:scale(1.12);box-shadow:0 24px 48px rgba(0,0,0,.56)}
+.torn .ring{transform:translateY(-48px) scale(.96);opacity:.8}
+.torn .tipmark{opacity:1}
+
+/* 展品 03：礼物，揭晓时盒盖连同吊牌掀起 */
+.gift{display:block;margin-left:48px;overflow:visible}
+.gift .lid{transition:transform .8s var(--ease)}
+.gco{opacity:0;transition:opacity .4s 1s}
+.gcot{font-family:var(--sans);font-size:12px;fill:var(--brass)}
+.torn .gift .lid{transform:translateY(-40px)}
+.torn .gco{opacity:1}
+
+/* 地面：两个铜按钮、四盏连对灯、结果 */
+.deck{position:absolute;left:0;right:0;bottom:0;height:var(--floor-h);padding:16px 16px calc(16px + var(--sb))}
+.play{display:flex;align-items:center;justify-content:center;gap:32px;height:72px}
+.btn{flex:none;width:72px;height:72px;padding:0;border:0;border-radius:50%;
+  font:16px/20px var(--display);color:#3b2a14;
+  background:radial-gradient(circle at 50% 32%,#f2dcaa 0,#c9a46a 48%,#8a6634 100%);
+  box-shadow:0 0 0 4px #241311,0 0 0 8px rgba(var(--L),.1),0 8px 16px rgba(0,0,0,.5),inset 0 -4px 8px rgba(0,0,0,.24);
+  transition:transform .12s,box-shadow .3s,background .3s}
+.btn:active:not(:disabled){transform:translateY(4px)}
+.btn:disabled{cursor:default}
+.btn.glow{background:radial-gradient(circle at 50% 40%,#fffaf0 0,#ffe7bd 44%,#e0b06a 100%);
+  box-shadow:0 0 0 4px #241311,0 0 0 8px rgba(var(--L),.32),0 0 32px 8px rgba(var(--L),.5),inset 0 -4px 8px rgba(0,0,0,.12)}
+.btn.miss{animation:miss .32s}
+@keyframes miss{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.btn:focus-visible{outline:2px solid var(--chalk);outline-offset:8px}
+.lamps{display:flex;gap:8px}
+.lamps i{width:12px;height:12px;border-radius:50%;background:#2a1414;
+  box-shadow:inset 0 4px 4px rgba(0,0,0,.7),0 0 0 1px rgba(var(--L),.12);transition:background .24s,box-shadow .24s}
+.lamps i.on{background:#ffe7bd;box-shadow:0 0 8px 4px rgba(var(--L),.45)}
+.res{margin-top:12px;height:20px;font:16px/20px var(--serif);color:var(--chalk);text-align:center}
+.sub{margin-top:4px;height:20px;font:12px/20px var(--sans);color:var(--chalk-2);text-align:center}
+.docent{margin:-12px 0;padding:12px 16px;border:0;background:none;font:12px/20px var(--sans);color:var(--brass);
+  text-decoration:underline;text-underline-offset:4px}
+.docent:focus-visible,.next:focus-visible,.ticket:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
+.play,.res,.sub{transition:opacity .4s}
+.done{position:absolute;left:16px;right:16px;top:16px;bottom:calc(16px + var(--sb));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .6s .6s}
+.room.clear .play,.room.clear .res,.room.clear .sub{opacity:0;pointer-events:none}
+.room.clear .done{opacity:1;pointer-events:auto}
+.done>*{flex:none}
+.dk{font:12px/16px var(--sans);color:var(--brass)}
+.drule{margin-top:4px;font:16px/24px var(--serif);color:var(--chalk);text-align:center;white-space:pre-line}
+/* 滑动提示：文字上有一道光扫过，方向就是该滑的方向 */
+.swipe{display:inline-flex;align-items:center;gap:8px;border:0;background:none;padding:0;color:var(--chalk-2)}
+.swipe svg{flex:none;width:16px;height:16px}
+.shine{background:linear-gradient(90deg,rgba(243,231,216,.48) 0,rgba(243,231,216,.48) 40%,#fff6e0 50%,rgba(243,231,216,.48) 60%,rgba(243,231,216,.48) 100%);
+  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 2.4s linear infinite}
+.shine.rtl{animation-name:shine-rtl}
+@keyframes shine{from{background-position:100% 0}to{background-position:0 0}}
+@keyframes shine-rtl{from{background-position:0 0}to{background-position:100% 0}}
+.next{margin-top:12px;height:48px;padding:0 16px;font:16px/24px var(--serif);letter-spacing:4px}
+
+/* 前言和门票 */
+.wallwash{position:absolute;top:0;left:0;right:0;height:72%;opacity:0;transition:opacity 1.2s;
+  background:radial-gradient(ellipse 80% 64% at 24% 0,rgba(var(--L),.22),transparent 100%)}
+.wallc{position:absolute;left:24px;right:24px;top:calc(var(--hud) + var(--st));bottom:var(--floor-h);
+  display:flex;align-items:center;justify-content:center}
+.intro{display:grid;grid-template-columns:auto 1fr;column-gap:24px;width:100%;max-width:480px;opacity:0;transition:opacity 1.2s .32s}
+#intro.on .wallwash,#intro.on .intro{opacity:1}
+.vt{margin:0;writing-mode:vertical-rl;font:400 48px/64px var(--serif);letter-spacing:16px;color:var(--chalk);
+  text-shadow:0 0 32px rgba(var(--L),.3)}
+.names{font:24px/32px var(--display);color:var(--chalk)}
+.dates{margin-top:8px;font:16px/24px var(--display);color:var(--chalk-2)}
+.pre{margin-top:24px;font:16px/28px var(--serif);color:var(--chalk-2)}
+.credit{margin-top:24px;font:12px/16px var(--sans);color:var(--chalk-2)}
+#intro .deck{padding-top:8px;display:flex;flex-direction:column;align-items:center}
+.ticket{position:relative;display:flex;flex:none;width:100%;max-width:344px;height:112px;padding:0;border:0;
+  border-radius:4px;background:var(--card);color:var(--ink);text-align:left;box-shadow:0 8px 24px rgba(0,0,0,.45);
+  opacity:0;transition:opacity 1.2s .8s}
+#intro.on .ticket{opacity:1}
+.ticket::before,.ticket::after{content:"";position:absolute;right:64px;width:16px;height:16px;border-radius:50%;background:#1a0a0c}
+.ticket::before{top:-8px}
+.ticket::after{bottom:-8px}
+.tmain{flex:1;min-width:0;padding:12px 16px;display:flex;flex-direction:column;border-right:1px dashed rgba(43,27,28,.32)}
+.tt{font:12px/16px var(--sans);color:var(--brass-ink)}
+.tl{margin-top:8px;font:12px/16px var(--sans);color:var(--ink-2)}
+.tn{font:24px/32px var(--display);letter-spacing:4px}
+.tf{font:12px/16px var(--sans);color:var(--ink-2)}
+/* 票根以左下角为轴：往下撕时上端先离开，裂口从上往下走 */
+.stub{flex:none;width:72px;display:flex;align-items:center;justify-content:center;border-radius:0 4px 4px 0;
+  background:#e8e2d6;transform-origin:0 100%;transition:transform .32s var(--ease)}
+.sv{writing-mode:vertical-rl;font:16px/24px var(--serif);letter-spacing:4px;color:var(--ink)}
+#intro.on .ticket:not(.drag):not(.torn) .stub{animation:tug 4s 2.4s infinite}
+@keyframes tug{0%,80%,100%{transform:none}86%{transform:rotate(6deg)}92%{transform:rotate(2deg)}}
+.ticket.drag .stub{transition:none;animation:none}
+.ticket.torn .stub{animation:none;transform:translate(32px,160px) rotate(56deg);opacity:0;
+  transition:transform .64s cubic-bezier(.5,0,.75,0),opacity .64s .16s}
+.thint{margin-top:8px;font:12px/16px var(--sans);letter-spacing:4px;transition:opacity .4s}
+.ticket.torn+.thint{opacity:0}
+
+/* 结语：一个大礼盒，点开后盒子从中间裂开，祝福卡升起，纸屑落下 */
+.present{display:block;padding:0;border:0;background:none}
+.present:focus-visible{outline:2px solid var(--brass);outline-offset:8px}
+.bigbox{display:block;overflow:visible}
+.bigbox .half,.bigbox .blid{transform-box:fill-box;transition:transform 1s var(--ease),opacity 1s}
+.bigbox .half{transform-origin:50% 100%}
+.bigbox .blid{transform-origin:50% 50%}
+#end.lit:not(.open):not(.drag) .bigbox .blid{animation:nudge 4s 1.6s infinite}
+@keyframes nudge{0%,84%,100%{transform:none}88%{transform:translateY(-4px) rotate(-2deg)}92%{transform:none}96%{transform:translateY(-4px) rotate(2deg)}}
+#end.open .bigbox .blid{animation:none;transform:translateY(-96px) rotate(-16deg);opacity:0}
+#end.open .bigbox .half.l{transform:translateX(-32px) rotate(-10deg);opacity:.32}
+#end.open .bigbox .half.r{transform:translateX(32px) rotate(10deg);opacity:.32}
+.plaque.solo{display:block;text-align:center}
+.lwrap{position:absolute;left:24px;right:24px;top:calc(var(--hud) + var(--st));bottom:var(--floor-h);
+  display:flex;align-items:center;justify-content:center;pointer-events:none}
+.letter{position:relative;width:100%;max-width:312px;padding:32px 24px;border-radius:4px;background:var(--card);color:var(--ink);
+  box-shadow:0 24px 48px rgba(0,0,0,.5);opacity:0;transform:translateY(var(--dy,0px)) scale(.16);
+  transition:transform 1.2s var(--ease) .32s,opacity .6s .32s}
+.letter::before{content:"";position:absolute;inset:8px;border:1px solid rgba(201,164,106,.6);pointer-events:none}
+#end.open .letter{opacity:1;transform:none}
+.letter .k{font:12px/16px var(--sans);color:var(--brass-ink)}
+.letter .m{margin-top:16px;font:24px/40px var(--serif)}
+.letter .s{margin-top:24px;font:16px/24px var(--serif);color:var(--ink-2);text-align:right}
+.confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#end.drag .bigbox .half,#end.drag .bigbox .blid{transition:none;animation:none}
+#end .deck{display:flex;justify-content:center}
+.ehint{height:48px;font:16px/24px var(--serif);letter-spacing:4px;transition:opacity .4s}
+#end.open .ehint{opacity:0}
+
+/* 固定在镜头上的顶栏 */
+.hud{position:absolute;left:0;right:0;top:var(--st);height:var(--hud);padding:0 16px;z-index:2;pointer-events:none;
+  display:flex;align-items:center;justify-content:space-between;font:16px/24px var(--serif);color:var(--chalk-2)}
+.hud .t{transition:opacity .6s}
+.hud.at-intro .t{opacity:0}
+.hud .c{font-family:var(--display)}
+.hud .r{display:flex;align-items:center;gap:8px}
+.snd{pointer-events:auto;width:40px;height:40px;margin-right:-12px;padding:12px;border:0;background:none;color:var(--chalk-2)}
+.snd svg{display:block;width:16px;height:16px}
+.snd .x,.snd[aria-pressed="true"] .w{display:none}
+.snd[aria-pressed="true"] .x{display:inline}
+.snd:focus-visible{outline:2px solid var(--brass);outline-offset:-4px}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms!important;transition-delay:0s!important}
+  .room.lit .beam,.room.lit .pool,.room.lit .spill,.room.lit .lamp::after{animation:none;opacity:1}
+  .room.lit .shade{animation:none;opacity:0}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="dolly">
+    <div id="track">
+      <section class="room" id="intro">
+        <div class="wallwash"></div>
+        <div class="wallc">
+          <div class="intro">
+            <h1 class="vt">生日特展</h1>
+            <div>
+              <p class="names">DZC &amp; ZK</p>
+              <p class="dates">展期 10.09 至 10.20</p>
+              <p class="pre">上次在主厨家，饭后我们一起猜规则。这次换我们出题：三件展品各藏着一条规则，网页只说对或错，连对 4 次才能走进下一个展厅。</p>
+              <p class="credit">策展：花花和佳佳</p>
+            </div>
+          </div>
+        </div>
+        <div class="deck">
+          <button class="ticket" type="button" aria-label="撕下票根，入场">
+            <span class="tmain">
+              <span class="tt">生日特展入场券</span>
+              <span class="tl">持票人</span>
+              <span class="tn">DZC　ZK</span>
+              <span class="tf">两人同行，饭后入场</span>
+            </span>
+            <span class="stub"><span class="sv">撕票入场</span></span>
+          </button>
+          <p class="thint swipe"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="shine">按住票根，往下撕</span></p>
+        </div>
+      </section>
+      <section class="room" id="end">
+        <div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div>
+        <div class="stage">
+          <button class="present" type="button" aria-label="拆开礼物">
+            <svg class="bigbox" viewBox="0 0 208 168" width="208" height="168" aria-hidden="true">
+              <g class="half l"><rect x="32" y="64" width="72" height="104" fill="#eae1d2"/>
+                <rect x="96" y="64" width="8" height="104" fill="#c9a46a"/><rect x="32" y="104" width="72" height="12" fill="#c9a46a"/></g>
+              <g class="half r"><rect x="104" y="64" width="72" height="104" fill="#d9cdb9"/>
+                <rect x="104" y="64" width="8" height="104" fill="#b8925a"/><rect x="104" y="104" width="72" height="12" fill="#b8925a"/></g>
+              <g class="blid"><rect x="24" y="44" width="160" height="24" fill="#f4ede2"/><rect x="24" y="64" width="160" height="4" fill="#cdbfa9"/>
+                <rect x="96" y="44" width="16" height="24" fill="#c9a46a"/>
+                <path d="M104 44C84 12 56 22 76 42Z" fill="#b38c55"/><path d="M104 44C124 12 152 22 132 42Z" fill="#b38c55"/>
+                <circle cx="104" cy="42" r="8" fill="#c9a46a"/></g>
+            </svg>
+          </button>
+          <div class="plinth"><div class="plaque solo"><span><span class="pa">给 DZC 和 ZK</span><span class="pb">本件展品，请动手拆开</span></span></div></div>
+        </div>
+        <div class="lwrap"><div class="letter" aria-live="polite">
+          <p class="k">DZC、ZK，生日快乐</p>
+          <p class="m">希望你们的所有担忧，<br>都是虚惊一场。</p>
+          <p class="s">花花和佳佳</p>
+        </div></div>
+        <canvas class="confetti" aria-hidden="true"></canvas>
+        <div class="deck"><p class="ehint swipe"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="shine">往上掀开盒盖</span></p></div>
+        <div class="shade"></div>
+      </section>
+    </div>
+    <div id="rope"></div>
+  </div>
+  <div class="vignette"></div>
+  <header class="hud at-intro"><span class="t">生日特展</span><span class="r"><span class="c">前言</span>
+    <button class="snd" type="button" aria-label="静音" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/>
+      <path class="w" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6 6 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      <path class="x" d="M11 6l4 4M15 6l-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button></span></header>
+</div>
+
+<script>
+(() => {
+// 三件展品 = 三关。opts 是地上两个按钮，ans 返回正确按钮的序号
+const LEVELS = [
+  { title: '能带进生日会吗', ask: '能带，还是不能带？', opts: ['能带', '不能带'], kind: 'vitrine',
+    pool: ['蛋糕','蜡烛','气球','礼物','彩带','雨伞','拖鞋','闹钟','牙刷','扑克',
+           '生日帽','小蛋糕','烟花棒','许愿卡','冰淇淋','伞','花','酒','灭火器','电饭锅'],
+    ans: w => [...w].length === 2 ? 0 : 1,
+    hint: '别管它跟生日有没有关系，数一数名字。',
+    rule: '名字是两个字的就能带，跟生日没关系。' },
+  { title: '主厨这道菜', ask: '好吃，还是不好吃？', opts: ['好吃', '不好吃'], kind: 'painting',
+    pool: ['红烧肉','番茄炒蛋','清蒸鲈鱼','白灼虾','拍黄瓜','宫保鸡丁','隔夜饭','煮糊的粥','白水煮菜'],
+    hint: '菜名不重要，看看盘子旁边摆着什么。',
+    rule: '看筷子尖：朝左好吃，朝右不好吃，\n菜是什么都不管。' },
+  { title: '这份礼物给谁', ask: '给 DZC，还是给 ZK？', opts: ['DZC', 'ZK'], kind: 'gift',
+    pool: ['口红','香水','耳环','发夹','领带','剃刀','球鞋','键盘','手表','公仔',
+           '剃须刀','游戏机','篮球鞋','护手霜','卷发棒','化妆包','毛绒熊','洗面奶','保温杯'],
+    ans: w => [...w].length === 3 ? 0 : 1,
+    hint: '数一数礼物名字，再数一数他们的缩写。',
+    rule: '吊牌上几个字，就给缩写几个字母的人：\n三个字给 DZC，两个字给 ZK。' }
+];
+const STREAK = 4, HINT_AT = 6, REVEAL_AT = 12;
+
+const PAINT_BG = '<rect width="216" height="160" fill="#e7e0d2"/>'
+  + '<ellipse cx="111" cy="72" rx="52" ry="52" fill="#000" opacity=".08"/>'
+  + '<circle cx="108" cy="68" r="52" fill="#fbfaf6" stroke="#d6cec0" stroke-width="2"/>'
+  + '<circle cx="108" cy="68" r="38" fill="none" stroke="#ece6db" stroke-width="2"/>';
+// 9 道菜，画在圆心 (108,68) 的盘子里；菜名写在左上角的小菜牌上
+const at = (x, y, r, inner) => `<g transform="translate(${x} ${y}) rotate(${r})">${inner}</g>`;
+const RICE = (() => {
+  let s = 7, out = '';
+  const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  for (let i = 0; i < 44; i++) {
+    const a = rnd() * 6.283, d = Math.sqrt(rnd()), x = (108 + Math.cos(a) * d * 26).toFixed(1), y = (70 + Math.sin(a) * d * 20).toFixed(1);
+    out += `<ellipse cx="${x}" cy="${y}" rx="2.4" ry="1.1" fill="${i % 3 ? '#f6f2e8' : '#d9cfb6'}" transform="rotate(${Math.round(rnd() * 180)} ${x} ${y})"/>`;
+  }
+  return out;
+})();
+const DISH = {
+  '红烧肉': '<ellipse cx="108" cy="70" rx="30" ry="24" fill="#7a2f14" opacity=".35"/>'
+    + [[94,58,-8],[110,54,6],[124,62,-4],[96,76,10],[112,72,-6],[126,80,4]].map(([x, y, r]) => at(x, y, r,
+      '<rect x="-8" y="-8" width="16" height="16" rx="3" fill="#8d3a18"/><rect x="-8" y="-1" width="16" height="4" fill="#e3b47c"/>'
+      + '<rect x="-6" y="-6" width="6" height="3" rx="1.5" fill="#fff" opacity=".35"/>')).join('')
+    + '<circle cx="104" cy="65" r="2" fill="#6aa84f"/><circle cx="119" cy="68" r="2" fill="#6aa84f"/><circle cx="102" cy="86" r="1.5" fill="#8cc66b"/>',
+  '番茄炒蛋': '<path d="M84 64c0-12 14-16 22-10 8-8 22-4 22 6 9 4 8 16 0 20-2 10-16 12-24 6-8 6-20 2-22-8-8-2-8-12 2-14z" fill="#f2c443"/>'
+    + '<ellipse cx="98" cy="62" rx="7" ry="4" fill="#f8dc7e"/><ellipse cx="120" cy="78" rx="6" ry="3" fill="#f8dc7e"/>'
+    + '<path d="M94 70l12-6 1 12z" fill="#d23b26"/><path d="M112 56l13 3-7 9z" fill="#d23b26"/>'
+    + '<path d="M116 72l11 5-10 6z" fill="#c4301d"/><path d="M90 80l10-3-2 9z" fill="#c4301d"/>'
+    + '<path d="M104 84l5-2M122 64l4 3M100 58l-4 3" stroke="#5f9e45" stroke-width="2" stroke-linecap="round"/>',
+  '清蒸鲈鱼': '<ellipse cx="108" cy="70" rx="42" ry="18" fill="#6b4a2a" opacity=".28"/>'
+    + '<path d="M70 68C80 54 116 52 134 64L148 54V80L134 70C116 82 80 82 70 68Z" fill="#dcd5c6"/>'
+    + '<path d="M76 63C92 56 116 55 130 61" fill="none" stroke="#a89f8e" stroke-width="5" stroke-linecap="round"/>'
+    + '<circle cx="78" cy="67" r="3" fill="#fff"/><circle cx="78" cy="67" r="1.4" fill="#2b1b1c"/>'
+    + '<path d="M92 61l28-4M96 67l26-2M92 73l24 1" stroke="#4f8f3a" stroke-width="1.5" stroke-linecap="round"/>'
+    + '<path d="M98 58l20 3M102 71l18-4" stroke="#e8c66a" stroke-width="1.5" stroke-linecap="round"/>',
+  '白灼虾': [[94,58,0],[120,56,70],[128,77,150],[106,84,220],[88,76,290]].map(([x, y, r]) =>
+      `<g transform="rotate(${r} ${x} ${y})"><circle cx="${x}" cy="${y}" r="9" fill="none" stroke="#ee7a48" stroke-width="7" stroke-dasharray="36 60" stroke-linecap="round"/>`
+      + `<circle cx="${x}" cy="${y}" r="9" fill="none" stroke="#f7b38c" stroke-width="2" stroke-dasharray="36 60"/></g>`).join('')
+    + '<circle cx="108" cy="68" r="6" fill="#f6e27a" stroke="#e9c94a" stroke-width="1.5"/>',
+  '拍黄瓜': [[90,58,-10],[108,54,20],[124,62,-30],[96,74,40],[114,72,-5],[128,80,15],[104,88,-25]].map(([x, y, r]) => at(x, y, r,
+      '<path d="M-10 -3l7-7 11 2 3 9-12 6z" fill="#3e7b39"/><path d="M-6 -2l5-5 8 2 1 6-8 3z" fill="#bcdc92"/>')).join('')
+    + '<circle cx="100" cy="66" r="1.5" fill="#f4efe0"/><circle cx="118" cy="68" r="1.5" fill="#f4efe0"/><circle cx="110" cy="80" r="1.5" fill="#f4efe0"/>'
+    + '<circle cx="94" cy="66" r="2" fill="#c43a2a" opacity=".8"/><circle cx="122" cy="72" r="2" fill="#c43a2a" opacity=".8"/><circle cx="108" cy="62" r="1.5" fill="#c43a2a" opacity=".8"/>',
+  '宫保鸡丁': '<ellipse cx="108" cy="70" rx="30" ry="24" fill="#a5562b" opacity=".32"/>'
+    + [[94,62,10],[108,56,-15],[122,64,25],[100,76,-30],[116,78,5],[128,74,-10],[110,68,40]].map(([x, y, r]) => at(x, y, r,
+      '<rect x="-5" y="-5" width="10" height="10" rx="2" fill="#d6995a"/><rect x="-3" y="-3" width="4" height="2" rx="1" fill="#fff" opacity=".35"/>')).join('')
+    + [[102,64],[118,70],[96,84],[124,58],[110,86]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="4" ry="3" fill="#e9cc96" stroke="#c9a46a" stroke-width=".8"/>`).join('')
+    + [[90,70,30],[120,86,-20],[114,58,70]].map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="7" ry="2.5" fill="#a8231a" transform="rotate(${r} ${x} ${y})"/>`).join('')
+    + '<circle cx="106" cy="80" r="2.5" fill="none" stroke="#6aa84f" stroke-width="1.5"/><circle cx="126" cy="68" r="2.5" fill="none" stroke="#6aa84f" stroke-width="1.5"/>',
+  '隔夜饭': '<ellipse cx="108" cy="70" rx="30" ry="24" fill="#e6dfcd"/>' + RICE
+    + '<circle cx="108" cy="68" r="50" fill="#d9e8ef" opacity=".28"/>'
+    + '<path d="M66 50L104 26M70 66l52-34M118 108l26-18M126 102l18-12" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".75"/>'
+    + '<path d="M60 84q8 4 4 10M152 52q-6 2-4 8" stroke="#c8d6dc" stroke-width="1.5" fill="none"/>',
+  '煮糊的粥': '<ellipse cx="108" cy="70" rx="32" ry="28" fill="#efe8da"/>'
+    + '<path d="M90 60c4-10 18-8 18 2s-14 10-18-2z" fill="#4a2c18"/><path d="M112 74c6-6 16-2 14 6s-14 6-14-6z" fill="#2c1a0e"/>'
+    + '<path d="M96 82c2-4 8-4 9 0s-7 4-9 0z" fill="#5b3a21"/>'
+    + '<circle cx="118" cy="58" r="1.5" fill="#1e130c"/><circle cx="102" cy="72" r="1.2" fill="#1e130c"/><circle cx="124" cy="66" r="1.2" fill="#1e130c"/><circle cx="110" cy="88" r="1.5" fill="#1e130c"/>'
+    + '<path d="M100 30c-6-6 6-10 0-16M116 32c-6-6 6-10 0-16" fill="none" stroke="#8e8a84" stroke-width="2" stroke-linecap="round" opacity=".6"/>',
+  '白水煮菜': '<ellipse cx="108" cy="70" rx="34" ry="26" fill="#dce5d6"/>'
+    + [[96,62,-20,'#b5cd98'],[118,60,25,'#c6d8ae'],[104,78,10,'#a9c48f'],[122,78,-30,'#bfd3a4'],[90,76,40,'#c6d8ae']].map(([x, y, r, c]) =>
+      `<g transform="rotate(${r} ${x} ${y})"><ellipse cx="${x}" cy="${y}" rx="13" ry="6" fill="${c}"/><path d="M${x - 11} ${y}H${x + 11}" stroke="#e8efdc" stroke-width="1"/></g>`).join('')
+};
+// 筷子：细的一头是筷子尖，搭在青瓷筷架上；粗的一头有一截深色漆
+const CHOP = '<rect x="36" y="124" width="16" height="20" rx="4" fill="#a7bdb4"/>'
+  + '<polygon points="40,131 172,127 172,133 40,133" fill="#7b4a2f"/>'
+  + '<polygon points="156,127.5 172,127 172,133 156,133" fill="#2b1a16"/>'
+  + '<polygon points="40,137 172,137 172,143 40,139" fill="#7b4a2f"/>'
+  + '<polygon points="156,137 172,137 172,143 156,142.5" fill="#2b1a16"/>';
+const BODY = '<rect x="24" y="52" width="112" height="84" fill="#eae1d2"/>'
+  + '<rect x="104" y="52" width="32" height="84" fill="#d9cdb9"/>'
+  + '<rect x="72" y="56" width="16" height="80" fill="#c9a46a"/>';
+const LID = '<rect x="16" y="36" width="128" height="20" fill="#f4ede2"/>'
+  + '<rect x="16" y="52" width="128" height="4" fill="#cdbfa9"/>'
+  + '<rect x="72" y="36" width="16" height="20" fill="#c9a46a"/>'
+  + '<path d="M80 36C64 12 44 20 60 34Z" fill="#b38c55"/>'
+  + '<path d="M80 36C96 12 116 20 100 34Z" fill="#b38c55"/>'
+  + '<circle cx="80" cy="34" r="6" fill="#c9a46a"/>'
+  + '<path d="M86 36C112 40 132 50 142 62" fill="none" stroke="#8d7a5f" stroke-width="1"/>';
+
+// 每件展品的样子；.co 和 .gco 是揭晓时才出现的引线
+const VIEW = {
+  vitrine: it => `<div class="vit"><div class="glass"></div><span class="word">`
+    + [...it.key].map((c, n) => `<span class="ch" data-n="${n + 1}">${c}</span>`).join('')
+    + `<span class="co">名字的字数</span></span></div><div class="vbase"></div>`,
+  painting: it => `<div class="pic ${it.dir}"><svg class="canvas" viewBox="0 0 216 160" width="216" height="160" aria-hidden="true">${PAINT_BG}`
+    + DISH[it.key]
+    + `<rect x="8" y="8" width="56" height="24" rx="2" fill="#fbfaf6" stroke="#d6cec0"/>`
+    + `<text class="menu" x="36" y="24" text-anchor="middle">${it.key}</text>`
+    + `<g${it.dir === 'R' ? ' transform="translate(216 0) scale(-1 1)"' : ''}>${CHOP}</g></svg>`
+    + `<div class="ring"></div><span class="tipmark"></span><span class="co">筷子尖</span></div>`,
+  gift: it => `<svg class="gift" viewBox="0 0 208 136" width="208" height="136" aria-hidden="true"><g>${BODY}</g>`
+    + `<g class="lid">${LID}<g transform="rotate(-6 168 76)"><rect x="136" y="60" width="64" height="32" rx="4" fill="#f5f2ec" stroke="#cbbfac"/>`
+    + `<circle cx="144" cy="68" r="2" fill="#8d7a5f"/><text class="tagt" x="172" y="82" text-anchor="middle">${it.key}</text></g></g>`
+    + `<g class="gco"><line x1="166" y1="14" x2="166" y2="-12" stroke="#c9a46a" stroke-width="1"/>`
+    + `<text class="gcot" x="166" y="-20" text-anchor="middle">吊牌上几个字</text></g></svg>`
+};
+const DESC = {
+  vitrine: it => `展柜里放着：${it.key}`,
+  painting: it => `一盘${it.key}，盘子下方摆着一双筷子，筷子尖朝${it.dir === 'L' ? '左' : '右'}`,
+  gift: it => `一份礼物，吊牌上写着：${it.key}`
+};
+
+// 出题：最近出过的不重复；同一个答案最多连着出 3 次，一直按同一个按钮过不了关
+function gen(L, hist, keys) {
+  const t = hist.slice(-3);
+  const ban = t.length === 3 && t[0] === t[1] && t[1] === t[2] ? t[0] : -1;
+  const recent = keys.slice(-4);
+  let c = L.pool.filter(w => recent.indexOf(w) < 0);
+  if (L.ans && ban >= 0) c = c.filter(w => L.ans(w) !== ban);
+  const key = c[Math.floor(Math.random() * c.length)];
+  if (!L.ans) {
+    const a = ban >= 0 ? 1 - ban : (Math.random() < .5 ? 0 : 1);
+    return { key, dir: a === 0 ? 'L' : 'R', ans: a };
+  }
+  return { key, ans: L.ans(key) };
+}
+
+const plaque = (L, i, wall) => `<div class="plaque${wall ? ' on-wall' : ''}"><span class="pn">0${i + 1}</span>`
+  + `<span><span class="pa">${L.title}</span><span class="pb">${L.ask}</span></span></div>`;
+const roomHTML = (L, i) => `<section class="room k-${L.kind}">`
+  + '<div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div>'
+  + `<div class="stage"><div class="piece" role="img"></div>`
+  + (L.kind === 'painting' ? plaque(L, i, true) : `<div class="plinth">${plaque(L, i)}</div>`) + '</div>'
+  + '<div class="deck">'
+  + `<div class="play"><button class="btn" type="button" disabled>${L.opts[0]}</button>`
+  + `<span class="lamps" role="img" aria-label="连对 0 次"><i></i><i></i><i></i><i></i></span>`
+  + `<button class="btn" type="button" disabled>${L.opts[1]}</button></div>`
+  + '<p class="res" aria-live="polite"></p>'
+  + `<p class="sub"><span class="hint">连对 ${STREAK} 次过关</span><button class="docent" type="button" hidden></button></p>`
+  + `<div class="done"><p class="dk"></p><p class="drule"></p>`
+  + `<button class="next swipe" type="button" aria-label="${i === LEVELS.length - 1 ? '走向结语' : '走向下一个展厅'}">`
+  + '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 3L4 8l5 5M13 3L8 8l5 5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  + `<span class="shine rtl">${i === LEVELS.length - 1 ? '向左滑，走向结语' : '向左滑，去下一个展厅'}</span></button></div>`
+  + '</div><div class="shade"></div></section>';
+
+const $ = s => document.querySelector(s);
+const dolly = $('#dolly'), track = $('#track'), rope = $('#rope'), hud = $('.hud'), hudC = $('.hud .c'),
+      intro = $('#intro'), ticket = $('.ticket');
+intro.insertAdjacentHTML('afterend', LEVELS.map(roomHTML).join(''));
+const rooms = [...track.children];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+function paint(p, L, it) { p.innerHTML = VIEW[L.kind](it); p.setAttribute('aria-label', DESC[L.kind](it)); }
+// 换下一件：旧的淡出、新的画好之后才放开按钮，免得看着旧展品答了新题
+function show(p, L, it) {
+  p.classList.add('swap');
+  return new Promise(r => setTimeout(() => { paint(p, L, it); p.classList.remove('swap'); r(); }, 240));
+}
+const first = LEVELS.map(L => gen(L, [], []));
+LEVELS.forEach((L, i) => paint(rooms[i + 1].querySelector('.piece'), L, first[i]));
+
+// 镜头：pos 是镜头所在的展厅序号，移动中是小数。手指拖动和自动移动都只改 pos
+let W = innerWidth, cur = 0, pos = 0, S = null, moving = false, camTok = 0;
+function setCam(p) {
+  pos = p;
+  const f = p - Math.floor(p);
+  track.style.transform = `translate3d(${-p * W}px,0,0)`;
+  rope.style.transform = `translate3d(${-p * W * 1.25}px,0,0)`;
+  dolly.style.transform = f > 1e-4 && f < 1 - 1e-4 ? `scale(${1 - .16 * Math.sin(Math.PI * f)})` : '';
+}
+const EASE = { io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, out: t => 1 - Math.pow(1 - t, 3) };
+// 新的移动或手指按下会让旧的移动作废；作废时返回 false
+function tween(to, dur, ease) {
+  const from = pos, my = ++camTok;
+  return new Promise(res => {
+    if (reduce || dur <= 0) { setCam(to); res(true); return; }
+    const t0 = performance.now();
+    (function step(t) {
+      if (my !== camTok) { res(false); return; }
+      const k = Math.min(1, (t - t0) / dur);
+      setCam(from + (to - from) * ease(k));
+      if (k < 1) requestAnimationFrame(step); else res(true);
+    })(t0);
+  });
+}
+function buildRope() {
+  rope.style.width = `${Math.ceil(W * 1.25 * rooms.length)}px`;
+  const post = x => `<rect x="${x - 4}" y="16" width="8" height="48" fill="#a98445"/>`
+    + `<rect x="${x - 4}" y="16" width="2" height="48" fill="#e3c88f"/>`
+    + `<circle cx="${x}" cy="16" r="6" fill="#d9b97c"/><ellipse cx="${x}" cy="64" rx="12" ry="4" fill="#7d5c2e"/>`;
+  rope.innerHTML = LEVELS.map((L, i) => `<svg${rooms[i + 1].classList.contains('lit') ? ' class="lit"' : ''} style="left:${(i + 1) * W * 1.25}px" width="${W}" height="72" viewBox="0 0 ${W} 72" aria-hidden="true">`
+    + `<path d="M28 20Q${W / 2} 52 ${W - 28} 20" fill="none" stroke="#5a1720" stroke-width="6" stroke-linecap="round"/>`
+    + `<path d="M28 19Q${W / 2} 49 ${W - 28} 19" fill="none" stroke="#a5414d" stroke-width="2" stroke-linecap="round" opacity=".55"/>`
+    + post(24) + post(W - 24) + '</svg>').join('');
+}
+function setW() {
+  W = innerWidth;
+  document.documentElement.style.setProperty('--W', W + 'px');
+  buildRope(); setCam(pos);
+}
+function hudSet() {
+  hud.classList.toggle('at-intro', cur === 0);
+  hudC.textContent = cur === 0 ? '前言' : cur === rooms.length - 1 ? '结语' : `0${cur} / 0${LEVELS.length}`;
+}
+async function moveTo(to, ease) {
+  await tween(to, Math.max(480, 1800 * Math.abs(to - pos)), ease || EASE.io);
+  cur = to; setCam(to); hudSet();
+}
+// 镜头往下一个展厅探一下头再回来，告诉人可以往左滑
+async function peek() {
+  if (moving || reduce || G) return;
+  const base = cur;
+  if (await tween(base + .1, 360, EASE.out)) await tween(base, 480, EASE.io);
+}
+
+// 关卡
+function prepare(i) {
+  const room = rooms[i + 1], q = s => room.querySelector(s);
+  S = { i, L: LEVELS[i], room, piece: q('.piece'), btns: [...room.querySelectorAll('.btn')],
+        lampsEl: q('.lamps'), lamps: [...room.querySelectorAll('.lamps i')], res: q('.res'), hint: q('.hint'),
+        docent: q('.docent'), dk: q('.dk'), drule: q('.drule'), next: q('.next'),
+        item: first[i], keys: [first[i].key], hist: [], streak: 0, wrong: 0, hintOpen: false, busy: true, done: false, timer: 0 };
+  S.btns.forEach((b, k) => { b.onclick = () => answer(k); });
+  S.docent.onclick = onDocent;
+  // 下一个展厅靠往左滑；轻点只演示一下，键盘回车直接走
+  S.next.onclick = e => {
+    if (moving || performance.now() - justDragged < 400) return;
+    if (e.detail === 0) go(i + 1); else peek();
+  };
+}
+const setBtns = on => S.btns.forEach(b => { b.disabled = !on; });
+
+// 走进下一个展厅：镜头停稳后开灯，离开的展厅关灯；隔离带跟着本展厅的灯一起亮
+function lights(r, on) {
+  rooms[r].classList.toggle('lit', on);
+  const seg = rope.children[r - 1];
+  if (seg) seg.classList.toggle('lit', on);
+}
+async function go(next, fromDrag) {
+  if (moving) return;
+  moving = true;
+  const target = next < LEVELS.length ? next + 1 : rooms.length - 1;
+  if (next < LEVELS.length) prepare(next);
+  const prev = cur;
+  await moveTo(target, fromDrag ? EASE.out : EASE.io);
+  lights(prev, false);
+  lights(target, true);
+  moving = false;
+  if (next < LEVELS.length) {
+    await wait(reduce ? 0 : 720);
+    S.busy = false; setBtns(true);
+  }
+}
+function answer(k) {
+  if (S.busy || S.done) return;
+  S.busy = true; setBtns(false);
+  const ok = k === S.item.ans, right = S.btns[S.item.ans];
+  S.hist.push(S.item.ans);
+  if (ok) S.streak++; else { S.streak = 0; S.wrong++; S.btns[k].classList.add('miss'); }
+  right.classList.add('glow');
+  S.lamps.forEach((l, j) => l.classList.toggle('on', j < S.streak));
+  S.lampsEl.setAttribute('aria-label', `连对 ${S.streak} 次`);
+  S.res.textContent = ok ? '对。' : `不对，是「${S.L.opts[S.item.ans]}」。`;
+  subSet();
+  if (S.streak >= STREAK) { S.timer = setTimeout(() => clear(false), 720); return; }
+  S.timer = setTimeout(async () => {
+    S.btns.forEach(b => b.classList.remove('glow', 'miss'));
+    S.item = gen(S.L, S.hist, S.keys); S.keys.push(S.item.key);
+    S.res.textContent = '';
+    await show(S.piece, S.L, S.item);
+    if (S.done) return;
+    S.busy = false; setBtns(true);
+  }, ok ? 960 : 1440);
+}
+// 讲解员：错满 6 次给提示，错满 12 次可以请他直接揭晓，保证一定走得到结语
+function subSet() {
+  const d = S.docent;
+  if (S.wrong >= REVEAL_AT) { d.textContent = '请讲解员揭晓'; d.hidden = false; S.hint.hidden = true; }
+  else if (S.wrong >= HINT_AT && !S.hintOpen) { d.textContent = '问讲解员'; d.hidden = false; S.hint.hidden = true; }
+  else { d.hidden = true; S.hint.hidden = false; }
+}
+function onDocent() {
+  if (S.done) return;
+  if (S.wrong >= REVEAL_AT) { clear(true); return; }
+  S.hintOpen = true; S.hint.textContent = S.L.hint; subSet();
+}
+function clear(byDocent) {
+  clearTimeout(S.timer);
+  S.done = true; S.busy = true; setBtns(false);
+  S.btns.forEach(b => b.classList.remove('glow', 'miss'));
+  S.lamps.forEach(l => l.classList.add('on'));
+  S.dk.textContent = byDocent ? '讲解员揭晓了' : '看穿了';
+  S.drule.textContent = S.L.rule;
+  S.room.classList.add('torn', 'clear');
+  const me = S;
+  setTimeout(() => { if (S === me && !moving) peek(); }, 2400);
+}
+
+// 八音盒生日歌：网页现场合成，撕票和拆礼盒时各响一遍；右上角可以静音
+const snd = $('.snd');
+let actx = null, master = null, muted = false;
+function audio() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  if (!actx) {
+    actx = new AC();
+    master = actx.createGain(); master.gain.value = muted ? 0 : .4;
+    const echo = actx.createDelay(), fb = actx.createGain(), tone = actx.createBiquadFilter();
+    echo.delayTime.value = .24; fb.gain.value = .25; tone.type = 'lowpass'; tone.frequency.value = 2600;
+    master.connect(actx.destination);
+    master.connect(echo); echo.connect(tone); tone.connect(fb); fb.connect(echo); tone.connect(actx.destination);
+  }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+const NOTE = { G5: 783.99, A5: 880, B5: 987.77, C6: 1046.5, D6: 1174.66, E6: 1318.51, F6: 1396.91, G6: 1567.98 };
+const SONG = ('G5 .75,G5 .25,A5 1,G5 1,C6 1,B5 2,G5 .75,G5 .25,A5 1,G5 1,D6 1,C6 2,'
+  + 'G5 .75,G5 .25,G6 1,E6 1,C6 1,B5 1,A5 2,F6 .75,F6 .25,E6 1,C6 1,D6 1,C6 3').split(',').map(s => s.split(' '));
+function pluck(t, f, v) {
+  [[1, .5], [2, .14], [3, .05]].forEach(([m, g]) => {
+    const o = actx.createOscillator(), e = actx.createGain();
+    o.type = 'sine'; o.frequency.value = f * m;
+    e.gain.setValueAtTime(0, t);
+    e.gain.linearRampToValueAtTime(g * v, t + .006);
+    e.gain.exponentialRampToValueAtTime(.0001, t + 1.6 / m);
+    o.connect(e); e.connect(master); o.start(t); o.stop(t + 1.7);
+  });
+}
+function playSong(sparkle) {
+  if (!audio()) return;
+  let t = actx.currentTime + .08;
+  if (sparkle) {
+    ['C6', 'E6', 'G6'].forEach((n, i) => pluck(t + i * .07, NOTE[n], .5));
+    pluck(t + .21, NOTE.C6 * 2, .45);
+    t += .9;
+  }
+  SONG.forEach(([n, d]) => { pluck(t, NOTE[n], .9); t += d * .5; });
+}
+snd.onclick = () => {
+  muted = !muted;
+  snd.setAttribute('aria-pressed', String(muted));
+  if (master) master.gain.setTargetAtTime(muted ? 0 : .4, actx.currentTime, .05);
+};
+
+// iPhone 上要有触摸监听，按下时的 :active 样式才会出现；声音要在手势里才放得出来
+document.addEventListener('touchstart', () => {}, { passive: true });
+['touchend', 'click'].forEach(t => document.addEventListener(t, () => {
+  if (actx && actx.state !== 'running') actx.resume();
+}, { passive: true }));
+
+// 门票：撕下票根，镜头出发
+const stub = ticket.querySelector('.stub');
+function tear() {
+  if (ticket.classList.contains('torn')) return;
+  ticket.classList.add('torn');
+  playSong(false);
+  setTimeout(() => go(0), reduce ? 0 : 640);
+}
+ticket.addEventListener('click', e => {
+  if (ticket.classList.contains('torn') || performance.now() - justDragged < 400) return;
+  if (e.detail === 0) { tear(); return; }
+  if (!reduce && stub.animate) stub.animate([{ transform: 'none' }, { transform: 'translateX(4px) rotate(10deg)' }, { transform: 'none' }], { duration: 560, easing: 'ease-in-out' });
+});
+
+// 结语：拆礼盒。祝福卡从盒子的位置升到墙中间，纸屑一部分从盒口炸开、一部分从光里落下
+const endRoom = rooms[rooms.length - 1], present = endRoom.querySelector('.present'),
+      letter = endRoom.querySelector('.letter'), cv = endRoom.querySelector('.confetti'),
+      lid = endRoom.querySelector('.blid'), halves = [...endRoom.querySelectorAll('.half')];
+function openGift() {
+  if (endRoom.classList.contains('open')) return;
+  const b = present.getBoundingClientRect(), c = letter.getBoundingClientRect();
+  letter.style.transition = 'none';
+  letter.style.setProperty('--dy', `${Math.round(b.top + b.height / 2 - (c.top + c.height / 2))}px`);
+  letter.getBoundingClientRect();
+  letter.style.transition = '';
+  endRoom.classList.add('open');
+  present.disabled = true;
+  playSong(true);
+  confetti(b);
+}
+present.addEventListener('click', e => {
+  if (endRoom.classList.contains('open') || performance.now() - justDragged < 400) return;
+  if (e.detail === 0) { openGift(); return; }
+  if (!reduce && lid.animate) lid.animate([{ transform: 'none' }, { transform: 'translateY(-20px) rotate(-4deg)' }, { transform: 'none' }], { duration: 560, easing: 'ease-out' });
+});
+
+// 滑动：撕票、去下一个展厅、掀盒盖。手指移动超过 8px 才算拖，跟着手实时变；
+// 松手时过了线（或甩得够快）就完成，没过线就弹回。p 是拖动进度，1 是到线
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+let G = null, justDragged = 0;
+const DRAG = {
+  ticket: {
+    move(dx, dy) {
+      const p = clamp(Math.max(dx, dy) / 96, 0, 1.2);
+      stub.style.transform = `translateX(${p * 8}px) rotate(${p * 20}deg)`;
+      return p;
+    },
+    end(g) {
+      ticket.classList.remove('drag'); stub.style.transform = '';
+      if (g.p >= .8 || (g.p > .3 && Math.max(g.vx, g.vy) > .6)) tear();
+    }
+  },
+  walk: {
+    move(dx) {
+      let p = -dx / W;
+      if (p < 0) p *= .2;
+      p = Math.min(p, 1);
+      setCam(cur + p);
+      return p;
+    },
+    end(g) {
+      if (g.p >= .28 || (g.p > .06 && g.vx < -.5)) go(S.i + 1, true); else tween(cur, 360, EASE.out);
+    }
+  },
+  gift: {
+    move(dx, dy) {
+      const p = clamp(-dy / 120, 0, 1.2);
+      lid.style.transform = `translateY(${-p * 64}px) rotate(${-p * 6}deg)`;
+      halves[0].style.transform = `translateX(${-p * 8}px) rotate(${-p * 2}deg)`;
+      halves[1].style.transform = `translateX(${p * 8}px) rotate(${p * 2}deg)`;
+      return p;
+    },
+    end(g) {
+      endRoom.classList.remove('drag');
+      [lid, ...halves].forEach(el => { el.style.transform = ''; });
+      if (g.p >= .6 || (g.p > .2 && g.vy < -.6)) openGift();
+    }
+  }
+};
+function dragMode(target) {
+  if (moving) return null;
+  if (cur === 0) return intro.classList.contains('on') && !ticket.classList.contains('torn') && target.closest('.ticket, .thint') ? 'ticket' : null;
+  if (S && S.done && cur === S.i + 1) return 'walk';
+  if (cur === rooms.length - 1 && endRoom.classList.contains('lit') && !endRoom.classList.contains('open')) return 'gift';
+  return null;
+}
+const app = $('#app');
+app.addEventListener('pointerdown', e => {
+  if (G || (e.pointerType === 'mouse' && e.button !== 0) || e.target.closest('.snd')) return;
+  const mode = dragMode(e.target);
+  if (!mode) return;
+  if (mode !== 'walk') audio();
+  G = { mode, id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, t: e.timeStamp, vx: 0, vy: 0, moved: false, p: 0 };
+});
+app.addEventListener('pointermove', e => {
+  if (!G || e.pointerId !== G.id) return;
+  const dt = Math.max(1, e.timeStamp - G.t);
+  G.vx = .6 * G.vx + .4 * (e.clientX - G.x) / dt;
+  G.vy = .6 * G.vy + .4 * (e.clientY - G.y) / dt;
+  G.x = e.clientX; G.y = e.clientY; G.t = e.timeStamp;
+  const dx = G.x - G.x0, dy = G.y - G.y0;
+  if (!G.moved) {
+    if (Math.hypot(dx, dy) < 8) return;
+    G.moved = true; ++camTok;
+    if (G.mode === 'ticket') ticket.classList.add('drag');
+    if (G.mode === 'gift') endRoom.classList.add('drag');
+    try { app.setPointerCapture(G.id); } catch (_) {}
+  }
+  G.p = DRAG[G.mode].move(dx, dy);
+});
+function release(e, cancel) {
+  if (!G || e.pointerId !== G.id) return;
+  const g = G; G = null;
+  if (!g.moved) return;
+  justDragged = performance.now();
+  if (cancel) g.p = 0;
+  if (e.timeStamp - g.t > 80) { g.vx = 0; g.vy = 0; }
+  DRAG[g.mode].end(g);
+}
+app.addEventListener('pointerup', e => release(e, false));
+app.addEventListener('pointercancel', e => release(e, true));
+function confetti(box) {
+  if (reduce || !cv.getContext) return;
+  const room = endRoom.getBoundingClientRect(), w = room.width, h = room.height, dpr = Math.min(devicePixelRatio || 1, 2);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+  const COLORS = ['#c9a46a', '#f2dcaa', '#f2efe9', '#e3b47c', '#a5414d', '#fff6e0'];
+  const ox = box.left - room.left + box.width / 2, oy = box.top - room.top + 48, P = [];
+  const add = (x, y, vx, vy) => P.push({ x, y, vx, vy, w: 4 + Math.random() * 4, h: 8 + Math.random() * 4, r: Math.random() * 6.28,
+    vr: (Math.random() - .5) * .3, ph: Math.random() * 6.28, cap: 2 + Math.random() * 1.6, c: COLORS[Math.floor(Math.random() * COLORS.length)] });
+  for (let i = 0; i < 90; i++) add(ox + (Math.random() - .5) * 48, oy, (Math.random() - .5) * 8, -5 - Math.random() * 5);
+  for (let i = 0; i < 70; i++) add(w / 2 + (Math.random() - .5) * Math.min(w, 400), -16 - Math.random() * h * .5, (Math.random() - .5), 1 + Math.random());
+  const t0 = performance.now();
+  (function frame(t) {
+    const el = t - t0, a = el > 4200 ? Math.max(0, 1 - (el - 4200) / 1200) : 1;
+    ctx.clearRect(0, 0, w, h);
+    P.forEach(p => {
+      p.vy = Math.min(p.vy + .18, p.cap); p.vx *= .985;
+      p.x += p.vx + Math.sin(t / 400 + p.ph) * .6; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.globalAlpha = a; ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.scale(1, Math.cos(t / 180 + p.ph));
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+    });
+    if (el < 5400) requestAnimationFrame(frame); else ctx.clearRect(0, 0, w, h);
+  })(t0);
+}
+
+setW(); hudSet();
+requestAnimationFrame(() => setTimeout(() => intro.classList.add('on'), 80));
+addEventListener('resize', setW);
+})();
+</script>
+</body>
+</html>
