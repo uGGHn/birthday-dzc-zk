@@ -19,6 +19,8 @@
   --W:100vw;--hud:48px;
   --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);
   --floor-h:calc(160px + var(--sb));
+  /* 颗粒：灰度噪点，用柔光叠在墙、地面和纸上 */
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='.36' intercept='.32'/%3E%3CfeFuncG type='linear' slope='.36' intercept='.32'/%3E%3CfeFuncB type='linear' slope='.36' intercept='.32'/%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='192' height='192' filter='url(%23g)'/%3E%3C/svg%3E");
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -38,11 +40,23 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .vignette{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse 80% 72% at 50% 44%,transparent 52%,rgba(0,0,0,.56) 100%)}
 
-/* 展厅 */
+/* 展厅：每个厅一种墙色，地面共用 */
 .room{position:relative;flex:none;width:var(--W);height:100%;overflow:hidden;
+  --wall:#3a1619;--wall-deep:#260d10;--wall-low:#331317;
   background:
+    var(--grain),
+    repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0 1px,transparent 1px 4px),
     linear-gradient(to bottom,transparent calc(100% - var(--floor-h) - 120px),rgba(var(--L),.08) calc(100% - var(--floor-h) - 120px),rgba(var(--L),.08) calc(100% - var(--floor-h) - 119px),transparent calc(100% - var(--floor-h) - 119px)),
-    linear-gradient(to bottom,var(--wall-deep) 0,var(--wall) 40%,#331317 calc(100% - var(--floor-h)),var(--floor) calc(100% - var(--floor-h)),#140708 100%)}
+    linear-gradient(to bottom,transparent calc(100% - var(--floor-h)),rgba(var(--L),.16) calc(100% - var(--floor-h)),#211718 calc(100% - var(--floor-h) + 1px),#120d0d calc(100% - var(--floor-h) / 2),#080606 100%),
+    linear-gradient(to bottom,var(--wall-deep) 0,var(--wall) 40%,var(--wall-low) 100%);
+  background-size:192px 192px,100% calc(100% - var(--floor-h)),100% 100%,100% 100%,100% 100%;
+  background-repeat:repeat,no-repeat,no-repeat,no-repeat,no-repeat;
+  background-blend-mode:soft-light,normal,normal,normal,normal}
+.room.k-vitrine{--wall:#1a2c42;--wall-deep:#0d1826;--wall-low:#16263a}
+.room.k-painting{--wall:#1d3529;--wall-deep:#0f1d17;--wall-low:#1a2f25}
+.room.k-gift{--wall:#3e1228;--wall-deep:#210916;--wall-low:#350f22}
+#end{--wall:#3b2816;--wall-deep:#1e140b;--wall-low:#332212}
+#intro{--wall:#331215;--wall-deep:#1f0a0d;--wall-low:#2c1013}
 .room::before{content:"";position:absolute;top:0;left:0;width:16px;bottom:var(--floor-h);
   background:linear-gradient(to right,rgba(0,0,0,.28),rgba(var(--L),.06) 50%,rgba(0,0,0,.28))}
 
@@ -66,14 +80,20 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 
 /* 展台和展签 */
 .stage{position:absolute;left:0;right:0;top:calc(var(--hud) + var(--st));bottom:var(--floor-h);
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  -webkit-box-reflect:below 0 linear-gradient(transparent calc(100% - 32px),rgba(255,255,255,.16))}
+/* 厅号：用比墙亮一点的颜色印在墙上 */
+.rno{position:absolute;left:24px;top:calc(var(--hud) + var(--st));font:400 160px/160px var(--display);letter-spacing:-8px;
+  color:rgba(255,255,255,.4);mix-blend-mode:soft-light;pointer-events:none}
+/* 纸：展签、门票、祝福卡共用的纸纹 */
+.paper{background-color:var(--card);background-image:var(--grain);background-size:192px 192px;background-blend-mode:soft-light}
 .piece{display:flex;flex-direction:column;align-items:center;transition:opacity .24s,transform .24s}
 .piece.swap{opacity:0;transform:translateY(8px)}
 .plinth{flex:none;position:relative;width:208px;height:96px;
   background:linear-gradient(to bottom,#f4efe7 0,#f4efe7 8px,#ddd4c8 8px,#bdb2a4 100%)}
 .plinth::after{content:"";position:absolute;left:-24px;right:-24px;top:calc(100% - 4px);height:16px;
   background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(0,0,0,.56),transparent 100%)}
-.plaque{width:184px;height:56px;padding:8px 12px;border-radius:4px;background:var(--card);color:var(--ink);
+.plaque{width:184px;height:56px;padding:8px 12px;border-radius:4px;color:var(--ink);
   display:grid;grid-template-columns:28px 1fr;column-gap:8px}
 .plinth .plaque{position:absolute;left:12px;top:16px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 .plaque.on-wall{flex:none;margin:16px 0 40px;box-shadow:0 4px 8px rgba(0,0,0,.32)}
@@ -194,21 +214,29 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .credit{margin-top:24px;font:12px/16px var(--sans);color:var(--chalk-2)}
 #intro .deck{padding-top:8px;display:flex;flex-direction:column;align-items:center}
 .ticket{position:relative;display:flex;flex:none;width:100%;max-width:344px;height:112px;padding:0;border:0;
-  border-radius:4px;background:var(--card);color:var(--ink);text-align:left;box-shadow:0 8px 24px rgba(0,0,0,.45);
+  border-radius:4px;color:var(--ink);text-align:left;box-shadow:0 8px 24px rgba(0,0,0,.45);
   opacity:0;transition:opacity 1.2s .8s}
 #intro.on .ticket{opacity:1}
-.ticket::before,.ticket::after{content:"";position:absolute;right:64px;width:16px;height:16px;border-radius:50%;background:#1a0a0c}
+.ticket::before,.ticket::after{content:"";position:absolute;right:64px;width:16px;height:16px;border-radius:50%;background:#1c1415}
 .ticket::before{top:-8px}
-.ticket::after{bottom:-8px}
-.tmain{flex:1;min-width:0;padding:12px 16px;display:flex;flex-direction:column;border-right:1px dashed rgba(43,27,28,.32)}
-.tt{font:12px/16px var(--sans);color:var(--brass-ink)}
-.tl{margin-top:8px;font:12px/16px var(--sans);color:var(--ink-2)}
-.tn{font:24px/32px var(--display);letter-spacing:4px}
+.ticket::after{bottom:-8px;background:#0f0b0b}
+.tmain{position:relative;flex:1;min-width:0;padding:12px 16px;display:flex;flex-direction:column;justify-content:space-between;
+  border-right:1px dashed rgba(43,27,28,.32)}
+.tmain::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;right:0;border:1px solid rgba(201,164,106,.56);border-right:0;pointer-events:none}
+.trow{display:flex;align-items:baseline;gap:12px}
+.trow.sp{justify-content:space-between}
+.ttl{font:24px/32px var(--serif);letter-spacing:4px;color:transparent;-webkit-background-clip:text;background-clip:text;
+  background-image:linear-gradient(100deg,#7d5a2b 0,#c9a051 24%,#f3dca2 40%,#a87b3c 56%,#e2c07e 76%,#7d5a2b 100%)}
+.tt{font:12px/16px var(--sans);letter-spacing:4px;color:var(--brass-ink)}
+.tl{font:12px/16px var(--sans);color:var(--ink-2)}
+.tn{font:20px/24px var(--display);letter-spacing:4px}
 .tf{font:12px/16px var(--sans);color:var(--ink-2)}
 /* 票根以左下角为轴：往下撕时上端先离开，裂口从上往下走 */
 .stub{flex:none;width:72px;display:flex;align-items:center;justify-content:center;border-radius:0 4px 4px 0;
-  background:#e8e2d6;transform-origin:0 100%;transition:transform .32s var(--ease)}
-.sv{writing-mode:vertical-rl;font:16px/24px var(--serif);letter-spacing:4px;color:var(--ink)}
+  background:#e8e2d6 var(--grain);background-size:192px 192px;background-blend-mode:soft-light;transform-origin:0 100%;transition:transform .32s var(--ease)}
+.stub{flex-direction:column}
+.sno{font:12px/16px var(--display);color:var(--ink-2)}
+.snum{font:16px/24px var(--display);color:var(--ink)}
 #intro.on .ticket:not(.drag):not(.torn) .stub{animation:tug 4s 2.4s infinite}
 @keyframes tug{0%,80%,100%{transform:none}86%{transform:rotate(6deg)}92%{transform:rotate(2deg)}}
 .ticket.drag .stub{transition:none;animation:none}
@@ -232,14 +260,22 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .plaque.solo{display:block;text-align:center}
 .lwrap{position:absolute;left:24px;right:24px;top:calc(var(--hud) + var(--st));bottom:var(--floor-h);
   display:flex;align-items:center;justify-content:center;pointer-events:none}
-.letter{position:relative;width:100%;max-width:312px;padding:32px 24px;border-radius:4px;background:var(--card);color:var(--ink);
+.letter{position:relative;width:100%;max-width:312px;padding:32px 24px;border-radius:4px;color:var(--ink);
   box-shadow:0 24px 48px rgba(0,0,0,.5);opacity:0;transform:translateY(var(--dy,0px)) scale(.16);
   transition:transform 1.2s var(--ease) .32s,opacity .6s .32s}
 .letter::before{content:"";position:absolute;inset:8px;border:1px solid rgba(201,164,106,.6);pointer-events:none}
 #end.open .letter{opacity:1;transform:none}
+.lh{display:flex;justify-content:space-between;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(201,164,106,.56);
+  font:12px/16px var(--sans);color:var(--ink-2)}
 .letter .k{font:12px/16px var(--sans);color:var(--brass-ink)}
 .letter .m{margin-top:16px;font:24px/40px var(--serif)}
-.letter .s{margin-top:24px;font:16px/24px var(--serif);color:var(--ink-2);text-align:right}
+.letter .s{margin-top:24px;display:flex;align-items:center;justify-content:flex-end;gap:12px;font:16px/24px var(--serif);color:var(--ink-2)}
+.seal{display:grid;grid-template-rows:16px 16px;align-content:center;justify-items:center;width:40px;height:40px;border-radius:4px;
+  font:700 16px/16px var(--serif);color:#f8efe4;background:#a3261d var(--grain);background-size:96px 96px;background-blend-mode:multiply;
+  box-shadow:inset 0 0 0 2px rgba(248,239,228,.24);opacity:0;transform:rotate(-6deg) scale(1.6);
+  transition:opacity .16s 1.9s,transform .36s cubic-bezier(.3,1.6,.5,1) 1.9s}
+.seal i{font-style:normal}
+#end.open .seal{opacity:.92;transform:rotate(-6deg)}
 .confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #end.drag .bigbox .half,#end.drag .bigbox .blid{transition:none;animation:none}
 #end .deck{display:flex;justify-content:center}
@@ -284,14 +320,13 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
           </div>
         </div>
         <div class="deck">
-          <button class="ticket" type="button" aria-label="撕下票根，入场">
+          <button class="ticket paper" type="button" aria-label="生日特展入场券，按住票根往下撕">
             <span class="tmain">
-              <span class="tt">生日特展入场券</span>
-              <span class="tl">持票人</span>
-              <span class="tn">DZC　ZK</span>
-              <span class="tf">两人同行，饭后入场</span>
+              <span class="trow sp"><span class="ttl">生日特展</span><span class="tt">入场券</span></span>
+              <span class="trow"><span class="tl">持票人</span><span class="tn">DZC　ZK</span></span>
+              <span class="trow sp"><span class="tf">展期 10.09 至 10.20</span><span class="tf">两人同行</span></span>
             </span>
-            <span class="stub"><span class="sv">撕票入场</span></span>
+            <span class="stub"><span class="sno">No.</span><span class="snum">1009</span><span class="snum">1020</span></span>
           </button>
           <p class="thint swipe"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="shine">按住票根，往下撕</span></p>
         </div>
@@ -311,12 +346,13 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
                 <circle cx="104" cy="42" r="8" fill="#c9a46a"/></g>
             </svg>
           </button>
-          <div class="plinth"><div class="plaque solo"><span><span class="pa">给 DZC 和 ZK</span><span class="pb">本件展品，请动手拆开</span></span></div></div>
+          <div class="plinth"><div class="plaque solo paper"><span><span class="pa">给 DZC 和 ZK</span><span class="pb">本件展品，请动手拆开</span></span></div></div>
         </div>
-        <div class="lwrap"><div class="letter" aria-live="polite">
+        <div class="lwrap"><div class="letter paper" aria-live="polite">
+          <p class="lh"><span>生日特展图录</span><span>第 4 页</span></p>
           <p class="k">DZC、ZK，生日快乐</p>
           <p class="m">希望你们的所有担忧，<br>都是虚惊一场。</p>
-          <p class="s">花花和佳佳</p>
+          <p class="s">花花和佳佳<span class="seal" aria-hidden="true"><i>花</i><i>佳</i></span></p>
         </div></div>
         <canvas class="confetti" aria-hidden="true"></canvas>
         <div class="deck"><p class="ehint swipe"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="shine">往上掀开盒盖</span></p></div>
@@ -470,9 +506,10 @@ function gen(L, hist, keys) {
   return { key, ans: L.ans(key) };
 }
 
-const plaque = (L, i, wall) => `<div class="plaque${wall ? ' on-wall' : ''}"><span class="pn">0${i + 1}</span>`
+const plaque = (L, i, wall) => `<div class="plaque paper${wall ? ' on-wall' : ''}"><span class="pn">0${i + 1}</span>`
   + `<span><span class="pa">${L.title}</span><span class="pb">${L.ask}</span></span></div>`;
 const roomHTML = (L, i) => `<section class="room k-${L.kind}">`
+  + `<div class="rno" aria-hidden="true">0${i + 1}</div>`
   + '<div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div>'
   + `<div class="stage"><div class="piece" role="img"></div>`
   + (L.kind === 'painting' ? plaque(L, i, true) : `<div class="plinth">${plaque(L, i)}</div>`) + '</div>'
@@ -544,9 +581,12 @@ function setW() {
   document.documentElement.style.setProperty('--W', W + 'px');
   buildRope(); setCam(pos);
 }
+// Safari 顶栏颜色跟着所在展厅的墙色走
+const metaTheme = document.querySelector('meta[name="theme-color"]');
 function hudSet() {
   hud.classList.toggle('at-intro', cur === 0);
   hudC.textContent = cur === 0 ? '前言' : cur === rooms.length - 1 ? '结语' : `0${cur} / 0${LEVELS.length}`;
+  metaTheme.setAttribute('content', getComputedStyle(rooms[cur]).getPropertyValue('--wall-deep').trim());
 }
 async function moveTo(to, ease) {
   await tween(to, Math.max(480, 1800 * Math.abs(to - pos)), ease || EASE.io);
