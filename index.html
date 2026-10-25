@@ -6,6 +6,18 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#260d10">
 <title>ZK & DZC 生日特展</title>
+<meta name="description" content="花花和佳佳策展：三件展品，各藏一条规则。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ZK &amp; DZC 生日特展">
+<meta property="og:description" content="花花和佳佳策展：三件展品，各藏一条规则。">
+<meta property="og:url" content="https://ugghn.github.io/birthday-dzc-zk/">
+<meta property="og:image" content="https://ugghn.github.io/birthday-dzc-zk/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="生日特展">
 <style>
 :root{
   --wall:#3a1619;--wall-deep:#260d10;--floor:#1c0b0d;--void:#120607;
@@ -78,6 +90,38 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .lamp::after{content:"";position:absolute;left:4px;right:4px;bottom:-4px;height:4px;border-radius:50%;opacity:0;
   background:rgba(var(--L),.9);box-shadow:0 0 12px 4px rgba(var(--L),.48)}
 .shade{position:absolute;inset:0;z-index:3;background:rgba(10,4,5,.8);pointer-events:none}
+/* 隐藏展厅：暗厅；换上新愿望时顶灯闪一下，这就是暗号 */
+.room.k-wish{--wall:#1c1a2e;--wall-deep:#0e0d19;--wall-low:#17152a}
+.blink{position:absolute;inset:0;z-index:3;background:rgba(10,4,5,.8);opacity:0;pointer-events:none}
+.room.flick .blink{animation:blink .56s linear}
+@keyframes blink{0%,100%{opacity:0}12%{opacity:.88}26%{opacity:0}40%{opacity:.8}56%{opacity:0}}
+@keyframes blink-soft{0%,100%{opacity:0}40%,60%{opacity:.6}}
+.lring{position:absolute;top:2px;left:50%;width:40px;height:40px;margin-left:-20px;border:1px solid var(--brass);border-radius:50%;opacity:0;transition:opacity .4s .8s}
+.lco{position:absolute;top:14px;right:calc(50% + 24px);padding-right:24px;white-space:nowrap;font:12px/16px var(--sans);color:var(--brass);opacity:0;transition:opacity .4s 1s}
+.lco::before{content:"";position:absolute;right:0;top:8px;width:16px;height:1px;background:var(--brass)}
+.room.torn .lco,.room.torn .lring{opacity:1}
+.wish{display:block;overflow:visible}
+.wt{font-family:var(--serif);font-size:20px;fill:#2b1b1c}
+/* 证据墙：答过的展品按正确答案贴到两侧墙上，揭晓时每张签补上暗号 */
+.ev{position:absolute;z-index:1;top:calc(var(--hud) + var(--st) + 176px);bottom:calc(var(--floor-h) + 8px);width:24px;padding-top:8px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;overflow:hidden;pointer-events:none;
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 24px),transparent)}
+.ev.l{left:max(8px,calc(50% - 160px))}
+.ev.r{right:max(8px,calc(50% - 160px))}
+.tag{flex:none;position:relative;width:24px;padding:12px 0 6px;border-radius:2px;display:flex;flex-direction:column;align-items:center;color:var(--ink);
+  background-color:#ddd5c7;background-image:var(--grain);background-size:192px 192px;background-blend-mode:soft-light;box-shadow:0 2px 4px rgba(0,0,0,.45)}
+.tag::before{content:"";position:absolute;top:4px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#8a6634}
+.tag .tk{writing-mode:vertical-rl;font:12px/24px var(--serif);letter-spacing:0}
+.tag .mk{position:absolute;top:-8px;left:4px;display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--brass);color:#241707;
+  box-shadow:0 1px 2px rgba(0,0,0,.5);
+  font:400 12px/16px var(--display);opacity:0;transform:scale(.4);transition:opacity .3s,transform .4s cubic-bezier(.3,1.6,.5,1);transition-delay:var(--d,0s)}
+.tag .mk.hollow{background:#3a3550;box-shadow:inset 0 0 0 1px var(--brass),0 1px 2px rgba(0,0,0,.5)}
+.tag .mk svg{display:block}
+.room.clear .tag .mk{opacity:1;transform:none}
+.tag.new{animation:tagin .32s var(--ease)}
+@keyframes tagin{from{opacity:0;transform:translateY(-8px)}}
+/* 恢复进度时，已经走过的状态直接摆好，不再播一遍 */
+.instant,.instant *{transition-duration:0s!important;transition-delay:0s!important;animation-duration:0s!important;animation-delay:0s!important}
 /* 结语两束追光：先一起对准礼盒，拆开后各照卡片的一栏 */
 #end{--spot:66px;--aim:12deg}
 #end .beam{transform-origin:50% 0;transition:transform 1.4s var(--ease) .4s}
@@ -164,8 +208,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .ch{position:relative;display:inline-block}
 .ch::after{content:attr(data-n);position:absolute;left:0;top:100%;width:40px;text-align:center;
   font:12px/16px var(--display);letter-spacing:0;color:var(--brass);text-shadow:none;opacity:0;transition:opacity .4s .8s}
-.word .co{left:100%;top:16px;padding-left:40px}
-.word .co::before{left:8px;width:24px}
+.word .co{left:0;right:0;top:calc(100% + 20px);text-align:center}
+.word .co::before{display:none}
 .torn .glass{transform:translateY(-96px);opacity:.4}
 .torn .ch::after{opacity:1}
 
@@ -182,16 +226,14 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .tagt{font-family:var(--serif);font-size:16px;fill:#3a2a22}
 .menu{font-family:var(--serif);font-size:12px;fill:#3a2a22}
 /* 画放大 1.12 倍后，筷子尖落在 (44,152) 或 (196,152) */
-.tipmark{position:absolute;z-index:2;top:144px;width:16px;height:16px;border:1px solid var(--brass);border-radius:50%;
+.tipmark{position:absolute;z-index:2;top:144px;width:16px;height:16px;border:1px solid #6b4a1f;border-radius:50%;
   opacity:0;transition:opacity .4s .8s}
 .pic.L .tipmark{left:36px}
 .pic.R .tipmark{left:188px}
-.pic .co{z-index:2;top:144px}
-.pic.L .co{right:calc(100% + 8px)}
-.pic.R .co{left:calc(100% + 8px)}
-.pic .co::before{width:40px}
-.pic.L .co::before{left:calc(100% + 4px)}
-.pic.R .co::before{right:calc(100% + 4px)}
+.pic .co{z-index:2;top:116px;transform:translateX(-50%);color:#6b4a1f}
+.pic.L .co{left:44px}
+.pic.R .co{left:196px}
+.pic .co::before{left:50%;top:auto;bottom:-10px;width:1px;height:8px;background:#6b4a1f}
 .torn .canvas{transform:scale(1.12);box-shadow:0 0 0 2px #e9d08f,0 0 0 3px rgba(60,40,10,.55),0 24px 48px rgba(0,0,0,.56)}
 .torn .ring{transform:translateY(-48px) scale(.96);opacity:.8}
 .torn .tipmark{opacity:1}
@@ -352,6 +394,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   font:12px/16px var(--sans);color:var(--ink-2)}
 .letter .lp{font:16px/24px var(--serif);color:var(--ink-2)}
 .letter .m{margin-top:12px;font:24px/36px var(--serif)}
+/* 320 宽的老机型上，祝福那一句一行放得下 */
+@media (max-width:359px){.letter .m{font-size:20px;line-height:32px}}
 .duo{display:grid;grid-template-columns:1fr 1px 1fr;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(201,164,106,.56)}
 .duo>i{background:repeating-linear-gradient(to bottom,rgba(201,164,106,.8) 0 4px,transparent 4px 8px)}
 .who{display:flex;flex-direction:column;align-items:center}
@@ -363,6 +407,11 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   box-shadow:inset 0 0 0 2px rgba(248,239,228,.24);opacity:0;transform:rotate(-6deg) scale(1.6);
   transition:opacity .16s 1.9s,transform .36s cubic-bezier(.3,1.6,.5,1) 1.9s}
 .seal i{font-style:normal}
+button.seal{border:0;padding:0;pointer-events:none;cursor:pointer}
+#end.open button.seal{pointer-events:auto}
+button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
+.seal.restamp{animation:restamp .36s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes restamp{from{opacity:0;transform:rotate(-6deg) scale(1.6)}to{opacity:.92;transform:rotate(-6deg)}}
 #end.open .seal{opacity:.92;transform:rotate(-6deg)}
 .confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #end.drag .bigbox .half,#end.drag .bigbox .blid{transition:none;animation:none}
@@ -372,12 +421,33 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .ticket.torn .tstamp{animation:slam-t .36s cubic-bezier(.3,1.6,.5,1) .28s both}
 @keyframes slam-t{from{opacity:0;transform:rotate(-14deg) scale(1.8)}to{opacity:.9;transform:rotate(-14deg) scale(1)}}
 .ehint{height:48px;font:16px/24px var(--serif);transition:opacity .4s}
+/* 结尾地上的票根：三枚章，加上答了几次、用了多久 */
+.record{position:absolute;left:50%;top:16px;width:272px;margin-left:-136px;pointer-events:none;opacity:0;transform:translateY(16px) rotate(-2deg);
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.5)) drop-shadow(0 8px 8px rgba(0,0,0,.4));transition:opacity .6s 2.4s,transform .8s var(--ease) 2.4s}
+#end.open .record{opacity:1;transform:rotate(-2deg)}
+.rcard{height:96px;padding:12px 16px 12px 24px;display:flex;flex-direction:column;justify-content:space-between;color:var(--ink);
+  background-color:#e8e2d6;background-image:var(--grain),var(--guilloche);background-size:192px 192px,48px 16px;background-blend-mode:soft-light,normal;
+  -webkit-mask-image:radial-gradient(circle at 0 0,transparent 8px,#000 8.5px),radial-gradient(circle at 0 100%,transparent 8px,#000 8.5px);
+  -webkit-mask-composite:source-in;mask-composite:intersect;border-radius:0 4px 4px 0}
+.rtop,.rtx{display:flex;justify-content:space-between;align-items:baseline;font:12px/16px var(--sans);color:var(--ink-2)}
+.rtop b,.rtx b{font:400 16px/16px var(--display);color:var(--ink)}
+.rst{display:flex;gap:8px;height:32px}
+.rs{position:relative;display:grid;grid-template-rows:12px 12px;align-content:center;justify-items:center;width:32px;height:32px;
+  border:2px solid #b3271c;border-radius:4px;font:700 12px/12px var(--serif);color:#b3271c;opacity:0;transform:rotate(var(--rot,-8deg)) scale(1.8)}
+.rs::before{content:"";position:absolute;inset:4px;border:1px solid rgba(179,39,28,.6);border-radius:2px}
+.rs i{font-style:normal;position:relative}
+.rs.gold{border-color:var(--brass-ink);color:var(--brass-ink)}
+.rs.gold::before{border-color:rgba(138,102,52,.6)}
+#end.open .rs{animation:slam-r .36s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(2.8s + var(--i,0) * .24s)}
+@keyframes slam-r{from{opacity:0;transform:rotate(var(--rot,-8deg)) scale(1.8)}to{opacity:.9;transform:rotate(var(--rot,-8deg))}}
 #end.open .ehint{opacity:0}
 
 /* 固定在镜头上的顶栏 */
 .hud{position:absolute;left:0;right:0;top:var(--st);height:var(--hud);padding:0 16px;z-index:2;pointer-events:none;
   display:flex;align-items:center;justify-content:flex-end;font:16px/24px var(--serif);color:var(--chalk-2)}
-.hud .r{display:flex;align-items:center;gap:8px}
+.hud .r{display:flex;align-items:center;gap:8px;margin-left:auto}
+.hl{pointer-events:auto;height:40px;margin-left:-8px;padding:0 8px;border:0;background:none;font:12px/16px var(--sans);color:var(--chalk-2);text-decoration:underline;text-underline-offset:4px}
+.hl:focus-visible{outline:2px solid var(--brass);outline-offset:-4px}
 .snd{pointer-events:auto;width:40px;height:40px;margin-right:-12px;padding:12px;border:0;background:none;color:var(--chalk-2)}
 .snd svg{display:block;width:16px;height:16px}
 .snd .x,.snd[aria-pressed="true"] .w{display:none}
@@ -385,6 +455,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .snd:focus-visible{outline:2px solid var(--brass);outline-offset:-4px}
 
 @media (prefers-reduced-motion:reduce){
+  .room.flick .blink{animation:blink-soft .64s ease-in-out}
+  .tag.new{animation:none}
   .room.clear .stamp,.ticket.torn .tstamp{animation-duration:.01ms;animation-delay:0s}
   *{transition-duration:.01ms!important;transition-delay:0s!important}
   .room.lit .beam,.room.lit .pool,.room.lit .spill,.room.lit .lamp::after{animation:none;opacity:1}
@@ -401,6 +473,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   <radialGradient id="gBow" cx=".42" cy=".36" r=".72"><stop offset="0" stop-color="#f4dfae"/><stop offset=".55" stop-color="#c9a46a"/><stop offset="1" stop-color="#7e5c29"/></radialGradient>
   <linearGradient id="gPost" x1="0" x2="1"><stop offset="0" stop-color="#4a3616"/><stop offset=".36" stop-color="#c9a46a"/><stop offset=".5" stop-color="#f0d9a2"/><stop offset=".64" stop-color="#c9a46a"/><stop offset="1" stop-color="#4a3616"/></linearGradient>
   <radialGradient id="gKnob" cx=".5" cy=".24" r=".8"><stop offset="0" stop-color="#fff2cf"/><stop offset=".45" stop-color="#d9b97c"/><stop offset="1" stop-color="#6a4e22"/></radialGradient>
+  <linearGradient id="gWood" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e4c38d"/><stop offset="1" stop-color="#b98a4e"/></linearGradient>
   <radialGradient id="gFoot" cx=".5" cy=".2" r=".85"><stop offset="0" stop-color="#e3c88f"/><stop offset="1" stop-color="#4a3616"/></radialGradient>
 </defs></svg>
 <div id="app">
@@ -415,7 +488,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
             <div>
               <p class="names">ZK &amp; DZC</p>
               <p class="dates">展期 10.09 至 10.12</p>
-              <p class="pre">上次在主厨家，饭后我们一起猜规则。这次换我们出题：三件展品各藏着一条规则，网页只说对或错，连对 4 次才能走进下一个展厅。</p>
+              <p class="pre">上次在主厨家，饭后一起猜规则。这次换我们出题：三件展品，各藏一条规则。连着答对，灯全亮，就进下一个展厅。</p>
               <p class="credit">策展：花花和佳佳</p>
             </div>
           </div>
@@ -425,7 +498,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
             <span class="tmain paper">
               <span class="trow sp"><span class="ttl">生日特展</span><span class="tt">入场券</span></span>
               <span class="trow"><span class="tl">持票人</span><span class="tn">ZK　DZC</span></span>
-              <span class="trow sp"><span class="tf">展期 10.09 至 10.12</span><span class="tf">两人同行</span></span>
+              <span class="trow"><span class="tf">展期 10.09 至 10.12</span></span>
             </span>
             <span class="stub"><span class="sno">No.</span><span class="snum">1009</span><span class="snum">1012</span></span>
             <span class="tstamp" aria-hidden="true">已检</span>
@@ -460,20 +533,25 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
             <p class="who"><span class="wn">ZK</span><span class="wb">生日快乐</span></p><i aria-hidden="true"></i>
             <p class="who"><span class="wn">DZC</span><span class="wb">生日快乐</span></p>
           </div>
-          <p class="lp">前面三件展品，都藏着规则。<br>这一件没有规则，只有一句话：</p>
+          <p class="lp">前面<span class="cnt">三</span>件展品，都藏着规则。<br>这一件没有规则，只有一句话：</p>
           <p class="m">希望你们的所有担忧，<br>都是虚惊一场。</p>
-          <p class="s">花花和佳佳<span class="seal" aria-hidden="true"><i>花</i><i>佳</i></span></p>
+          <p class="s">花花和佳佳<button class="seal" type="button" aria-label="花佳印章"><i>花</i><i>佳</i></button></p>
         </div></div>
         <canvas class="confetti" aria-hidden="true"></canvas>
         <div class="dimmer"></div>
-        <div class="deck"><p class="ehint swipe slot s4"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>往上掀开盒盖</span></p></div>
+        <div class="deck"><p class="ehint swipe slot s4"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>往上掀开盒盖</span></p>
+          <div class="record" aria-label="观展记录"><div class="rcard">
+            <p class="rtop"><span>观展记录</span><span>No. <b>1009</b> <b>1012</b></span></p>
+            <p class="rst"></p>
+            <p class="rtx"><span>答了 <b class="ra">0</b> 次</span><span>用时 <span class="rt"><b>0</b> 秒</span></span></p>
+          </div></div></div>
         <div class="shade"></div>
       </section>
     </div>
     <div id="rope"></div>
   </div>
   <div class="vignette"></div>
-  <header class="hud"><span class="r">
+  <header class="hud"><button class="hl again" type="button" hidden>重新入场</button><button class="hl skip" type="button" hidden>跳过，去结语</button><span class="r">
     <button class="snd" type="button" aria-label="静音" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true">
       <path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/>
       <path class="w" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6 6 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
@@ -482,27 +560,35 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 
 <script>
 (() => {
-// 三件展品 = 三关。opts 是地上两个按钮，ans 返回正确按钮的序号
+// 三件展品 = 三关，外加一个隐藏展厅：前三关一次讲解员都没请，才进得来。
+// opts 是地上两个按钮；ans 或 pick 决定哪个按钮是对的；streak 是连对几次过关
 const LEVELS = [
-  { title: '能带进生日会吗', opts: ['能带', '不能带'], kind: 'vitrine',
+  { title: '能带进生日会吗', opts: ['能带', '不能带'], kind: 'vitrine', streak: 3,
     pool: ['蛋糕','蜡烛','气球','礼物','彩带','雨伞','拖鞋','闹钟','牙刷','扑克',
            '生日帽','小蛋糕','烟花棒','许愿卡','冰淇淋','伞','花','酒','灭火器','电饭锅'],
     ans: w => [...w].length === 2 ? 0 : 1,
     hint: '别管它跟生日有没有关系，数一数名字。',
     rule: '名字是两个字的就能带，跟生日没关系。' },
-  { title: '主厨这道菜', opts: ['好吃', '不好吃'], kind: 'painting',
+  { title: '主厨这道菜', opts: ['好吃', '不好吃'], kind: 'painting', streak: 4,
     pool: ['红烧肉','番茄炒蛋','清蒸鲈鱼','白灼虾','拍黄瓜','宫保鸡丁','隔夜饭','煮糊的粥','白水煮菜'],
     pick: a => ({ dir: a === 0 ? 'L' : 'R' }),
     hint: '菜名不重要，看看盘子旁边摆着什么。',
     rule: '看筷子尖：朝左好吃，朝右不好吃，\n菜是什么都不管。' },
-  { title: '这份礼物给谁', opts: ['ZK', 'DZC'], kind: 'gift',
+  { title: '这份礼物给谁', opts: ['ZK', 'DZC'], kind: 'gift', streak: 4,
     pool: ['口红','香水','耳环','发夹','领带','剃刀','球鞋','键盘','手表','公仔',
            '剃须刀','游戏机','篮球鞋','护手霜','卷发棒','化妆包','毛绒熊','洗面奶','保温杯'],
     pick: a => ({ n: a === 0 ? 2 : 3 }),
     hint: '吊牌是障眼法，看看盒子上绑了什么。',
-    rule: '数丝带：两道给 ZK，三道给 DZC，\n跟缩写的字母一样多，吊牌不用管。' }
+    rule: '数丝带：两道给 ZK，三道给 DZC，\n跟缩写的字母一样多，吊牌不用管。' },
+  { title: '这个愿望会实现吗', opts: ['会实现', '再等等'], kind: 'wish', streak: 4, hidden: true,
+    pool: ['暴富','不加班','吃不胖','中彩票','睡到自然醒','永远十八岁','说走就走',
+           '不脱发','天天放假','想吃就吃','早睡早起','一夜长高','发大财','少熬夜'],
+    pick: a => ({ flick: a === 0 }),
+    intro: '隐藏展厅：一路没请讲解员，才进得来',
+    hint: '愿望不重要，抬头看看。',
+    rule: '看顶灯：换愿望时闪一下，会实现；\n不闪就再等等，愿望写的什么都不管。' }
 ];
-const STREAK = 4, HINT_AT = 6, REVEAL_AT = 12;
+const HINT_AT = 6, REVEAL_AT = 12, WISH = LEVELS[3];
 
 const PAINT_BG = '<rect width="216" height="160" fill="#e7e0d2"/>'
   + '<ellipse cx="111" cy="72" rx="52" ry="52" fill="#000" opacity=".08"/>'
@@ -582,6 +668,17 @@ const LID = n => '<rect x="16" y="36" width="128" height="20" fill="url(#gLid)"/
   + '<path d="M78 34C68 22 58 22 62 30M82 34C92 22 102 22 98 30" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/>'
   + '<circle cx="80" cy="34" r="6" fill="url(#gRib)"/>'
   + '<path d="M86 36C112 40 132 50 142 62" fill="none" stroke="#8d7a5f" stroke-width="1"/>';
+// 许愿牌：挂在铜架上的木牌，红绳穿过牌子上的孔
+const RACK = '<ellipse cx="88" cy="152" rx="76" ry="4" fill="#000" opacity=".28"/>'
+  + '<rect x="12" y="12" width="4" height="140" fill="url(#gPost)"/><rect x="160" y="12" width="4" height="140" fill="url(#gPost)"/>'
+  + '<rect x="8" y="8" width="160" height="4" rx="2" fill="url(#gRibH)"/>'
+  + '<circle cx="8" cy="10" r="4" fill="url(#gKnob)"/><circle cx="168" cy="10" r="4" fill="url(#gKnob)"/>';
+const PLATE = '<path d="M78 12L88 44L98 12" fill="none" stroke="#a3261d" stroke-width="1.5"/>'
+  + '<path d="M28 66L88 34L148 66V132H28Z" fill="url(#gWood)"/>'
+  + '<path d="M28 66L88 34L148 66" fill="none" stroke="#7a5428" stroke-width="4" stroke-linejoin="round"/>'
+  + '<path d="M36 80H140M36 120H140" stroke="#7a5428" stroke-width="1" opacity=".2"/>'
+  + '<circle cx="88" cy="46" r="3" fill="#5b3a1a"/>'
+  + '<path d="M88 132V142" stroke="#a3261d" stroke-width="1.5"/><path d="M85 142H91L92 152H84Z" fill="#a3261d"/>';
 
 // 每件展品的样子；.co 和 .gco 是揭晓时才出现的引线
 const VIEW = {
@@ -599,61 +696,107 @@ const VIEW = {
     + `<circle cx="144" cy="68" r="2" fill="#8d7a5f"/><text class="tagt" x="172" y="82" text-anchor="middle">${it.key}</text></g></g>`
     + '<g class="gco">' + RIB[it.n].map((x, j) => `<circle cx="${x}" cy="112" r="8" fill="#c9a46a"/>`
       + `<text class="gnum" x="${x}" y="116" text-anchor="middle">${j + 1}</text>`).join('')
-    + `<line x1="${RIB[it.n][RIB[it.n].length - 1] + 8}" y1="112" x2="148" y2="112" stroke="#c9a46a" stroke-width="1"/>`
-    + '<text class="gcot" x="152" y="116">丝带的道数</text></g></svg>'
+    + `<line x1="${RIB[it.n][RIB[it.n].length - 1] + 8}" y1="112" x2="136" y2="112" stroke="#c9a46a" stroke-width="1"/>`
+    + '<text class="gcot" x="140" y="116">丝带的道数</text></g></svg>',
+  wish: it => `<svg class="wish" viewBox="0 0 176 152" width="176" height="152" aria-hidden="true">${RACK}${PLATE}`
+    + (it.key ? `<text class="wt" x="88" y="106" text-anchor="middle">${it.key}</text>` : '') + '</svg>'
 };
 const DESC = {
   vitrine: it => `展柜里放着：${it.key}`,
   painting: it => `一盘${it.key}，盘子下方摆着一双筷子，筷子尖朝${it.dir === 'L' ? '左' : '右'}`,
-  gift: it => `一份礼物，绑着 ${it.n} 道丝带，吊牌上写着：${it.key}`
+  gift: it => `一份礼物，绑着 ${it.n} 道丝带，吊牌上写着：${it.key}`,
+  wish: it => it.key ? `许愿牌上写着：${it.key}${it.flick ? '。挂上它时，顶灯闪了一下' : ''}` : '一块还没写字的许愿牌'
+};
+// 证据墙上每张签的钉头：揭晓时换成这一关的暗号
+const ARROW = d => `<svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="${d === 'L' ? 'M8 5H2M5 2L2 5L5 8' : 'M2 5H8M5 2L8 5L5 8'}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const RAYS = '<svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><circle cx="5" cy="5" r="2" fill="currentColor"/>'
+  + '<path d="M5 .6V2M5 8V9.4M.6 5H2M8 5H9.4M1.9 1.9L2.9 2.9M7.1 7.1L8.1 8.1M1.9 8.1L2.9 7.1M7.1 2.9L8.1 1.9" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>';
+const MARK = {
+  vitrine: it => `<span class="mk">${[...it.key].length}</span>`,
+  painting: it => `<span class="mk">${ARROW(it.dir)}</span>`,
+  gift: it => `<span class="mk">${it.n}</span>`,
+  wish: it => it.flick ? `<span class="mk">${RAYS}</span>` : '<span class="mk hollow"></span>'
 };
 
-// 出题：最近出过的不重复；同一个答案最多连着出 3 次，一直按同一个按钮过不了关
+// 出题：最近出过的不重复；同一个答案连着出的次数比过关要求少一次，一直按同一个按钮过不了关
 function gen(L, hist, keys) {
-  const t = hist.slice(-3);
-  const ban = t.length === 3 && t[0] === t[1] && t[1] === t[2] ? t[0] : -1;
+  const run = L.streak - 1, t = hist.slice(-run);
+  const ban = t.length === run && t.every(a => a === t[0]) ? t[0] : -1;
   const recent = keys.slice(-4);
   let c = L.pool.filter(w => recent.indexOf(w) < 0);
   if (L.ans && ban >= 0) c = c.filter(w => L.ans(w) !== ban);
-  const key = c[Math.floor(Math.random() * c.length)];
-  if (L.pick) {
-    const a = ban >= 0 ? 1 - ban : (Math.random() < .5 ? 0 : 1);
-    return Object.assign({ key, ans: a }, L.pick(a));
-  }
-  return { key, ans: L.ans(key) };
+  return make(L, c[Math.floor(Math.random() * c.length)], ban >= 0 ? 1 - ban : -1);
+}
+// 由名字拼出一件展品。pick 类的关卡答案随机，样子跟着答案走；a 给定时照着它摆（恢复进度用）
+function make(L, key, a) {
+  if (!L.pick) return { key, ans: L.ans(key) };
+  if (a !== 0 && a !== 1) a = Math.random() < .5 ? 0 : 1;
+  return Object.assign({ key, ans: a }, L.pick(a));
 }
 
 const plaque = (L, wall) => `<div class="plaque paper${wall ? ' on-wall' : ''}"><span class="pa">${L.title}</span><span class="stamp" role="img"></span></div>`;
-const roomHTML = (L, i) => `<section class="room k-${L.kind}">`
+const NEXT = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 3L4 8l5 5M13 3L8 8l5 5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const roomHTML = (L, i) => `<section class="room k-${L.kind}" data-lv="${i}">`
   + `<div class="rno" aria-hidden="true">0${i + 1}</div>`
   + '<div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div>'
+  + (L.hidden ? '<span class="lring" aria-hidden="true"></span><span class="lco" aria-hidden="true">换愿望时闪一下</span>' : '')
+  + '<div class="ev l" aria-hidden="true"></div><div class="ev r" aria-hidden="true"></div>'
   + `<div class="stage"><div class="piece" role="img"></div>`
   + (L.kind === 'painting' ? plaque(L, true) : `<div class="plinth">${plaque(L)}</div>`) + '</div>'
   + '<div class="deck">'
   + `<div class="play"><span class="slot s1"><button class="btn" type="button" disabled>${L.opts[0]}</button></span>`
-  + `<span class="slot s2"><span class="lamps" role="img" aria-label="连对 0 次"><i></i><i></i><i></i><i></i></span></span>`
+  + `<span class="slot s2"><span class="lamps" role="img" aria-label="连对 0 次">${'<i></i>'.repeat(L.streak)}</span></span>`
   + `<span class="slot s3"><button class="btn" type="button" disabled>${L.opts[1]}</button></span></div>`
   + '<p class="res" aria-live="polite"></p>'
-  + `<p class="sub slot s4"><span class="hint">连对 ${STREAK} 次过关</span><button class="docent" type="button" hidden></button></p>`
+  + `<p class="sub slot s4"><span class="hint">${L.intro || ''}</span><button class="docent" type="button" hidden></button></p>`
   + `<div class="done"><p class="drule"></p>`
-  + `<button class="next swipe" type="button" aria-label="${i === LEVELS.length - 1 ? '走向结语' : '走向下一个展厅'}">`
-  + '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 3L4 8l5 5M13 3L8 8l5 5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-  + `<span>${i === LEVELS.length - 1 ? '向左滑，走向结语' : '向左滑，去下一个展厅'}</span></button></div>`
-  + '</div><div class="dimmer"></div><div class="shade"></div></section>';
+  + `<button class="next swipe" type="button">${NEXT}<span></span></button></div>`
+  + '</div>' + (L.hidden ? '<div class="blink"></div>' : '') + '<div class="dimmer"></div><div class="shade"></div></section>';
 
 const $ = s => document.querySelector(s);
 const dolly = $('#dolly'), track = $('#track'), rope = $('#rope'),
-      intro = $('#intro'), ticket = $('.ticket');
+      intro = $('#intro'), ticket = $('.ticket'), endRoom = $('#end');
 intro.insertAdjacentHTML('afterend', LEVELS.map(roomHTML).join(''));
-const rooms = [...track.children];
+LEVELS.forEach((L, i) => { L.room = track.children[i + 1]; });
+let rooms = [], dimmers = [];
+function relist() { rooms = [...track.children]; dimmers = rooms.map(r => r.querySelector('.dimmer')); }
+relist();
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
+// 进度存在这台手机上：关掉网页再打开，从上次走到的展厅接着看。网址后面加 ?new 从头开始
+const SAVE = 'zk-dzc-expo-1';
+const fresh = () => ({ v: 1, torn: false, at: 0, used: false, hid: '', n: 0, ms: 0, opened: false,
+  lv: LEVELS.map(() => ({ done: false, by: '', streak: 0, wrong: 0, hint: false, log: [] })) });
+let P = fresh(), resetting = false;
+try {
+  if (/[?&]new\b/.test(location.search)) localStorage.removeItem(SAVE);
+  const q = JSON.parse(localStorage.getItem(SAVE) || 'null');
+  if (q && q.v === 1 && Array.isArray(q.lv) && q.lv.length === LEVELS.length) P = q;
+} catch (_) {}
+function save() { if (resetting) return; try { localStorage.setItem(SAVE, JSON.stringify(P)); } catch (_) {} }
+// 用时只算看展的时间：两次操作之间最多记 1 分钟，切到别的 App 的时间不算
+let tLast = null;
+function clock() {
+  const now = performance.now();
+  if (tLast !== null && P.torn && !P.opened) P.ms += Math.min(now - tLast, 60000);
+  tLast = document.hidden ? null : now;
+}
+
 function paint(p, L, it) { p.innerHTML = VIEW[L.kind](it); p.setAttribute('aria-label', DESC[L.kind](it)); }
+// 隐藏展厅的暗号：整间屋子的灯闪一下
+function flick(room) {
+  room.classList.remove('flick'); void room.offsetWidth; room.classList.add('flick');
+  clearTimeout(room._fl); room._fl = setTimeout(() => room.classList.remove('flick'), 800);
+}
 // 换下一件：旧的淡出、新的画好之后才放开按钮，免得看着旧展品答了新题
 function show(p, L, it) {
   p.classList.add('swap');
-  return new Promise(r => setTimeout(() => { paint(p, L, it); p.classList.remove('swap'); r(); }, 240));
+  return new Promise(r => setTimeout(() => {
+    paint(p, L, it); p.classList.remove('swap');
+    if (it.flick) flick(L.room);
+    r();
+  }, 240));
 }
 // 浮尘：每束光里 16 粒，位置和快慢随机；不动弹的设置下不加
 function dust() {
@@ -671,12 +814,14 @@ function dust() {
   return d;
 }
 if (!reduce) document.querySelectorAll('.beam').forEach(b => b.appendChild(dust()));
-const first = LEVELS.map(L => gen(L, [], []));
-LEVELS.forEach((L, i) => paint(rooms[i + 1].querySelector('.piece'), L, first[i]));
+// 每个展厅进门前就摆好第一件；隐藏展厅先挂一块空牌，灯亮了才写上愿望
+LEVELS.forEach(L => {
+  L.first = L.hidden ? { key: '', ans: -1 } : gen(L, [], []);
+  paint(L.room.querySelector('.piece'), L, L.first);
+});
 
 // 镜头：pos 是镜头所在的展厅序号，移动中是小数。手指拖动和自动移动都只改 pos
 let W = innerWidth, cur = 0, pos = 0, S = null, moving = false, camTok = 0, dimAt = -1;
-const dimmers = rooms.map(r => r.querySelector('.dimmer'));
 function setCam(p) {
   pos = p;
   const base = Math.floor(p + 1e-6), f = p - base, moved = f > 1e-4 && f < 1 - 1e-4;
@@ -704,6 +849,7 @@ function tween(to, dur, ease) {
     })(t0);
   });
 }
+// 每个展厅门口一段隔离带
 function buildRope() {
   rope.style.width = `${Math.ceil(W * 1.25 * rooms.length)}px`;
   const post = x => `<ellipse cx="${x}" cy="66" rx="16" ry="4" fill="#000" opacity=".4"/>`
@@ -711,7 +857,7 @@ function buildRope() {
     + `<rect x="${x - 4}" y="20" width="8" height="44" fill="url(#gPost)"/>`
     + `<rect x="${x - 6}" y="20" width="12" height="4" rx="2" fill="url(#gPost)"/>`
     + `<circle cx="${x}" cy="15" r="7" fill="url(#gKnob)"/>`;
-  rope.innerHTML = LEVELS.map((L, i) => `<svg${rooms[i + 1].classList.contains('lit') ? ' class="lit"' : ''} style="left:${(i + 1) * W * 1.25}px" width="${W}" height="72" viewBox="0 0 ${W} 72" aria-hidden="true">`
+  rope.innerHTML = rooms.map((r, k) => r.dataset.lv == null ? '' : `<svg data-k="${k}"${r.classList.contains('lit') ? ' class="lit"' : ''} style="left:${k * W * 1.25}px" width="${W}" height="72" viewBox="0 0 ${W} 72" aria-hidden="true">`
     + `<path d="M28 23Q${W / 2} 55 ${W - 28} 23" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" opacity=".3"/>`
     + `<path d="M28 20Q${W / 2} 52 ${W - 28} 20" fill="none" stroke="#5a1720" stroke-width="7" stroke-linecap="round"/>`
     + `<path d="M28 19.5Q${W / 2} 51 ${W - 28} 19.5" fill="none" stroke="#86283a" stroke-width="3" stroke-linecap="round"/>`
@@ -722,15 +868,33 @@ function setW() {
   W = innerWidth;
   document.documentElement.style.setProperty('--W', W + 'px');
   buildRope(); setCam(pos);
-  if (cur === rooms.length - 1) { fitLetter(); aimSpots(); }
+  if (rooms[cur] === endRoom) { fitLetter(); aimSpots(); }
 }
-// Safari 顶栏颜色跟着所在展厅的墙色走
-const metaTheme = document.querySelector('meta[name="theme-color"]');
-function hudSet() {
+// 第几关之后去哪：第三关之后，隐藏展厅还开着就进去，否则直接去结语
+const after = i => i < 2 ? LEVELS[i + 1].room : i === 2 && WISH.room.isConnected ? WISH.room : endRoom;
+function labelNext() {
+  LEVELS.forEach((L, i) => {
+    const b = L.room.querySelector('.next'), end = after(i) === endRoom;
+    b.setAttribute('aria-label', end ? '走向结语' : '走向下一个展厅');
+    b.lastChild.textContent = end ? '向左滑，走向结语' : '向左滑，去下一个展厅';
+  });
+}
+// 请过讲解员，隐藏展厅就关上：它这时一定在画面外，直接从展线上拿掉
+function forfeit() {
+  if (!WISH.room.isConnected) return;
+  WISH.room.remove(); relist(); buildRope(); setCam(pos); labelNext();
+}
+// Safari 顶栏颜色跟着所在展厅的墙色走；顶栏左边：隐藏展厅里是「跳过」，拆完礼物是「重新入场」
+const metaTheme = document.querySelector('meta[name="theme-color"]'), skipBtn = $('.skip'), againBtn = $('.again');
+function hudSet(walking) {
   metaTheme.setAttribute('content', getComputedStyle(rooms[cur]).getPropertyValue('--wall-deep').trim());
+  skipBtn.hidden = !!walking || !(S && S.L === WISH && rooms[cur] === WISH.room && !S.done);
+  againBtn.hidden = !!walking || !(rooms[cur] === endRoom && P.opened);
 }
 async function moveTo(to, ease) {
-  await tween(to, Math.max(480, 1800 * Math.abs(to - pos)), ease || EASE.io);
+  const dur = Math.max(480, 1800 * Math.abs(to - pos));
+  steps(reduce ? 480 : dur);
+  await tween(to, dur, ease);
   cur = to; setCam(to); hudSet();
 }
 // 镜头往下一个展厅探一下头再回来，告诉人可以往左滑
@@ -741,66 +905,101 @@ async function peek() {
 }
 
 // 关卡
+const setBtns = on => S && S.btns.forEach(b => { b.disabled = !on; });
 function prepare(i) {
-  const room = rooms[i + 1], q = s => room.querySelector(s);
-  S = { i, L: LEVELS[i], room, piece: q('.piece'), btns: [...room.querySelectorAll('.btn')],
+  const L = LEVELS[i], room = L.room, q = s => room.querySelector(s), sv = P.lv[i];
+  S = { i, L, room, sv, piece: q('.piece'), btns: [...room.querySelectorAll('.btn')],
         lampsEl: q('.lamps'), lamps: [...room.querySelectorAll('.lamps i')], res: q('.res'), hint: q('.hint'),
         docent: q('.docent'), stamp: q('.stamp'), drule: q('.drule'), next: q('.next'),
-        item: first[i], keys: [first[i].key], hist: [], streak: 0, wrong: 0, hintOpen: false, busy: true, done: false, timer: 0 };
+        item: L.first, keys: L.first.key ? [L.first.key] : [], hist: sv.log.map(e => e[1]),
+        streak: sv.streak, wrong: sv.wrong, hintOpen: sv.hint, busy: true, done: false, timer: 0 };
   S.btns.forEach((b, k) => { b.onclick = () => answer(k); });
   S.docent.onclick = onDocent;
   // 下一个展厅靠往左滑；轻点只演示一下，键盘回车直接走
   S.next.onclick = e => {
     if (moving || performance.now() - justDragged < 400) return;
-    if (e.detail === 0) go(i + 1); else peek();
+    if (e.detail === 0) go(after(i)); else peek();
   };
-}
-const setBtns = on => S.btns.forEach(b => { b.disabled = !on; });
-
-// 走进下一个展厅：镜头停稳后开灯，离开的展厅关灯；隔离带跟着本展厅的灯一起亮
-function lights(r, on) {
-  rooms[r].classList.toggle('lit', on);
-  const seg = rope.children[r - 1];
-  if (seg) seg.classList.toggle('lit', on);
-}
-async function go(next, fromDrag) {
-  if (moving) return;
-  moving = true;
-  const target = next < LEVELS.length ? next + 1 : rooms.length - 1;
-  if (next < LEVELS.length) prepare(next);
-  const prev = cur;
-  await moveTo(target, fromDrag ? EASE.out : EASE.io);
-  if (target === rooms.length - 1) { fitLetter(); aimSpots(); }
-  lights(prev, false);
-  lights(target, true);
-  rooms[target].classList.add('ready');
-  moving = false;
-  if (next < LEVELS.length) {
-    await wait(reduce ? 0 : 1120);
-    S.busy = false; setBtns(true);
-  }
-}
-function answer(k) {
-  if (S.busy || S.done) return;
-  S.busy = true; setBtns(false);
-  tick();
-  const ok = k === S.item.ans, right = S.btns[S.item.ans];
-  S.hist.push(S.item.ans);
-  if (ok) S.streak++; else { S.streak = 0; S.wrong++; S.btns[k].classList.add('miss'); }
-  right.classList.add('glow');
+  // 接着上次的进度：墙上的签、地上亮着的灯、讲解员的提示
+  sv.log.slice(-12).forEach(([k, a]) => pin(make(L, k, a), false));
   S.lamps.forEach((l, j) => l.classList.toggle('on', j < S.streak));
   S.lampsEl.setAttribute('aria-label', `连对 ${S.streak} 次`);
-  S.res.textContent = ok ? '对。' : `不对，是「${S.L.opts[S.item.ans]}」。`;
+  if (S.hintOpen) S.hint.textContent = L.hint;
   subSet();
-  if (S.streak >= STREAK) { S.timer = setTimeout(() => clear(false), 720); return; }
-  S.timer = setTimeout(async () => {
-    S.btns.forEach(b => b.classList.remove('glow', 'miss'));
-    S.item = gen(S.L, S.hist, S.keys); S.keys.push(S.item.key);
-    S.res.textContent = '';
-    await show(S.piece, S.L, S.item);
-    if (S.done) return;
-    S.busy = false; setBtns(true);
-  }, ok ? 960 : 1440);
+  if (sv.done) markDone(S, sv.by === 'docent');
+}
+// 答过的展品按正确答案贴到墙上：左边按钮对的贴左墙，右边对的贴右墙，新的在上面
+function pin(it, fresh) {
+  const col = S.room.querySelector(it.ans === 0 ? '.ev.l' : '.ev.r'), t = document.createElement('span');
+  t.className = fresh ? 'tag new' : 'tag';
+  t.innerHTML = `<span class="tk">${it.key}</span>${MARK[S.L.kind](it)}`;
+  col.prepend(t);
+  while (col.children.length > 12) col.lastChild.remove();
+}
+
+// 走进下一个展厅：镜头停稳后开灯，离开的展厅关灯；隔离带跟着本展厅的灯一起亮
+function lights(k, on) {
+  rooms[k].classList.toggle('lit', on);
+  const seg = rope.querySelector(`[data-k="${k}"]`);
+  if (seg) seg.classList.toggle('lit', on);
+}
+async function go(el, fromDrag) {
+  if (moving || !el) return;
+  moving = true;
+  if (S) { clearTimeout(S.timer); S.busy = true; setBtns(false); }
+  const lv = el === endRoom ? -1 : +el.dataset.lv, prev = cur;
+  if (lv >= 0) prepare(lv);
+  if (el === WISH.room && !P.hid) P.hid = 'in';
+  hudSet(true);
+  await moveTo(rooms.indexOf(el), fromDrag ? EASE.out : EASE.io);
+  P.at = lv >= 0 ? lv : 'end'; save();
+  if (el === endRoom) { fitLetter(); aimSpots(); }
+  lights(prev, false); lights(cur, true);
+  el.classList.add('ready');
+  moving = false;
+  if (lv >= 0 && !S.done) arrive(S);
+}
+async function arrive(me) {
+  await wait(reduce ? 0 : 1120);
+  if (S !== me || me.done) return;
+  if (!me.item.key) {   // 隐藏展厅：灯亮稳了才挂上第一块，免得把开灯的闪烁当成暗号
+    me.item = gen(me.L, me.hist, me.keys); me.keys.push(me.item.key);
+    await show(me.piece, me.L, me.item);
+    if (S !== me || me.done) return;
+  }
+  me.busy = false; setBtns(true);
+}
+function answer(k) {
+  if (!S || S.busy || S.done) return;
+  audio();
+  S.busy = true; setBtns(false);
+  const it = S.item, ok = k === it.ans, was = S.streak;
+  S.hist.push(it.ans);
+  S.sv.log.push([it.key, it.ans]); if (S.sv.log.length > 24) S.sv.log.shift();
+  P.n++;
+  if (ok) S.streak++; else { S.streak = 0; S.wrong++; S.btns[k].classList.add('miss'); }
+  S.sv.streak = S.streak; S.sv.wrong = S.wrong;
+  S.btns[it.ans].classList.add('glow');
+  // 答对亮一盏；答错从右往左一盏盏灭
+  if (ok) S.lamps[S.streak - 1].classList.add('on');
+  else S.lamps.slice(0, was).forEach((l, j) => setTimeout(() => l.classList.remove('on'), (was - 1 - j) * 70));
+  S.lampsEl.setAttribute('aria-label', `连对 ${S.streak} 次`);
+  S.res.textContent = ok ? '对。' : `不对，是「${S.L.opts[it.ans]}」。`;
+  pin(it, true);
+  subSet();
+  const pass = S.streak >= S.L.streak;
+  sfx(c => ok ? chime(c, S.streak, pass) : thud(c.currentTime + .01, 280, .3, .22));
+  save();
+  if (pass) { S.timer = setTimeout(() => clear(false), 720); return; }
+  const me = S;
+  me.timer = setTimeout(async () => {
+    me.btns.forEach(b => b.classList.remove('glow', 'miss'));
+    me.item = gen(me.L, me.hist, me.keys); me.keys.push(me.item.key);
+    me.res.textContent = '';
+    await show(me.piece, me.L, me.item);
+    if (me.done || S !== me) return;
+    me.busy = false; setBtns(true);
+  }, ok ? 480 : 860);
 }
 // 讲解员：错满 6 次给提示，错满 12 次可以请他直接揭晓，保证一定走得到结语
 function subSet() {
@@ -811,104 +1010,209 @@ function subSet() {
 }
 function onDocent() {
   if (S.done) return;
+  if (S.L !== WISH && !P.used) { P.used = true; forfeit(); }
   if (S.wrong >= REVEAL_AT) { clear(true); return; }
-  S.hintOpen = true; S.hint.textContent = S.L.hint; subSet();
+  S.hintOpen = true; S.sv.hint = true; S.hint.textContent = S.L.hint; subSet(); save();
+}
+// 揭晓后的样子：灯全亮、盖章、写出规则、墙上每张签的钉头换成暗号（从上往下依次）
+function markDone(st, byDocent) {
+  st.done = true; st.busy = true;
+  st.btns.forEach(b => { b.disabled = true; b.classList.remove('glow', 'miss'); });
+  st.lamps.forEach(l => l.classList.add('on'));
+  st.lampsEl.setAttribute('aria-label', '过关了');
+  st.stamp.innerHTML = byDocent ? '<i>揭</i><i>晓</i>' : '<i>看</i><i>穿</i>';
+  st.stamp.setAttribute('aria-label', byDocent ? '讲解员揭晓了' : '看穿了');
+  st.drule.textContent = st.L.rule;
+  st.room.querySelectorAll('.ev').forEach(col => [...col.children].forEach((t, n) =>
+    t.lastChild.style.setProperty('--d', (1.2 + n * .08).toFixed(2) + 's')));
+  st.room.classList.add('torn', 'clear');
 }
 function clear(byDocent) {
   clearTimeout(S.timer);
-  S.done = true; S.busy = true; setBtns(false);
-  S.btns.forEach(b => b.classList.remove('glow', 'miss'));
-  S.lamps.forEach(l => l.classList.add('on'));
-  S.stamp.innerHTML = byDocent ? '<i>揭</i><i>晓</i>' : '<i>看</i><i>穿</i>';
-  S.stamp.setAttribute('aria-label', byDocent ? '讲解员揭晓了' : '看穿了');
-  S.drule.textContent = S.L.rule;
-  S.room.classList.add('torn', 'clear');
+  markDone(S, byDocent);
+  S.sv.done = true; S.sv.by = byDocent ? 'docent' : 'self';
+  if (S.L === WISH) P.hid = 'clear';
+  save(); hudSet();
+  sfx(c => stamp(c.currentTime + 1.12, .7));
   const me = S;
   setTimeout(() => { if (S === me && !moving) peek(); }, 2400);
 }
 
-// 八音盒生日歌：网页现场合成，撕票和拆礼盒时各响一遍；右上角可以静音
+// 声音：八音盒生日歌、答对的音阶、答错的闷响、脚步、盖章、撕票，全在网页里现场合成；右上角可以静音
 const snd = $('.snd');
-let actx = null, master = null, muted = false;
+const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const sess = navigator.audioSession;
+// iPhone 静音键打开时，网页的声音默认也跟着静音；把声音类型设成「播放」，就像音乐 App 一样照常出声
+function session(on) { try { if (sess) sess.type = on ? 'playback' : 'auto'; } catch (_) {} }
+session(true);
+let actx = null, out = null, master = null, dry = null, muted = false, noiseBuf = null, silent = null, songBus = null;
+// 老版本 iOS 没有上面那个设置：放一段循环的无声音频，网页就会被当成在播放音乐
+function silentURL() {
+  const n = 8000, b = new ArrayBuffer(44 + n), v = new DataView(b);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+  w(36, 'data'); v.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+  return URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+}
+function keepAwake(on) {
+  if (sess || !iOS) return;
+  if (!silent) { if (!on) return; silent = new Audio(silentURL()); silent.loop = true; silent.setAttribute('playsinline', ''); }
+  if (on && !muted) { if (silent.paused) { const r = silent.play(); if (r && r.catch) r.catch(() => {}); } }
+  else silent.pause();
+}
+// 只在手势里调用：第一次会建好声音通道
 function audio() {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return null;
+  keepAwake(true);
   if (!actx) {
     actx = new AC();
-    master = actx.createGain(); master.gain.value = muted ? 0 : .4;
+    out = actx.createGain(); out.gain.value = muted ? 0 : 1; out.connect(actx.destination);
+    master = actx.createGain(); master.gain.value = .4; master.connect(out);
+    dry = actx.createGain(); dry.gain.value = .6; dry.connect(out);
     const echo = actx.createDelay(), fb = actx.createGain(), tone = actx.createBiquadFilter();
     echo.delayTime.value = .24; fb.gain.value = .25; tone.type = 'lowpass'; tone.frequency.value = 2600;
-    master.connect(actx.destination);
-    master.connect(echo); echo.connect(tone); tone.connect(fb); fb.connect(echo); tone.connect(actx.destination);
+    master.connect(echo); echo.connect(tone); tone.connect(fb); fb.connect(echo); tone.connect(out);
   }
-  if (actx.state === 'suspended') actx.resume();
+  if (actx.state !== 'running') { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); }
   return actx;
 }
-const NOTE = { G5: 783.99, A5: 880, B5: 987.77, C6: 1046.5, D6: 1174.66, E6: 1318.51, F6: 1396.91, G6: 1567.98 };
+// 不在手势里的声音：声音通道还没建过就不响，免得之后攒着一起冒出来
+const sfx = fn => { if (actx && !muted) fn(actx); };
+function noise() {
+  if (!noiseBuf) {
+    const n = actx.sampleRate, b = actx.createBuffer(1, n, n), d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    noiseBuf = b;
+  }
+  return noiseBuf;
+}
+const NOTE = { G5: 783.99, A5: 880, B5: 987.77, C6: 1046.5, D6: 1174.66, E6: 1318.51, F6: 1396.91, G6: 1567.98, C7: 2093 };
 const SONG = ('G5 .75,G5 .25,A5 1,G5 1,C6 1,B5 2,G5 .75,G5 .25,A5 1,G5 1,D6 1,C6 2,'
   + 'G5 .75,G5 .25,G6 1,E6 1,C6 1,B5 1,A5 2,F6 .75,F6 .25,E6 1,C6 1,D6 1,C6 3').split(',').map(s => s.split(' '));
-function pluck(t, f, v) {
+// 八音盒的一个音：基音加两个泛音，弹一下就慢慢消失
+function pluck(t, f, v, bus) {
   [[1, .5], [2, .14], [3, .05]].forEach(([m, g]) => {
     const o = actx.createOscillator(), e = actx.createGain();
     o.type = 'sine'; o.frequency.value = f * m;
     e.gain.setValueAtTime(0, t);
     e.gain.linearRampToValueAtTime(g * v, t + .006);
     e.gain.exponentialRampToValueAtTime(.0001, t + 1.6 / m);
-    o.connect(e); e.connect(master); o.start(t); o.stop(t + 1.7);
+    o.connect(e); e.connect(bus || master); o.start(t); o.stop(t + 1.7);
   });
 }
-function tick() {
-  if (!audio()) return;
-  const t = actx.currentTime;
-  [[1568, .1], [2349, .04]].forEach(([f, g]) => {
-    const o = actx.createOscillator(), e = actx.createGain();
-    o.frequency.value = f;
-    e.gain.setValueAtTime(g, t);
-    e.gain.exponentialRampToValueAtTime(.0001, t + .09);
-    o.connect(e); e.connect(master); o.start(t); o.stop(t + .1);
+// 闷响：一个往下掉的低音，加一下短促的摩擦声。答错、脚步、盖章都是它，只是轻重和音色不同。
+// 手机喇叭放不出太低的音，所以低音用带泛音的三角波，摩擦声放在中频
+function thud(t, f, v, len, nf, nq) {
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(f, t);
+  o.frequency.exponentialRampToValueAtTime(f * .6, t + len);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(v, t + .004);
+  g.gain.exponentialRampToValueAtTime(.0001, t + len);
+  o.connect(g); g.connect(dry); o.start(t); o.stop(t + len + .05);
+  if (!nf) return;
+  const s = actx.createBufferSource(), bp = actx.createBiquadFilter(), ng = actx.createGain();
+  s.buffer = noise(); bp.type = 'bandpass'; bp.frequency.value = nf; bp.Q.value = nq;
+  ng.gain.setValueAtTime(0, t);
+  ng.gain.linearRampToValueAtTime(v * 3, t + .002);
+  ng.gain.exponentialRampToValueAtTime(.0001, t + .06);
+  s.connect(bp); bp.connect(ng); ng.connect(dry); s.start(t, Math.random() * .8, .1);
+}
+const stamp = (t, v) => thud(t, 170, v * .5, .14, 1400, .6);
+// 答对：连对几次就往上走几个音，过关是一串上行琶音
+function chime(c, k, pass) {
+  const t = c.currentTime + .01;
+  if (!pass) { pluck(t, [NOTE.C6, NOTE.E6, NOTE.G6][k - 1], .5); return; }
+  [NOTE.C6, NOTE.E6, NOTE.G6].forEach((f, j) => pluck(t + j * .06, f, .4));
+  pluck(t + .18, NOTE.C7, .55);
+}
+// 镜头走多久，就踩多少步
+function steps(dur) {
+  sfx(c => {
+    const n = Math.max(2, Math.round(dur / 440)), gap = (dur / 1000 - .24) / n;
+    for (let k = 0; k < n; k++) thud(c.currentTime + .12 + k * gap, 150 + (k % 2) * 20, k % 2 ? .08 : .1, .08, 700, 1.2);
   });
 }
-function playSong(sparkle) {
-  if (!audio()) return;
-  let t = actx.currentTime + .08;
-  if (sparkle) {
-    ['C6', 'E6', 'G6'].forEach((n, i) => pluck(t + i * .07, NOTE[n], .5));
-    pluck(t + .21, NOTE.C6 * 2, .45);
-    t += .9;
+// 撕票：一段由低到高扫过去的沙沙声，里面夹着一下下纤维断开的颗粒
+function rip(c) {
+  const t = c.currentTime + .01, len = .32, s = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = noise(); bp.type = 'bandpass'; bp.Q.value = .8;
+  bp.frequency.setValueAtTime(1600, t); bp.frequency.linearRampToValueAtTime(3600, t + len);
+  g.gain.setValueAtTime(0, t);
+  for (let k = t; k < t + len; k += .012 + Math.random() * .016) {
+    const a = .3 + Math.random() * .7;
+    g.gain.linearRampToValueAtTime(a, k + .004); g.gain.linearRampToValueAtTime(a * .25, k + .011);
   }
-  SONG.forEach(([n, d]) => { pluck(t, NOTE[n], .9); t += d * .5; });
+  g.gain.linearRampToValueAtTime(0, t + len + .03);
+  s.connect(bp); bp.connect(g); g.connect(dry); s.start(t, 0, len + .05);
+}
+// 生日歌：再放一遍时，先把上一遍收掉
+function playSong(sparkle) {
+  sfx(c => {
+    if (songBus) { const old = songBus; old.gain.setTargetAtTime(0, c.currentTime, .04); setTimeout(() => old.disconnect(), 600); }
+    songBus = c.createGain(); songBus.connect(master);
+    let t = c.currentTime + .08;
+    if (sparkle) {
+      ['C6', 'E6', 'G6'].forEach((n, i) => pluck(t + i * .07, NOTE[n], .5, songBus));
+      pluck(t + .21, NOTE.C7, .45, songBus);
+      t += .9;
+    }
+    SONG.forEach(([n, d]) => { pluck(t, NOTE[n], .9, songBus); t += d * .5; });
+  });
 }
 snd.onclick = () => {
   muted = !muted;
   snd.setAttribute('aria-pressed', String(muted));
-  if (master) master.gain.setTargetAtTime(muted ? 0 : .4, actx.currentTime, .05);
+  if (out) out.gain.setTargetAtTime(muted ? 0 : 1, actx.currentTime, .05);
+  session(!muted); keepAwake(!muted);
+  if (!muted) audio();
 };
 
 // iPhone 上要有触摸监听，按下时的 :active 样式才会出现；声音要在手势里才放得出来
 document.addEventListener('touchstart', () => {}, { passive: true });
-['touchend', 'click'].forEach(t => document.addEventListener(t, () => {
-  if (actx && actx.state !== 'running') actx.resume();
-}, { passive: true }));
+['touchend', 'click'].forEach(t => document.addEventListener(t, () => { if (actx) audio(); }, { passive: true }));
+document.addEventListener('keydown', clock);
+document.addEventListener('visibilitychange', () => {
+  clock();
+  if (document.hidden) { save(); keepAwake(false); }
+});
+addEventListener('pagehide', save);
 
-// 门票：撕下票根，镜头出发
+// 门票：撕下票根，盖检票章，镜头出发
 const stub = ticket.querySelector('.stub');
 function tear() {
   if (ticket.classList.contains('torn')) return;
+  audio();
   ticket.classList.add('torn');
-  playSong(false);
-  setTimeout(() => go(0), reduce ? 0 : 1000);
+  clock(); P.torn = true; P.at = 0; save();
+  sfx(c => { rip(c); stamp(c.currentTime + .41, .6); });
+  setTimeout(() => playSong(false), 700);
+  setTimeout(() => go(LEVELS[0].room), reduce ? 0 : 1000);
 }
 ticket.addEventListener('click', e => {
   if (ticket.classList.contains('torn') || performance.now() - justDragged < 400) return;
   if (e.detail === 0) { tear(); return; }
   if (!reduce && stub.animate) stub.animate([{ transform: 'none' }, { transform: 'translateX(4px) rotate(10deg)' }, { transform: 'none' }], { duration: 560, easing: 'ease-in-out' });
 });
+// 隐藏展厅随时可以跳过
+skipBtn.onclick = () => {
+  if (moving || !S || S.L !== WISH || S.done) return;
+  P.hid = 'skip'; save();
+  go(endRoom);
+};
 
 // 结语：拆礼盒。祝福卡从盒子的位置升到墙中间，纸屑一部分从盒口炸开、一部分从光里落下
-const endRoom = rooms[rooms.length - 1], present = endRoom.querySelector('.present'),
+const present = endRoom.querySelector('.present'),
       letter = endRoom.querySelector('.letter'), cv = endRoom.querySelector('.confetti'),
       lid = endRoom.querySelector('.blid'), halves = [...endRoom.querySelectorAll('.half')],
-      lwrap = endRoom.querySelector('.lwrap'), eplaque = endRoom.querySelector('.plaque');
+      lwrap = endRoom.querySelector('.lwrap'), eplaque = endRoom.querySelector('.plaque'),
+      seal = endRoom.querySelector('.seal'), rst = endRoom.querySelector('.rst'),
+      ra = endRoom.querySelector('.ra'), rt = endRoom.querySelector('.rt'), cnt = endRoom.querySelector('.cnt');
 // 卡片落在展签上方，让「已由寿星拆开」露出来；屏幕太矮放不下时，卡片整体缩小
 function fitLetter() {
   const room = endRoom.getBoundingClientRect(), pq = eplaque.getBoundingClientRect();
@@ -924,24 +1228,68 @@ function aimSpots() {
   endRoom.style.setProperty('--spot', spot + 'px');
   endRoom.style.setProperty('--aim', (Math.atan2(spot, dy) * 180 / Math.PI).toFixed(2) + 'deg');
 }
+// 地上的观展记录：每个展厅一枚章（自己看穿的是「看穿」，讲解员揭晓的是「揭晓」，隐藏展厅是金色的），答了几次，用了多久
+const ROT = [-8, 4, -4, 8];
+function fmt(ms) {
+  const s = Math.max(1, Math.round(ms / 1000)), m = Math.floor(s / 60);
+  if (m >= 60) return `<b>${Math.floor(m / 60)}</b> 小时 <b>${m % 60}</b> 分`;
+  return m ? `<b>${m}</b> 分 <b>${s % 60}</b> 秒` : `<b>${s}</b> 秒`;
+}
+function record() {
+  const marks = P.lv.slice(0, 3).map(v => [v.by, false]);
+  if (P.hid === 'clear') marks.push([P.lv[3].by, true]);
+  rst.innerHTML = marks.map(([by, gold], k) => `<span class="rs${gold ? ' gold' : ''}" style="--i:${k};--rot:${ROT[k]}deg" role="img"`
+    + ` aria-label="${gold ? '隐藏展厅' : `第 ${k + 1} 展厅`}，${by === 'docent' ? '讲解员揭晓' : '看穿了'}">`
+    + (by === 'docent' ? '<i>揭</i><i>晓</i>' : '<i>看</i><i>穿</i>') + '</span>').join('');
+  ra.textContent = P.n;
+  rt.innerHTML = fmt(P.ms);
+  cnt.textContent = P.hid ? '四' : '三';
+  return marks.length;
+}
 function openGift() {
   if (endRoom.classList.contains('open')) return;
+  audio();
+  clock(); P.opened = true; save();
+  const marks = record();
   fitLetter(); aimSpots();
-  const b = present.getBoundingClientRect(), c = letter.getBoundingClientRect();
+  const b = present.getBoundingClientRect(), lr = letter.getBoundingClientRect();
   letter.style.transition = 'none';
-  letter.style.setProperty('--dy', `${Math.round(b.top + b.height / 2 - (c.top + c.height / 2))}px`);
+  letter.style.setProperty('--dy', `${Math.round(b.top + b.height / 2 - (lr.top + lr.height / 2))}px`);
   letter.getBoundingClientRect();
   letter.style.transition = '';
   endRoom.classList.add('open');
   present.disabled = true;
   playSong(true);
+  // 花佳的印章落下，然后地上的票根一枚枚盖章
+  sfx(c => { const t = c.currentTime; stamp(t + 2.03, .6); for (let k = 0; k < marks; k++) stamp(t + 2.93 + k * .24, .35); });
   confetti(b);
+  setTimeout(hudSet, 4200);
 }
 present.addEventListener('click', e => {
   if (endRoom.classList.contains('open') || performance.now() - justDragged < 400) return;
   if (e.detail === 0) { openGift(); return; }
   if (!reduce && lid.animate) lid.animate([{ transform: 'none' }, { transform: 'translateY(-20px) rotate(-4deg)' }, { transform: 'none' }], { duration: 560, easing: 'ease-out' });
 });
+// 彩蛋：再按一下花佳的印章，重新盖一次，生日歌再放一遍
+seal.addEventListener('click', () => {
+  if (!endRoom.classList.contains('open')) return;
+  audio();
+  seal.classList.remove('restamp'); void seal.offsetWidth; seal.classList.add('restamp');
+  sfx(c => stamp(c.currentTime + .13, .7));
+  playSong(false);
+});
+// 重新入场：点两下才清掉进度，免得误触
+againBtn.onclick = () => {
+  if (againBtn.dataset.arm) {
+    resetting = true;
+    try { localStorage.removeItem(SAVE); } catch (_) {}
+    location.reload();
+    return;
+  }
+  againBtn.dataset.arm = '1'; againBtn.textContent = '再点一次，从头再看';
+  clearTimeout(againBtn._t);
+  againBtn._t = setTimeout(() => { delete againBtn.dataset.arm; againBtn.textContent = '重新入场'; }, 3000);
+};
 
 // 滑动：撕票、去下一个展厅、掀盒盖。手指移动超过 8px 才算拖，跟着手实时变；
 // 松手时过了线（或甩得够快）就完成，没过线就弹回。p 是拖动进度，1 是到线
@@ -968,7 +1316,7 @@ const DRAG = {
       return p;
     },
     end(g) {
-      if (g.p >= .28 || (g.p > .06 && g.vx < -.5)) go(S.i + 1, true); else tween(cur, 360, EASE.out);
+      if (g.p >= .28 || (g.p > .06 && g.vx < -.5)) go(after(S.i), true); else tween(cur, 360, EASE.out);
     }
   },
   gift: {
@@ -989,13 +1337,14 @@ const DRAG = {
 function dragMode(target) {
   if (moving) return null;
   if (cur === 0) return intro.classList.contains('on') && !ticket.classList.contains('torn') && target.closest('.ticket, .thint') ? 'ticket' : null;
-  if (S && S.done && cur === S.i + 1) return 'walk';
-  if (cur === rooms.length - 1 && endRoom.classList.contains('lit') && !endRoom.classList.contains('open')) return 'gift';
+  if (S && S.done && rooms[cur] === S.room) return 'walk';
+  if (rooms[cur] === endRoom && endRoom.classList.contains('lit') && !endRoom.classList.contains('open')) return 'gift';
   return null;
 }
 const app = $('#app');
 app.addEventListener('pointerdown', e => {
-  if (G || (e.pointerType === 'mouse' && e.button !== 0) || e.target.closest('.snd')) return;
+  clock();
+  if (G || (e.pointerType === 'mouse' && e.button !== 0) || e.target.closest('.snd, .hl, .seal')) return;
   const mode = dragMode(e.target);
   if (!mode) return;
   if (mode !== 'walk') audio();
@@ -1053,8 +1402,47 @@ function confetti(box) {
   })(t0);
 }
 
-setW(); hudSet();
-requestAnimationFrame(() => setTimeout(() => intro.classList.add('on'), 80));
+// 接着上次的进度：门票已撕、走过的展厅摆成揭晓后的样子，镜头直接停在上次的展厅
+const unInstant = el => setTimeout(() => el.classList.remove('instant'), 5000);
+function restore() {
+  if (P.used) forfeit();
+  labelNext();
+  if (!P.torn) return false;
+  let at = P.at;
+  if (at === 3 && !WISH.room.isConnected) at = 'end';
+  if (at !== 'end' && !(at >= 0 && at < LEVELS.length)) at = 0;
+  const el = at === 'end' ? endRoom : LEVELS[at].room;
+  ticket.classList.add('instant', 'torn');
+  intro.classList.add('on');
+  LEVELS.forEach((L, i) => {
+    if (!L.room.isConnected || L.room === el || !P.lv[i].done) return;
+    const q = s => L.room.querySelector(s);
+    L.room.classList.add('instant', 'ready');
+    markDone({ L, room: L.room, btns: [...L.room.querySelectorAll('.btn')], lamps: [...L.room.querySelectorAll('.lamps i')],
+      lampsEl: q('.lamps'), stamp: q('.stamp'), drule: q('.drule') }, P.lv[i].by === 'docent');
+  });
+  cur = rooms.indexOf(el); setCam(cur);
+  if (el === endRoom) {
+    fitLetter(); aimSpots();
+    if (P.opened) {
+      endRoom.classList.add('instant', 'open'); record(); present.disabled = true; unInstant(endRoom);
+    }
+  } else {
+    if (P.lv[at].done) el.classList.add('instant');
+    prepare(at);
+    // 揭晓过的隐藏展厅，墙上那块牌子也要写上愿望
+    if (S.done && !S.item.key) { S.item = gen(S.L, S.hist, S.keys); paint(S.piece, S.L, S.item); }
+    if (S.done) { unInstant(el); setTimeout(peek, 1600); }
+  }
+  lights(cur, true); el.classList.add('ready');
+  hudSet();
+  if (S && !S.done) arrive(S);
+  return true;
+}
+
+setW();
+if (!restore()) requestAnimationFrame(() => setTimeout(() => intro.classList.add('on'), 80));
+hudSet();
 addEventListener('resize', setW);
 })();
 </script>
