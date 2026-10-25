@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#260d10">
-<title>DZC & ZK 生日特展</title>
+<title>ZK & DZC 生日特展</title>
 <style>
 :root{
   --wall:#3a1619;--wall-deep:#260d10;--floor:#1c0b0d;--void:#120607;
@@ -18,8 +18,9 @@
   --ease:cubic-bezier(.2,.8,.2,1);
   --W:100vw;--hud:48px;
   --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);
-  --floor-h:calc(192px + var(--sb));
+  --floor-h:calc(160px + var(--sb));
   /* 颗粒：灰度噪点，用柔光叠在墙、地面和纸上 */
+  --guilloche:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='16'%3E%3Cg fill='none' stroke='%23b08a4f' stroke-opacity='.3'%3E%3Cpath d='M0 8C8 0 16 0 24 8S40 16 48 8'/%3E%3Cpath d='M0 8C8 16 16 16 24 8S40 0 48 8'/%3E%3C/g%3E%3C/svg%3E");
   --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='.36' intercept='.32'/%3E%3CfeFuncG type='linear' slope='.36' intercept='.32'/%3E%3CfeFuncB type='linear' slope='.36' intercept='.32'/%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='192' height='192' filter='url(%23g)'/%3E%3C/svg%3E");
 }
 *{box-sizing:border-box}
@@ -77,6 +78,29 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .lamp::after{content:"";position:absolute;left:4px;right:4px;bottom:-4px;height:4px;border-radius:50%;opacity:0;
   background:rgba(var(--L),.9);box-shadow:0 0 12px 4px rgba(var(--L),.48)}
 .shade{position:absolute;inset:0;z-index:3;background:rgba(10,4,5,.8);pointer-events:none}
+/* 结语两束追光：先一起对准礼盒，拆开后各照卡片的一栏 */
+#end{--spot:66px;--aim:12deg}
+#end .beam{transform-origin:50% 0;transition:transform 1.4s var(--ease) .4s}
+#end .beam.l{margin-left:calc(-192px - var(--spot));transform:rotate(calc(-1 * var(--aim)))}
+#end .beam.r{margin-left:calc(-192px + var(--spot));transform:rotate(var(--aim))}
+#end .lamp.l{margin-left:calc(-8px - var(--spot))}
+#end .lamp.r{margin-left:calc(-8px + var(--spot))}
+#end.open .beam.l,#end.open .beam.r{transform:none}
+/* 浮尘：只在亮着的展厅里慢慢飘 */
+.dust{position:absolute;inset:0;opacity:0;transition:opacity 1.6s .8s;
+  -webkit-mask-image:conic-gradient(from 156deg at 50% 0,transparent 0deg,#000 14deg,#000 34deg,transparent 48deg);
+  mask-image:conic-gradient(from 156deg at 50% 0,transparent 0deg,#000 14deg,#000 34deg,transparent 48deg)}
+.room.lit .dust{opacity:1}
+.dust i{position:absolute;width:4px;height:4px;border-radius:50%;opacity:0;
+  background:radial-gradient(circle,rgba(255,242,220,.95) 0,rgba(255,242,220,0) 72%);
+  animation-timing-function:linear;animation-iteration-count:infinite;animation-play-state:paused}
+.room.lit .dust i{animation-play-state:running}
+.dust .ma{animation-name:mote-a}
+.dust .mb{animation-name:mote-b}
+.dust .mc{animation-name:mote-c}
+@keyframes mote-a{0%{opacity:0;transform:translate3d(0,0,0)}25%,75%{opacity:.72}100%{opacity:0;transform:translate3d(12px,40px,0)}}
+@keyframes mote-b{0%{opacity:0;transform:translate3d(0,0,0)}25%,75%{opacity:.44}100%{opacity:0;transform:translate3d(-16px,32px,0)}}
+@keyframes mote-c{0%{opacity:0;transform:translate3d(0,0,0)}25%,75%{opacity:.6}100%{opacity:0;transform:translate3d(4px,48px,0)}}
 .room.lit .beam,.room.lit .pool,.room.lit .spill,.room.lit .lamp::after{animation:on 1s linear both}
 .room.lit .shade{animation:off 1s linear both}
 @keyframes on{0%{opacity:0}8%{opacity:.9}16%{opacity:.1}28%{opacity:1}36%{opacity:.4}48%,100%{opacity:1}}
@@ -104,9 +128,18 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(0,0,0,.56),transparent 100%)}
 .plaque{display:block;padding:8px 12px;border-radius:2px;color:var(--ink);white-space:nowrap}
 .plinth .plaque{position:absolute;left:0;right:0;top:calc(50% + 4px);transform:translateY(-50%);width:max-content;margin:0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
-.plaque.on-wall{flex:none;margin:16px 0 40px;box-shadow:0 4px 8px rgba(0,0,0,.32)}
+.plaque.on-wall{position:relative;flex:none;margin:16px 0 40px;box-shadow:0 4px 8px rgba(0,0,0,.32)}
+/* 盖章：看穿时盖在展签右上角，撕票时盖在门票上 */
+.stamp,.tstamp{position:absolute;z-index:3;display:grid;place-items:center;border:2px solid #b3271c;
+  font:700 16px/16px var(--serif);color:#b3271c;opacity:0;pointer-events:none}
+.stamp::before,.tstamp::before{content:"";position:absolute;inset:4px;border:1px solid rgba(179,39,28,.72)}
+.stamp i{font-style:normal}
+.stamp{right:-40px;top:-20px;grid-template-rows:16px 16px;align-content:center;width:48px;height:48px;border-radius:4px;transform:rotate(-12deg) scale(1.8)}
+.stamp::before{border-radius:2px}
+.plaque.on-wall .stamp{top:-8px}
+.room.clear .stamp{animation:slam-s .36s cubic-bezier(.3,1.6,.5,1) 1s both}
+@keyframes slam-s{from{opacity:0;transform:rotate(-12deg) scale(1.8)}to{opacity:.92;transform:rotate(-12deg) scale(1)}}
 .pa{display:block;font:16px/16px var(--serif);white-space:nowrap}
-.pb{display:block;margin-top:4px;font:12px/16px var(--sans);color:var(--ink-2);white-space:nowrap}
 
 /* 拆解揭晓的引线 */
 .co{position:absolute;white-space:nowrap;font:12px/16px var(--sans);letter-spacing:0;color:var(--brass);
@@ -200,8 +233,6 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   box-shadow:0 0 0 2px #8a6634,0 0 0 3px rgba(0,0,0,.5),inset 0 -2px 3px rgba(0,0,0,.6);transition:background .24s,box-shadow .24s}
 .lamps i.on{background:radial-gradient(circle at 50% 24%,#fff 0 1px,rgba(255,255,255,0) 3px),radial-gradient(circle at 50% 56%,#fff6dc 0,#ffd98f 52%,#e0a24a 100%);
   box-shadow:0 0 0 2px #c9a46a,0 0 12px 4px rgba(var(--L),.6),0 0 24px 8px rgba(var(--L),.24)}
-.ask{height:24px;margin-bottom:8px;font:16px/24px var(--serif);color:var(--chalk);text-align:center}
-.room.ready .s0{transition-delay:.48s}
 .res{margin-top:12px;height:20px;font:16px/20px var(--serif);color:var(--chalk);text-align:center}
 .sub{margin-top:4px;height:20px;font:12px/20px var(--sans);color:var(--chalk-2);text-align:center}
 .docent{margin:-12px 0;padding:12px 16px;border:0;background:none;font:12px/20px var(--sans);color:var(--brass);
@@ -211,20 +242,13 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .done{position:absolute;left:16px;right:16px;top:16px;bottom:calc(16px + var(--sb));
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   opacity:0;pointer-events:none;transition:opacity .6s .6s}
-.room.clear .ask,.room.clear .play,.room.clear .res,.room.clear .sub{opacity:0;pointer-events:none}
+.room.clear .play,.room.clear .res,.room.clear .sub{opacity:0;pointer-events:none}
 .room.clear .done{opacity:1;pointer-events:auto}
 .done>*{flex:none}
-.dk{font:12px/16px var(--sans);color:var(--brass)}
 .drule{margin-top:4px;font:16px/24px var(--serif);color:var(--chalk);text-align:center;white-space:pre-line}
 /* 滑动提示：文字上有一道光扫过，方向就是该滑的方向 */
 .swipe{display:inline-flex;align-items:center;gap:8px;border:0;background:none;padding:0;color:var(--chalk-2)}
 .swipe svg{flex:none;width:16px;height:16px}
-.swipe.down svg{animation:go-down 1.6s ease-in-out infinite}
-.swipe.up svg{animation:go-up 1.6s ease-in-out infinite}
-.swipe.left svg{animation:go-left 1.6s ease-in-out infinite}
-@keyframes go-down{50%{transform:translateY(4px)}}
-@keyframes go-up{50%{transform:translateY(-4px)}}
-@keyframes go-left{50%{transform:translateX(-4px)}}
 .next{margin-top:12px;height:48px;padding:0 16px;font:16px/24px var(--serif)}
 /* 到厅后依次入场：灯亮之后，左按钮、连对灯、右按钮、提示依次从地面升起 */
 .slot{display:block;transition:opacity .48s,transform .64s var(--ease)}
@@ -272,20 +296,23 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   -webkit-mask-composite:source-in;mask-composite:intersect}
 .stub{-webkit-mask-image:radial-gradient(circle at 0 0,transparent 8px,#000 8.5px),radial-gradient(circle at 0 100%,transparent 8px,#000 8.5px);
   -webkit-mask-composite:source-in;mask-composite:intersect}
+.tmain.paper{background-image:var(--grain),var(--guilloche);background-size:192px 192px,48px 16px;background-blend-mode:soft-light,normal}
 .tmain{position:relative;flex:1;min-width:0;padding:12px 16px;border-radius:4px 0 0 4px;display:flex;flex-direction:column;justify-content:space-between;
   border-right:1px dashed rgba(43,27,28,.32)}
 .tmain::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;right:0;border:1px solid rgba(201,164,106,.56);border-right:0;pointer-events:none}
 .trow{display:flex;align-items:baseline;gap:12px}
 .trow.sp{justify-content:space-between}
 .ttl{font:24px/32px var(--serif);letter-spacing:4px;color:transparent;-webkit-background-clip:text;background-clip:text;
-  background-image:linear-gradient(100deg,#7d5a2b 0,#c9a051 24%,#f3dca2 40%,#a87b3c 56%,#e2c07e 76%,#7d5a2b 100%)}
+  background-image:linear-gradient(100deg,#6b4a1f 0,#a07a38 24%,#b8904c 40%,#8a6428 56%,#a8803e 76%,#6b4a1f 100%);
+  filter:drop-shadow(0 1px 0 rgba(255,252,244,.72))}
 .tt{font:12px/16px var(--sans);color:var(--brass-ink)}
 .tl{font:12px/16px var(--sans);color:var(--ink-2)}
 .tn{font:20px/24px var(--display);letter-spacing:4px}
 .tf{font:12px/16px var(--sans);color:var(--ink-2)}
 /* 票根以左下角为轴：往下撕时上端先离开，裂口从上往下走 */
 .stub{flex:none;width:72px;display:flex;align-items:center;justify-content:center;border-radius:0 4px 4px 0;
-  background:#e8e2d6 var(--grain);background-size:192px 192px;background-blend-mode:soft-light;transform-origin:0 100%;transition:transform .32s var(--ease)}
+  background-color:#e8e2d6;background-image:var(--grain),var(--guilloche);background-size:192px 192px,48px 16px;background-blend-mode:soft-light,normal;
+  transform-origin:0 100%;transition:transform .32s var(--ease)}
 .stub{flex-direction:column}
 .sno{font:12px/16px var(--display);color:var(--ink-2)}
 .snum{font:16px/24px var(--display);color:var(--ink)}
@@ -309,7 +336,11 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 #end.open .bigbox .half{opacity:0;transition:transform 1s var(--ease),opacity .8s 1.4s}
 #end.open .bigbox .half.l{transform:translateX(-32px) rotate(-10deg)}
 #end.open .bigbox .half.r{transform:translateX(32px) rotate(10deg)}
-.plaque.solo{display:block;text-align:center}
+#end .plinth .plaque{top:24px;transform:none}
+.pair{display:flex;align-items:center;gap:12px;font:16px/16px var(--display)}
+.pair i{width:1px;height:16px;background:repeating-linear-gradient(to bottom,rgba(122,106,102,.8) 0 4px,transparent 4px 8px)}
+.opened{position:absolute;left:0;right:0;top:64px;font:12px/16px var(--sans);color:var(--ink-2);text-align:center;opacity:0;transition:opacity .48s 1.6s}
+#end.open .opened{opacity:1}
 .lwrap{position:absolute;left:24px;right:24px;top:calc(var(--hud) + var(--st));bottom:var(--floor-h);
   display:flex;align-items:center;justify-content:center;pointer-events:none}
 .letter{position:relative;width:100%;max-width:312px;padding:24px;border-radius:4px;color:var(--ink);
@@ -321,7 +352,11 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   font:12px/16px var(--sans);color:var(--ink-2)}
 .letter .lp{font:16px/24px var(--serif);color:var(--ink-2)}
 .letter .m{margin-top:12px;font:24px/36px var(--serif)}
-.letter .k{margin-top:12px;font:16px/24px var(--serif)}
+.duo{display:grid;grid-template-columns:1fr 1px 1fr;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(201,164,106,.56)}
+.duo>i{background:repeating-linear-gradient(to bottom,rgba(201,164,106,.8) 0 4px,transparent 4px 8px)}
+.who{display:flex;flex-direction:column;align-items:center}
+.wn{font:32px/40px var(--display);color:var(--ink)}
+.wb{font:16px/24px var(--serif);color:var(--brass-ink)}
 .letter .s{margin-top:12px;display:flex;align-items:center;justify-content:flex-end;gap:12px;font:16px/24px var(--serif);color:var(--ink-2)}
 .seal{display:grid;grid-template-rows:16px 16px;align-content:center;justify-items:center;width:40px;height:40px;border-radius:4px;
   font:700 16px/16px var(--serif);color:#f8efe4;background:#a3261d var(--grain);background-size:96px 96px;background-blend-mode:multiply;
@@ -332,14 +367,16 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #end.drag .bigbox .half,#end.drag .bigbox .blid{transition:none;animation:none}
 #end .deck{display:flex;justify-content:center}
+.tstamp{right:88px;top:12px;width:56px;height:56px;border-radius:50%;transform:rotate(-14deg) scale(1.8)}
+.tstamp::before{border-radius:50%}
+.ticket.torn .tstamp{animation:slam-t .36s cubic-bezier(.3,1.6,.5,1) .28s both}
+@keyframes slam-t{from{opacity:0;transform:rotate(-14deg) scale(1.8)}to{opacity:.9;transform:rotate(-14deg) scale(1)}}
 .ehint{height:48px;font:16px/24px var(--serif);transition:opacity .4s}
 #end.open .ehint{opacity:0}
 
 /* 固定在镜头上的顶栏 */
 .hud{position:absolute;left:0;right:0;top:var(--st);height:var(--hud);padding:0 16px;z-index:2;pointer-events:none;
-  display:flex;align-items:center;justify-content:space-between;font:16px/24px var(--serif);color:var(--chalk-2)}
-.hud .t{transition:opacity .6s}
-.hud.at-intro .t{opacity:0}
+  display:flex;align-items:center;justify-content:flex-end;font:16px/24px var(--serif);color:var(--chalk-2)}
 .hud .r{display:flex;align-items:center;gap:8px}
 .snd{pointer-events:auto;width:40px;height:40px;margin-right:-12px;padding:12px;border:0;background:none;color:var(--chalk-2)}
 .snd svg{display:block;width:16px;height:16px}
@@ -348,6 +385,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .snd:focus-visible{outline:2px solid var(--brass);outline-offset:-4px}
 
 @media (prefers-reduced-motion:reduce){
+  .room.clear .stamp,.ticket.torn .tstamp{animation-duration:.01ms;animation-delay:0s}
   *{transition-duration:.01ms!important;transition-delay:0s!important}
   .room.lit .beam,.room.lit .pool,.room.lit .spill,.room.lit .lamp::after{animation:none;opacity:1}
   .room.lit .shade{animation:none;opacity:0}
@@ -375,8 +413,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
             <h1 class="vt">生日特展</h1>
             <span class="vr" aria-hidden="true"></span>
             <div>
-              <p class="names">DZC &amp; ZK</p>
-              <p class="dates">展期 10.09 至 10.20</p>
+              <p class="names">ZK &amp; DZC</p>
+              <p class="dates">展期 10.09 至 10.12</p>
               <p class="pre">上次在主厨家，饭后我们一起猜规则。这次换我们出题：三件展品各藏着一条规则，网页只说对或错，连对 4 次才能走进下一个展厅。</p>
               <p class="credit">策展：花花和佳佳</p>
             </div>
@@ -386,17 +424,18 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
           <button class="ticket" type="button" aria-label="生日特展入场券，按住票根往下撕">
             <span class="tmain paper">
               <span class="trow sp"><span class="ttl">生日特展</span><span class="tt">入场券</span></span>
-              <span class="trow"><span class="tl">持票人</span><span class="tn">DZC　ZK</span></span>
-              <span class="trow sp"><span class="tf">展期 10.09 至 10.20</span><span class="tf">两人同行</span></span>
+              <span class="trow"><span class="tl">持票人</span><span class="tn">ZK　DZC</span></span>
+              <span class="trow sp"><span class="tf">展期 10.09 至 10.12</span><span class="tf">两人同行</span></span>
             </span>
-            <span class="stub"><span class="sno">No.</span><span class="snum">1009</span><span class="snum">1020</span></span>
+            <span class="stub"><span class="sno">No.</span><span class="snum">1009</span><span class="snum">1012</span></span>
+            <span class="tstamp" aria-hidden="true">已检</span>
           </button>
-          <p class="thint swipe down"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>按住票根，往下撕</span></p>
+          <p class="thint swipe"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>按住票根，往下撕</span></p>
         </div>
         <div class="dimmer"></div>
       </section>
       <section class="room" id="end">
-        <div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div>
+        <div class="beam l"></div><div class="beam r"></div><div class="pool"></div><div class="lamp l"></div><div class="lamp r"></div><div class="spill"></div>
         <div class="stage">
           <button class="present" type="button" aria-label="拆开礼物">
             <svg class="bigbox" viewBox="0 0 208 168" width="208" height="168" aria-hidden="true">
@@ -413,25 +452,28 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
                 <circle cx="104" cy="42" r="8" fill="url(#gRib)"/></g>
             </svg>
           </button>
-          <div class="plinth"><div class="plaque solo paper"><span><span class="pa">给 DZC 和 ZK</span><span class="pb">本件展品，请动手拆开</span></span></div></div>
+          <div class="plinth"><div class="plaque paper"><span class="pa pair"><span>ZK</span><i></i><span>DZC</span></span></div><p class="opened">本件展品，已由寿星拆开</p></div>
         </div>
         <div class="lwrap"><div class="letter paper" aria-live="polite">
           <p class="lh"><span>生日特展图录</span><span>后记</span></p>
+          <div class="duo">
+            <p class="who"><span class="wn">ZK</span><span class="wb">生日快乐</span></p><i aria-hidden="true"></i>
+            <p class="who"><span class="wn">DZC</span><span class="wb">生日快乐</span></p>
+          </div>
           <p class="lp">前面三件展品，都藏着规则。<br>这一件没有规则，只有一句话：</p>
           <p class="m">希望你们的所有担忧，<br>都是虚惊一场。</p>
-          <p class="k">DZC、ZK，生日快乐。</p>
           <p class="s">花花和佳佳<span class="seal" aria-hidden="true"><i>花</i><i>佳</i></span></p>
         </div></div>
         <canvas class="confetti" aria-hidden="true"></canvas>
         <div class="dimmer"></div>
-        <div class="deck"><p class="ehint swipe up slot s4"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>往上掀开盒盖</span></p></div>
+        <div class="deck"><p class="ehint swipe slot s4"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>往上掀开盒盖</span></p></div>
         <div class="shade"></div>
       </section>
     </div>
     <div id="rope"></div>
   </div>
   <div class="vignette"></div>
-  <header class="hud at-intro"><span class="t">生日特展</span><span class="r">
+  <header class="hud"><span class="r">
     <button class="snd" type="button" aria-label="静音" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true">
       <path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/>
       <path class="w" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6 6 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
@@ -442,23 +484,23 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 (() => {
 // 三件展品 = 三关。opts 是地上两个按钮，ans 返回正确按钮的序号
 const LEVELS = [
-  { title: '能带进生日会吗', ask: '能带，还是不能带？', opts: ['能带', '不能带'], kind: 'vitrine',
+  { title: '能带进生日会吗', opts: ['能带', '不能带'], kind: 'vitrine',
     pool: ['蛋糕','蜡烛','气球','礼物','彩带','雨伞','拖鞋','闹钟','牙刷','扑克',
            '生日帽','小蛋糕','烟花棒','许愿卡','冰淇淋','伞','花','酒','灭火器','电饭锅'],
     ans: w => [...w].length === 2 ? 0 : 1,
     hint: '别管它跟生日有没有关系，数一数名字。',
     rule: '名字是两个字的就能带，跟生日没关系。' },
-  { title: '主厨这道菜', ask: '好吃，还是不好吃？', opts: ['好吃', '不好吃'], kind: 'painting',
+  { title: '主厨这道菜', opts: ['好吃', '不好吃'], kind: 'painting',
     pool: ['红烧肉','番茄炒蛋','清蒸鲈鱼','白灼虾','拍黄瓜','宫保鸡丁','隔夜饭','煮糊的粥','白水煮菜'],
     pick: a => ({ dir: a === 0 ? 'L' : 'R' }),
     hint: '菜名不重要，看看盘子旁边摆着什么。',
     rule: '看筷子尖：朝左好吃，朝右不好吃，\n菜是什么都不管。' },
-  { title: '这份礼物给谁', ask: '给 DZC，还是给 ZK？', opts: ['DZC', 'ZK'], kind: 'gift',
+  { title: '这份礼物给谁', opts: ['ZK', 'DZC'], kind: 'gift',
     pool: ['口红','香水','耳环','发夹','领带','剃刀','球鞋','键盘','手表','公仔',
            '剃须刀','游戏机','篮球鞋','护手霜','卷发棒','化妆包','毛绒熊','洗面奶','保温杯'],
-    pick: a => ({ n: a === 0 ? 3 : 2 }),
+    pick: a => ({ n: a === 0 ? 2 : 3 }),
     hint: '吊牌是障眼法，看看盒子上绑了什么。',
-    rule: '数丝带：三道给 DZC，两道给 ZK，\n跟缩写的字母一样多，吊牌不用管。' }
+    rule: '数丝带：两道给 ZK，三道给 DZC，\n跟缩写的字母一样多，吊牌不用管。' }
 ];
 const STREAK = 4, HINT_AT = 6, REVEAL_AT = 12;
 
@@ -527,7 +569,7 @@ const CHOP = '<rect x="36" y="124" width="16" height="20" rx="4" fill="#a7bdb4"/
   + '<polygon points="156,127.5 172,127 172,133 156,133" fill="#2b1a16"/>'
   + '<polygon points="40,137 172,137 172,143 40,139" fill="#7b4a2f"/>'
   + '<polygon points="156,137 172,137 172,143 156,142.5" fill="#2b1a16"/>';
-// 礼盒正面视角；丝带道数就是答案：3 道给 DZC，2 道给 ZK
+// 礼盒正面视角；丝带道数就是答案：2 道给 ZK，3 道给 DZC
 const RIB = { 3: [52, 80, 108], 2: [66, 94] };
 const ribbon = (n, y, h) => RIB[n].map(x => `<rect x="${x - 4}" y="${y}" width="8" height="${h}" fill="url(#gRib)"/>`).join('');
 const BODY = n => '<ellipse cx="80" cy="136" rx="64" ry="4" fill="#000" opacity=".28"/>'
@@ -581,27 +623,26 @@ function gen(L, hist, keys) {
   return { key, ans: L.ans(key) };
 }
 
-const plaque = (L, wall) => `<div class="plaque paper${wall ? ' on-wall' : ''}"><span class="pa">${L.title}</span></div>`;
+const plaque = (L, wall) => `<div class="plaque paper${wall ? ' on-wall' : ''}"><span class="pa">${L.title}</span><span class="stamp" role="img"></span></div>`;
 const roomHTML = (L, i) => `<section class="room k-${L.kind}">`
   + `<div class="rno" aria-hidden="true">0${i + 1}</div>`
   + '<div class="beam"></div><div class="pool"></div><div class="lamp"></div><div class="spill"></div>'
   + `<div class="stage"><div class="piece" role="img"></div>`
   + (L.kind === 'painting' ? plaque(L, true) : `<div class="plinth">${plaque(L)}</div>`) + '</div>'
   + '<div class="deck">'
-  + `<p class="ask slot s0">${L.ask}</p>`
   + `<div class="play"><span class="slot s1"><button class="btn" type="button" disabled>${L.opts[0]}</button></span>`
   + `<span class="slot s2"><span class="lamps" role="img" aria-label="连对 0 次"><i></i><i></i><i></i><i></i></span></span>`
   + `<span class="slot s3"><button class="btn" type="button" disabled>${L.opts[1]}</button></span></div>`
   + '<p class="res" aria-live="polite"></p>'
   + `<p class="sub slot s4"><span class="hint">连对 ${STREAK} 次过关</span><button class="docent" type="button" hidden></button></p>`
-  + `<div class="done"><p class="dk"></p><p class="drule"></p>`
-  + `<button class="next swipe left" type="button" aria-label="${i === LEVELS.length - 1 ? '走向结语' : '走向下一个展厅'}">`
+  + `<div class="done"><p class="drule"></p>`
+  + `<button class="next swipe" type="button" aria-label="${i === LEVELS.length - 1 ? '走向结语' : '走向下一个展厅'}">`
   + '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 3L4 8l5 5M13 3L8 8l5 5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   + `<span>${i === LEVELS.length - 1 ? '向左滑，走向结语' : '向左滑，去下一个展厅'}</span></button></div>`
   + '</div><div class="dimmer"></div><div class="shade"></div></section>';
 
 const $ = s => document.querySelector(s);
-const dolly = $('#dolly'), track = $('#track'), rope = $('#rope'), hud = $('.hud'),
+const dolly = $('#dolly'), track = $('#track'), rope = $('#rope'),
       intro = $('#intro'), ticket = $('.ticket');
 intro.insertAdjacentHTML('afterend', LEVELS.map(roomHTML).join(''));
 const rooms = [...track.children];
@@ -614,6 +655,22 @@ function show(p, L, it) {
   p.classList.add('swap');
   return new Promise(r => setTimeout(() => { paint(p, L, it); p.classList.remove('swap'); r(); }, 240));
 }
+// 浮尘：每束光里 16 粒，位置和快慢随机；不动弹的设置下不加
+function dust() {
+  const d = document.createElement('div');
+  d.className = 'dust'; d.setAttribute('aria-hidden', 'true');
+  for (let n = 0; n < 16; n++) {
+    const m = document.createElement('i'), dur = 10 + Math.random() * 8;
+    m.className = 'm' + 'abc'[n % 3];
+    m.style.left = (34 + Math.random() * 32).toFixed(1) + '%';
+    m.style.top = (12 + Math.random() * 72).toFixed(1) + '%';
+    m.style.animationDuration = dur.toFixed(1) + 's';
+    m.style.animationDelay = (-Math.random() * dur).toFixed(1) + 's';
+    d.appendChild(m);
+  }
+  return d;
+}
+if (!reduce) document.querySelectorAll('.beam').forEach(b => b.appendChild(dust()));
 const first = LEVELS.map(L => gen(L, [], []));
 LEVELS.forEach((L, i) => paint(rooms[i + 1].querySelector('.piece'), L, first[i]));
 
@@ -665,12 +722,11 @@ function setW() {
   W = innerWidth;
   document.documentElement.style.setProperty('--W', W + 'px');
   buildRope(); setCam(pos);
-  if (endRoom.classList.contains('open')) fitLetter();
+  if (cur === rooms.length - 1) { fitLetter(); aimSpots(); }
 }
 // Safari 顶栏颜色跟着所在展厅的墙色走
 const metaTheme = document.querySelector('meta[name="theme-color"]');
 function hudSet() {
-  hud.classList.toggle('at-intro', cur === 0);
   metaTheme.setAttribute('content', getComputedStyle(rooms[cur]).getPropertyValue('--wall-deep').trim());
 }
 async function moveTo(to, ease) {
@@ -689,7 +745,7 @@ function prepare(i) {
   const room = rooms[i + 1], q = s => room.querySelector(s);
   S = { i, L: LEVELS[i], room, piece: q('.piece'), btns: [...room.querySelectorAll('.btn')],
         lampsEl: q('.lamps'), lamps: [...room.querySelectorAll('.lamps i')], res: q('.res'), hint: q('.hint'),
-        docent: q('.docent'), dk: q('.dk'), drule: q('.drule'), next: q('.next'),
+        docent: q('.docent'), stamp: q('.stamp'), drule: q('.drule'), next: q('.next'),
         item: first[i], keys: [first[i].key], hist: [], streak: 0, wrong: 0, hintOpen: false, busy: true, done: false, timer: 0 };
   S.btns.forEach((b, k) => { b.onclick = () => answer(k); });
   S.docent.onclick = onDocent;
@@ -714,6 +770,7 @@ async function go(next, fromDrag) {
   if (next < LEVELS.length) prepare(next);
   const prev = cur;
   await moveTo(target, fromDrag ? EASE.out : EASE.io);
+  if (target === rooms.length - 1) { fitLetter(); aimSpots(); }
   lights(prev, false);
   lights(target, true);
   rooms[target].classList.add('ready');
@@ -762,7 +819,8 @@ function clear(byDocent) {
   S.done = true; S.busy = true; setBtns(false);
   S.btns.forEach(b => b.classList.remove('glow', 'miss'));
   S.lamps.forEach(l => l.classList.add('on'));
-  S.dk.textContent = byDocent ? '讲解员揭晓了' : '看穿了';
+  S.stamp.innerHTML = byDocent ? '<i>揭</i><i>晓</i>' : '<i>看</i><i>穿</i>';
+  S.stamp.setAttribute('aria-label', byDocent ? '讲解员揭晓了' : '看穿了');
   S.drule.textContent = S.L.rule;
   S.room.classList.add('torn', 'clear');
   const me = S;
@@ -838,7 +896,7 @@ function tear() {
   if (ticket.classList.contains('torn')) return;
   ticket.classList.add('torn');
   playSong(false);
-  setTimeout(() => go(0), reduce ? 0 : 640);
+  setTimeout(() => go(0), reduce ? 0 : 1000);
 }
 ticket.addEventListener('click', e => {
   if (ticket.classList.contains('torn') || performance.now() - justDragged < 400) return;
@@ -857,9 +915,18 @@ function fitLetter() {
   lwrap.style.bottom = `${Math.round(room.bottom - pq.top + 8)}px`;
   letter.style.setProperty('--fit', Math.min(1, lwrap.clientHeight / letter.offsetHeight).toFixed(3));
 }
+// 两盏灯的位置对准卡片两栏的中线；拆开前先一起斜着照向礼盒
+function aimSpots() {
+  const room = endRoom.getBoundingClientRect(), b = present.getBoundingClientRect();
+  const fit = parseFloat(letter.style.getPropertyValue('--fit')) || 1;
+  const spot = Math.round((letter.offsetWidth - 48) / 4 * fit);
+  const dy = Math.max(1, b.top + b.height * .45 - room.top);
+  endRoom.style.setProperty('--spot', spot + 'px');
+  endRoom.style.setProperty('--aim', (Math.atan2(spot, dy) * 180 / Math.PI).toFixed(2) + 'deg');
+}
 function openGift() {
   if (endRoom.classList.contains('open')) return;
-  fitLetter();
+  fitLetter(); aimSpots();
   const b = present.getBoundingClientRect(), c = letter.getBoundingClientRect();
   letter.style.transition = 'none';
   letter.style.setProperty('--dy', `${Math.round(b.top + b.height / 2 - (c.top + c.height / 2))}px`);
@@ -869,14 +936,6 @@ function openGift() {
   present.disabled = true;
   playSong(true);
   confetti(b);
-  const pb = endRoom.querySelector('.plaque .pb');
-  setTimeout(() => {
-    if (reduce || !pb.animate) { pb.textContent = '本件展品，已由寿星拆开'; return; }
-    pb.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, fill: 'forwards' }).onfinish = () => {
-      pb.textContent = '本件展品，已由寿星拆开';
-      pb.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 480, fill: 'forwards' });
-    };
-  }, 1600);
 }
 present.addEventListener('click', e => {
   if (endRoom.classList.contains('open') || performance.now() - justDragged < 400) return;
