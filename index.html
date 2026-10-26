@@ -55,7 +55,9 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 
 /* 镜头：dolly 推拉，track 平移，rope 是前景隔离带（移动得比展厅快，产生纵深） */
 #app{position:fixed;inset:0;overflow:hidden;overflow:clip;background:var(--void);touch-action:none;-webkit-touch-callout:none}
-#dolly{position:absolute;inset:0;transform-origin:50% 56%;will-change:transform}
+#dolly{position:absolute;inset:0;transform-origin:50% 56%;will-change:transform,scale;transition:scale 1.4s var(--ease) .2s}
+/* 结语厅：停下后镜头 3 秒慢慢推近礼盒；拆开时 1.4 秒退回原位，正好把升起的贺卡整张框进来 */
+#dolly.near{scale:1.04;transition:scale 3s ease-in-out}
 #track{position:absolute;top:0;left:0;height:100%;display:flex;will-change:transform}
 #rope{position:absolute;left:0;top:calc(100% - var(--floor-h) - 40px);height:72px;pointer-events:none;will-change:transform}
 /* 门框：走在两个展厅之间时，最前面一道门框比隔离带走得还快（1.6 倍），像从门洞里穿过去；停下时它在画面外 */
@@ -98,7 +100,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .defs{position:absolute;width:0;height:0;overflow:hidden}
 .dimmer{position:absolute;inset:0;z-index:3;background:#050303;opacity:0;pointer-events:none}
 
-/* 灯：镜头停稳后才开，闪两下亮起 */
+/* 灯：像感应灯，走到离下一厅还有三成路时开，闪两下亮起，镜头停下时正好亮稳 */
 .beam{position:absolute;top:0;left:50%;width:384px;margin-left:-192px;bottom:var(--floor-h);opacity:0;
   background:conic-gradient(from 156deg at 50% 0,transparent 0deg,rgba(var(--L),.16) 12deg,rgba(var(--L),.16) 36deg,transparent 48deg);
   -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 64%,transparent 100%);
@@ -382,13 +384,13 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 /* 「往左滑」的箭头每 4 秒往左轻点两下：和票根轻抖、礼盒盖轻跳一样，只动要你碰的东西，不动整个画面 */
 .room.clear .next svg{animation:nudge-l 4s ease-in-out 3.2s infinite}
 @keyframes nudge-l{0%,16%,100%{transform:none}4%,12%{transform:translateX(-4px)}8%{transform:none}}
-/* 到厅后依次入场：灯亮之后，左按钮、连对灯、右按钮、提示依次从地面升起 */
+/* 到厅后依次入场：灯在走到门口时已经亮了，镜头一停，左按钮、连对灯、右按钮、提示就依次从地面升起 */
 .slot{display:block;transition:opacity .48s,transform .64s var(--ease)}
 .room:not(.ready) .slot{opacity:0;transform:translateY(16px)}
-.room.ready .s1{transition-delay:calc(var(--in,0s) + .56s)}
-.room.ready .s2{transition-delay:calc(var(--in,0s) + .68s)}
-.room.ready .s3{transition-delay:calc(var(--in,0s) + .8s)}
-.room.ready .s4{transition-delay:calc(var(--in,0s) + 1s)}
+.room.ready .s1{transition-delay:calc(var(--in,0s) + .08s)}
+.room.ready .s2{transition-delay:calc(var(--in,0s) + .2s)}
+.room.ready .s3{transition-delay:calc(var(--in,0s) + .32s)}
+.room.ready .s4{transition-delay:calc(var(--in,0s) + .52s)}
 .room.ready .lamps i{animation:lampin .32s ease-out calc(var(--in,0s) + .76s)}
 .room.ready .lamps i:nth-child(2){animation-delay:calc(var(--in,0s) + .84s)}
 .room.ready .lamps i:nth-child(3){animation-delay:calc(var(--in,0s) + .92s)}
@@ -1185,16 +1187,18 @@ function setCam(p) {
   track.style.transform = `translate3d(${-p * W}px,0,0)`;
   rope.style.transform = `translate3d(${-p * W * 1.25}px,0,0)`;
   door.style.transform = `translate3d(${-p * W * 1.6}px,0,0)`;
-  // 往前推：走到两厅中间时画面放大 8%
-  dolly.style.transform = moved ? `scale(${(1 + .08 * Math.sin(Math.PI * f)).toFixed(4)})` : '';
+  // 往前推：走到两厅中间时画面放大 8%；往隐藏展厅去的那一段推到 12%，像穿过一条暗廊
+  const z = rooms[base + 1] === WISH.room ? .12 : .08;
+  dolly.style.transform = moved ? `scale(${(1 + z * Math.sin(Math.PI * f)).toFixed(4)})` : '';
   // 正在离开的展厅跟着镜头变暗，手指拖回去它又亮回来
   if (dimAt !== base && dimmers[dimAt]) dimmers[dimAt].style.opacity = 0;
   if (dimmers[base]) dimmers[base].style.opacity = moved ? (.72 * f).toFixed(3) : 0;
   dimAt = base;
 }
-const EASE = { io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, out: t => 1 - Math.pow(1 - t, 3) };
-// 新的移动或手指按下会让旧的移动作废；作废时返回 false
-function tween(to, dur, ease) {
+// io 两头慢；out 一开始就快，接着手指的速度走；walk 起步比 io 干脆、落步拉长，像轨道车稳稳停到位
+const EASE = { io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, out: t => 1 - Math.pow(1 - t, 3), walk: t => EASE.io(Math.pow(t, .75)) };
+// 新的移动或手指按下会让旧的移动作废；作废时返回 false。near：离终点只剩三成路时调一次
+function tween(to, dur, ease, near) {
   const from = pos, my = ++camTok;
   return new Promise(res => {
     if (reduce || dur <= 0) { setCam(to); res(true); return; }
@@ -1203,6 +1207,7 @@ function tween(to, dur, ease) {
       if (my !== camTok) { res(false); return; }
       const k = Math.min(1, (t - t0) / dur);
       setCam(from + (to - from) * ease(k));
+      if (near && Math.abs(to - pos) <= .3) { near(); near = null; }
       if (k < 1) requestAnimationFrame(step); else res(true);
     })(t0);
   });
@@ -1253,8 +1258,8 @@ function buildRope() {
 function setW() {
   W = innerWidth;
   document.documentElement.style.setProperty('--W', W + 'px');
-  buildRope(); setCam(pos); aimIntro();
-  if (rooms[cur] === endRoom) { fitLetter(); aimSpots(); if (!raining) drawLanded(); }
+  buildRope(); setCam(pos); aimIntro(); fitLetter(); aimSpots();
+  if (rooms[cur] === endRoom && !raining) drawLanded();
 }
 // 第几关之后去哪：第三关之后，隐藏展厅还开着就进去，否则直接去结语
 const after = i => i < 2 ? LEVELS[i + 1].room : i === 2 && WISH.room.isConnected ? WISH.room : endRoom;
@@ -1279,10 +1284,11 @@ function hudSet(walking) {
   skipBtn.hidden = !!walking || !(S && S.L === WISH && rooms[cur] === WISH.room && !S.done);
   againBtn.hidden = !!walking || !(rooms[cur] === endRoom && P.read);
 }
-async function moveTo(to, ease) {
-  const dur = Math.max(480, 1800 * Math.abs(to - pos));
+async function moveTo(to, ease, near) {
+  // 每走一个厅 1.8 秒；走进隐藏展厅慢一些，2.6 秒
+  const dur = Math.max(480, 1800 * Math.abs(to - pos)) * (rooms[to] === WISH.room ? 1.45 : 1);
   steps(reduce ? 480 : dur);
-  await tween(to, dur, ease);
+  await tween(to, dur, ease, near);
   cur = to; setCam(to); hudSet();
 }
 // 镜头往下一个展厅探一下头再回来，告诉人可以往左滑
@@ -1358,7 +1364,7 @@ function fly(t, from, room, tilt) {
   };
 }
 
-// 走进下一个展厅：镜头停稳后开灯，离开的展厅关灯；隔离带跟着本展厅的灯一起亮
+// 走进下一个展厅：像感应灯，走到七成下一厅的灯就亮，停下时正好亮稳；离开的展厅停下后关灯；隔离带跟着本展厅的灯一起亮
 function lights(k, on) {
   rooms[k].classList.toggle('lit', on);
   const seg = rope.querySelector(`[data-k="${k}"]`);
@@ -1368,13 +1374,14 @@ async function go(el, fromDrag) {
   if (moving || !el) return;
   moving = true;
   if (S) { clearTimeout(S.timer); S.busy = true; setBtns(false); }
-  const lv = el === endRoom ? -1 : +el.dataset.lv, prev = cur;
+  const lv = el === endRoom ? -1 : +el.dataset.lv, prev = cur, to = rooms.indexOf(el);
   if (lv >= 0) prepare(lv);
   if (el === WISH.room && !P.hid) P.hid = 'in';
   hudSet(true);
-  await moveTo(rooms.indexOf(el), fromDrag ? EASE.out : EASE.io);
+  // 隐藏展厅是暗廊尽头：进了门灯才慢慢亮，不用感应灯
+  await moveTo(to, fromDrag ? EASE.out : EASE.walk, el === WISH.room ? null : () => lights(to, true));
   P.at = lv >= 0 ? lv : 'end'; save();
-  if (el === endRoom) { fitLetter(); aimSpots(); blessEnd(); }
+  if (el === endRoom) { blessEnd(); nearGift(); }
   lights(prev, false); lights(cur, true);
   sfx(el === WISH.room ? secret : dingdong);
   el.classList.add('ready');
@@ -1382,7 +1389,7 @@ async function go(el, fromDrag) {
   if (lv >= 0 && !S.done) arrive(S);
 }
 async function arrive(me) {
-  await wait(reduce ? 0 : me.L === WISH ? 2600 : 1120);
+  await wait(reduce ? 0 : me.L === WISH ? 2600 : 720);
   if (S !== me || me.done) return;
   if (!me.item.key) {   // 隐藏展厅：灯亮稳了才挂上第一块，免得把开灯的闪烁当成暗号
     me.item = gen(me.L, me.hist, me.keys); me.keys.push(me.item.key);
@@ -1459,6 +1466,8 @@ function clear(byDocent) {
   if (S.L === WISH) P.hid = 'clear';
   save(); hudSet();
   sfx(c => stamp(c.currentTime + 1.12, .7));
+  // 章砸到展签的那一下，镜头跟着往前一顶（1%），再弹回
+  if (!reduce && dolly.animate) dolly.animate([{ scale: '1', easing: 'cubic-bezier(.2,.8,.4,1)' }, { scale: '1.012', offset: .12, easing: 'cubic-bezier(.3,0,.2,1)' }, { scale: '1' }], { duration: 480, delay: 1120 });
   const me = S;
   setTimeout(() => unhook(rooms.indexOf(me.room)), reduce ? 0 : 1400);
   sfx(c => { const t = c.currentTime + 1.8; pluck(t, NOTE.G6, .2); pluck(t + .09, NOTE.C7, .18); });
@@ -1635,7 +1644,8 @@ function aimIntro() {
     intro.style.setProperty(n.classList.contains('l') ? '--lx' : '--rx', Math.round(b.left + b.width / 2 - r.left) + 'px');
   });
 }
-if (document.fonts) document.fonts.ready.then(aimIntro);
+// 字体载入后字宽会变：灯、卡片、追光都按载入后的版面再对一次
+if (document.fonts) document.fonts.ready.then(setW);
 // 门票：撕下票根，盖检票章，镜头出发
 const stub = ticket.querySelector('.stub');
 function tear() {
@@ -1673,12 +1683,17 @@ msg.innerHTML = blessHTML(msg.innerHTML.split('<br>'));
 function fitLetter() {
   letter.style.setProperty('--fit', Math.min(1, (lwrap.clientHeight - 16) / letter.offsetHeight).toFixed(3));
 }
+// 结语厅里东西的位置，按版面上的像素算：镜头推近、走动时的缩放都除掉
+function inRoom(el) {
+  const R = endRoom.getBoundingClientRect(), r = el.getBoundingClientRect(), k = R.width / endRoom.offsetWidth;
+  return { x: (r.left - R.left) / k, y: (r.top - R.top) / k, w: r.width / k, h: r.height / k };
+}
 // 两盏灯的位置对准卡片两栏的中线；拆开前先一起斜着照向礼盒
 function aimSpots() {
-  const room = endRoom.getBoundingClientRect(), b = present.getBoundingClientRect();
+  const b = inRoom(present);
   const fit = parseFloat(letter.style.getPropertyValue('--fit')) || 1;
   const spot = Math.round((letter.offsetWidth - 48) / 4 * fit);
-  const dy = Math.max(1, b.top + b.height * .45 - room.top);
+  const dy = Math.max(1, b.y + b.h * .45);
   endRoom.style.setProperty('--spot', spot + 'px');
   endRoom.style.setProperty('--aim', (Math.atan2(spot, dy) * 180 / Math.PI).toFixed(2) + 'deg');
 }
@@ -1708,19 +1723,22 @@ function blessEnd() {
   void endBless.offsetWidth;
   endRoom.classList.add('blessed');
 }
+// 走进结语厅、还没拆礼物：镜头慢慢推近礼盒
+function nearGift() { if (!reduce && !endRoom.classList.contains('open')) dolly.classList.add('near'); }
 function openGift() {
   if (endRoom.classList.contains('open')) return;
   audio();
   clock(); P.opened = true; save();
   record();
-  fitLetter(); aimSpots();
-  const room = endRoom.getBoundingClientRect(), b = present.getBoundingClientRect(), lr = letter.getBoundingClientRect();
+  const b = inRoom(present), lr = inRoom(letter);
   letter.style.transition = 'none';
-  letter.style.setProperty('--dy', `${Math.round(b.top + b.height / 2 - (lr.top + lr.height / 2))}px`);
+  letter.style.setProperty('--dy', `${Math.round(b.y + b.h / 2 - (lr.y + lr.h / 2))}px`);
   // 金光从盒口炸开：盒口在礼盒高度的 64/168 处
-  endRoom.style.setProperty('--by', `${Math.round(b.top - room.top + b.height * 64 / 168)}px`);
+  endRoom.style.setProperty('--by', `${Math.round(b.y + b.h * 64 / 168)}px`);
   letter.getBoundingClientRect();
   letter.style.transition = '';
+  // 镜头从礼盒前退回原位，把升起来的贺卡整张框进来
+  dolly.classList.remove('near');
   endRoom.classList.add('open');
   present.disabled = true;
   playSong(true);
@@ -1885,8 +1903,8 @@ function settle() {
 }
 function confetti(box) {
   if (reduce || !cv.getContext) return;
-  const { ctx, w, h, fy, fh } = canvasFit(), room = endRoom.getBoundingClientRect();
-  const ox = box.left - room.left + box.width / 2, oy = box.top - room.top + 48, ps = [];
+  const { ctx, w, h, fy, fh } = canvasFit();
+  const ox = box.x + box.w / 2, oy = box.y + 48, ps = [];
   const add = (x, y, vx, vy) => ps.push({ x, y, vx, vy, w: 4 + Math.random() * 4, h: 8 + Math.random() * 4, r: Math.random() * 6.28,
     vr: (Math.random() - .5) * .3, ph: Math.random() * 6.28, cap: 2 + Math.random() * 1.6, c: CONF[Math.floor(Math.random() * CONF.length)],
     rest: Math.random() < .5 ? fy + 6 + Math.random() * (fh - 20) : Infinity });
@@ -1937,12 +1955,13 @@ function restore() {
   });
   cur = rooms.indexOf(el); setCam(cur);
   if (el === endRoom) {
-    fitLetter(); aimSpots(); blessEnd();
+    blessEnd();
     if (P.opened) {
       endRoom.classList.add('instant', 'open'); record(); present.disabled = true;
       if (P.read) endRoom.classList.add('read');
       settle(); unInstant(endRoom);
     }
+    nearGift();
   } else {
     if (P.lv[at].done) el.classList.add('instant');
     prepare(at);
