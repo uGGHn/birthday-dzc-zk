@@ -592,6 +592,22 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   background:radial-gradient(circle at var(--px,50%) var(--py,40%),rgba(255,255,255,.5),rgba(255,255,255,0) 40%),
     repeating-linear-gradient(115deg,#ff9a9e 0,#fad0c4 4%,#fbc2eb 8%,#a6c1ee 12%,#c2e9fb 16%,#d4fc79 20%,#ff9a9e 24%) var(--px,50%) 0/300% 100%}
 #end.read .holo{opacity:.5}
+/* 夜景：读完祝福后卡片缩小、往下让，墙暗成夜空。后面是慢慢流动的酒红和金色光晕；
+   星星一颗颗亮起，连成 ZK、DZC 两个名字；天上放烟花，烟花的光映在卡上；四个展厅答过的展品像照片一样顺着两边漂上去。轻点卡片放大/缩回 */
+.aura{position:absolute;inset:0;bottom:var(--floor-h);opacity:0;transition:opacity 2s;pointer-events:none;overflow:hidden;background:#12060a}
+.aura::before,.aura::after{content:"";position:absolute;width:520px;height:520px;border-radius:50%}
+.aura::before{left:-200px;top:-120px;background:radial-gradient(circle,rgba(150,32,52,.7),rgba(150,32,52,0) 66%);animation:aura-a 18s ease-in-out infinite alternate}
+.aura::after{right:-220px;bottom:-200px;background:radial-gradient(circle,rgba(201,150,80,.5),rgba(201,150,80,0) 66%);animation:aura-b 22s ease-in-out infinite alternate}
+@keyframes aura-a{to{transform:translate(180px,240px) scale(1.2)}}
+@keyframes aura-b{to{transform:translate(-200px,-260px) scale(.9)}}
+#end.night .aura{opacity:1}
+#end.night .beam{opacity:.4!important;transition:opacity 2s}
+.sky,.film{position:absolute;inset:0;pointer-events:none}
+.sky{width:100%;height:100%}
+#end.night .letter{scale:calc(var(--fit,1) * .7);translate:0 40px}
+.pol{position:absolute;left:0;top:0;width:64px;padding:4px 4px 12px;background:#f2efe9;box-shadow:0 6px 12px rgba(0,0,0,.5);opacity:0}
+.pol svg{display:block;width:56px;height:44px;background:#e7e0d2}
+.flash{position:absolute;inset:0;z-index:2;border-radius:4px;pointer-events:none;opacity:0;mix-blend-mode:soft-light}
 /* 金粉：画在卡片外扩一圈的画布上，粉可以从卡片下面的纸屑里飞上来 */
 .lgold{position:absolute;z-index:3;left:-48px;top:-48px;width:calc(100% + 96px);height:calc(100% + 240px);pointer-events:none}
 #end.read .who:last-child .wn::after{animation-delay:.9s}
@@ -759,6 +775,7 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
         <div class="dimmer"></div>
       </section>
       <section class="room" id="end">
+        <div class="aura" aria-hidden="true"></div>
         <div class="beam l"></div><div class="beam r"></div><div class="pool"></div><div class="lamp l"></div><div class="lamp r"></div><div class="spill"></div>
         <div class="rno rno-end" aria-hidden="true">后记</div>
         <p class="bl" aria-hidden="true"></p>
@@ -793,8 +810,9 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
           <div class="plinth"><div class="plaque paper"><span class="pa pair"><span>ZK</span><i></i><span>DZC</span></span></div></div>
         </div>
         <div class="bloom" aria-hidden="true"></div>
+        <canvas class="sky" aria-hidden="true"></canvas><div class="film" aria-hidden="true"></div>
         <div class="lwrap"><div class="letter paper" aria-live="polite">
-          <i class="fold" aria-hidden="true"></i><i class="holo" aria-hidden="true"></i><canvas class="lgold" aria-hidden="true"></canvas>
+          <i class="fold" aria-hidden="true"></i><i class="holo" aria-hidden="true"></i><canvas class="lgold" aria-hidden="true"></canvas><i class="flash" aria-hidden="true"></i>
           <button class="cover" type="button" aria-label="打开贺卡"><i class="sh" aria-hidden="true"></i><span class="ck">生日特展 · 后记</span><b>生日快乐</b><span class="cn">ZK &amp; DZC</span><span class="ct">轻点打开</span></button>
           <p class="lh"><span>生日特展图录</span><span>后记</span></p>
           <div class="duo">
@@ -1790,6 +1808,7 @@ function readCard() {
   endRoom.classList.remove('instant'); void endRoom.offsetWidth;
   endRoom.classList.add('read');
   cardFx(true);
+  setTimeout(nightOn, 6400);
   // 翻开：封面先往前拱起一点，再绕左边翻过去，越翻越暗；下面那页的影子跟着退去。
   // 用动画直接播，不靠 class 切换的过渡——那样会和封面「微微翘一下」的循环动画抢，Safari 上时有时无
   if (!reduce && cover.animate) {
@@ -1863,17 +1882,115 @@ function cardFrame(now) {
 letter.addEventListener('pointerdown', e => {
   if (!card || e.target.closest('.seal')) return;
   try { letter.setPointerCapture(e.pointerId); } catch (_) {}
-  card.hold = performance.now(); card.hx = e.clientX; card.hy = e.clientY; aim(e);
+  card.hold = performance.now(); card.down = card.hold; card.moved = false; card.hx = e.clientX; card.hy = e.clientY; aim(e);
 });
 letter.addEventListener('pointermove', e => {
   if (!card) return;
-  if (card.hold && Math.hypot(e.clientX - card.hx, e.clientY - card.hy) > 12) card.hold = 0;
+  if (card.down && Math.hypot(e.clientX - card.hx, e.clientY - card.hy) > 12) { card.hold = 0; card.moved = true; }
   aim(e);
 });
-['pointerup', 'pointercancel'].forEach(n => letter.addEventListener(n, () => { if (card) { card.hold = 0; card.goal = 0; } }));
+['pointerup', 'pointercancel'].forEach(n => letter.addEventListener(n, e => {
+  if (!card) return;
+  // 轻点（没拖、没按久）：夜景里放大卡片，再点缩回去
+  if (n === 'pointerup' && card.down && !card.moved && performance.now() - card.down < 280 && nightSky) endRoom.classList.toggle('night');
+  card.hold = 0; card.goal = 0; card.down = 0;
+}));
 function aim(e) {
   const r = letter.getBoundingClientRect();
   card.gx = clamp((e.clientX - r.left) / r.width, 0, 1); card.gy = clamp((e.clientY - r.top) / r.height, 0, 1); card.touch = performance.now();
+}
+// 夜景：读完 6.4 秒后卡片缩小让出夜空。星星、名字星座、烟花画在 .sky 上，照片是 .film 里的小卡
+const sky = endRoom.querySelector('.sky'), film = endRoom.querySelector('.film'), flash = letter.querySelector('.flash');
+let nightSky = null, nightT = 0;
+// 名字的星座：每个字母是几段折线，宽 1、高 1.4
+const GLYPH = { Z: [[[0, 0], [1, 0], [0, 1.4], [1, 1.4]]], K: [[[0, 0], [0, 1.4]], [[1, 0], [0, .75], [1, 1.4]]],
+  D: [[[0, 0], [0, 1.4], [.55, 1.4], [1, 1], [1, .4], [.55, 0], [0, 0]]], C: [[[1, .25], [.6, 0], [.25, .1], [0, .55], [0, .85], [.25, 1.3], [.6, 1.4], [1, 1.15]]] };
+// 照片里的小画：每个展厅答过的展品，按它当时的样子画
+const MINI = {
+  vitrine: it => `<svg viewBox="-8 -4 88 80">${OBJ[it.key] || ''}</svg>`,
+  painting: it => `<svg viewBox="4 0 208 160">${paintBg(it.plate)}${DISH[it.key] || ''}<g${it.dir === 'R' ? ' transform="translate(216 0) scale(-1 1)"' : ''}>${CHOP}</g></svg>`,
+  gift: it => `<svg viewBox="-20 -10 240 160"><g>${BODY(it.n, it.wrap)}</g><g>${LID(it.n, it.wrap)}</g></svg>`,
+  wish: it => `<svg viewBox="-8 0 192 160">${RACK}${plate(it.wood)}<text class="wt" x="88" y="106" text-anchor="middle" style="fill:${WOODS[it.wood || 0][2]}">${it.key}</text></svg>`
+};
+function nightOn(at) {
+  if (reduce || nightSky) return;
+  endRoom.classList.add('night');
+  const w = endRoom.clientWidth, h = endRoom.clientHeight, dpr = Math.min(devicePixelRatio || 1, 2), ctx = sky.getContext('2d');
+  sky.width = Math.round(w * dpr); sky.height = Math.round(h * dpr); ctx.scale(dpr, dpr);
+  // 夜空：卡片缩小后上面让出来的那一条，加两边
+  const L = inRoom(lwrap), fit = parseFloat(letter.style.getPropertyValue('--fit')) || 1;
+  const ch = letter.offsetHeight * fit * .7, cw = letter.offsetWidth * fit * .7, top = L.y + (L.h - ch) / 2 + 40;
+  const bt = L.y + 12, hb = Math.max(48, top - 12 - bt), side = (w - cw) / 2;
+  const stars = Array.from({ length: 70 }, () => { const left = Math.random() < .5;
+    return { x: Math.random() < .5 ? Math.random() * w : (left ? Math.random() * side : w - Math.random() * side), y: bt + Math.random() * (h - 160 - bt), r: .4 + Math.random(), p: Math.random() * 6.3 }; })
+    .filter(st => st.y < top || st.x < side || st.x > w - side);
+  // 两个名字摆在夜空那一条里，ZK 在左半边，DZC 在右半边
+  const names = [['ZK', 0], ['DZC', 1]].map(([nm, k]) => {
+    const u = Math.min(32, hb / 1.4, (w / 2 - 48) / 4), wide = nm.length * u + (nm.length - 1) * u * .5;
+    const x0 = k ? w * .75 - wide / 2 : w * .25 - wide / 2, y0 = bt + (hb - 1.4 * u) / 2, segs = [];
+    [...nm].forEach((c, j) => GLYPH[c].forEach(line => segs.push(line.map(([a, b]) => [x0 + (a + j * 1.5) * u, y0 + b * u]))));
+    return { segs, at: 800 + k * 1400 };
+  });
+  // 照片：四个展厅答过的展品，左右两边轮流漂上去
+  const pics = [];
+  LEVELS.forEach((L2, i) => { const seen = new Set(); P.lv[i].log.slice().reverse().forEach(([key, a]) => {
+    if (seen.has(key) || seen.size >= 4 || (L2.kind === 'vitrine' && !OBJ[key])) return; seen.add(key); pics.push(MINI[L2.kind](make(L2, key, a))); }); });
+  for (let i = pics.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pics[i], pics[j]] = [pics[j], pics[i]]; }
+  nightSky = { ctx, w, h, stars, names, pics, n: 0, top, bt, side, fw: [], next: 2600, t0: performance.now() - (at || 0), pic: 1200 };
+  requestAnimationFrame(nightFrame);
+}
+function burst(ns, now) {
+  const x = 32 + Math.random() * (ns.w - 64), y = ns.bt + Math.random() * Math.max(40, ns.top - ns.bt + 40);
+  const c = ['#ffd98f', '#ff9aa8', '#fff6dc', '#f0b866'][Math.floor(Math.random() * 4)], n = 56;
+  for (let i = 0; i < n; i++) { const a = i / n * 6.283, v = 1.2 + Math.random() * 1.6;
+    ns.fw.push({ x, y, px: x, py: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: now, life: 1200 + Math.random() * 600, c }); }
+  // 烟花的光映到卡上：从烟花那一侧照过来
+  const R = inRoom(letter), fx = ((x - R.x) / R.w * 100).toFixed(0), fy = ((y - R.y) / R.h * 100).toFixed(0);
+  flash.style.background = `radial-gradient(circle at ${fx}% ${fy}%, ${c}, transparent 70%)`;
+  flash.animate([{ opacity: 0 }, { opacity: .7, offset: .12 }, { opacity: 0 }], { duration: 900, easing: 'ease-out' });
+}
+function photo(ns) {
+  const el = document.createElement('div'), left = ns.n++ % 2 === 0;
+  el.className = 'pol'; el.innerHTML = ns.pics[ns.n % ns.pics.length];
+  film.appendChild(el);
+  const x = left ? 8 + Math.random() * Math.max(0, ns.side - 80) : ns.w - 72 - Math.random() * Math.max(0, ns.side - 80), r0 = (Math.random() - .5) * 16;
+  el.animate([{ transform: `translate(${x}px,${ns.h - 160}px) rotate(${r0}deg)`, opacity: 0 }, { opacity: 1, offset: .15 }, { opacity: 1, offset: .75 },
+    { transform: `translate(${x + (left ? 12 : -12)}px,${ns.bt - 40}px) rotate(${-r0}deg)`, opacity: 0 }], { duration: 14000, easing: 'linear' }).onfinish = () => el.remove();
+}
+function nightFrame(now) {
+  const ns = nightSky; if (!ns) return;
+  if (!endRoom.classList.contains('read')) { nightSky = null; return; }
+  const t = now - ns.t0, g = ns.ctx;
+  g.clearRect(0, 0, ns.w, ns.h);
+  const sh = endRoom.classList.contains('night') ? 1 : .35;
+  // 星星慢慢亮起、闪
+  ns.stars.forEach(st => { const a = Math.min(1, t / 1600) * (.45 + .4 * Math.sin(now / 700 + st.p)) * sh;
+    g.globalAlpha = a; g.fillStyle = '#fff6dc'; g.beginPath(); g.arc(st.x, st.y, st.r, 0, 6.283); g.fill(); });
+  // 名字星座：星一颗颗亮，线一段段连
+  ns.names.forEach(nm => {
+    const u = Math.min(1, Math.max(0, (t - nm.at) / 2000)), total = nm.segs.reduce((a, l) => a + l.length - 1, 0);
+    let k = u * total;
+    g.strokeStyle = 'rgba(240,212,154,.55)'; g.lineWidth = 1; g.globalAlpha = sh;
+    nm.segs.forEach(line => {
+      g.beginPath(); g.moveTo(line[0][0], line[0][1]);
+      for (let i = 1; i < line.length && k > 0; i++, k--) { const f = Math.min(1, k), [ax, ay] = line[i - 1], [bx, by] = line[i]; g.lineTo(ax + (bx - ax) * f, ay + (by - ay) * f); }
+      g.stroke();
+    });
+    let m = u * total + 1;
+    nm.segs.forEach(line => line.forEach(([x, y], i) => { if (i > 0) m--; if (m <= 0 && i > 0) return; if (u <= 0) return;
+      g.globalAlpha = sh; g.fillStyle = '#fff3cf'; g.beginPath(); g.arc(x, y, 1.8 + .6 * Math.sin(now / 300 + x), 0, 6.283); g.fill();
+      g.globalAlpha = .25 * sh; g.beginPath(); g.arc(x, y, 5, 0, 6.283); g.fill(); }));
+  });
+  // 烟花
+  if (t > ns.next) { burst(ns, now); ns.next = t + 1400 + Math.random() * 1600; }
+  ns.fw = ns.fw.filter(p => now - p.t < p.life);
+  g.lineWidth = 1.4;
+  ns.fw.forEach(p => { const e = (now - p.t) / p.life; p.px = p.x; p.py = p.y; p.vx *= .985; p.vy = p.vy * .985 + .025; p.x += p.vx; p.y += p.vy;
+    g.globalAlpha = (1 - e) * sh; g.strokeStyle = p.c; g.beginPath(); g.moveTo(p.px - p.vx * 3, p.py - p.vy * 3); g.lineTo(p.x, p.y); g.stroke(); });
+  // 照片
+  if (ns.pics.length && t > ns.pic) { photo(ns); ns.pic = t + 2800; }
+  g.globalAlpha = 1;
+  requestAnimationFrame(nightFrame);
 }
 present.addEventListener('click', e => {
   if (endRoom.classList.contains('open') || performance.now() - justDragged < 400) return;
@@ -2074,7 +2191,7 @@ function restore() {
     blessEnd();
     if (P.opened) {
       endRoom.classList.add('instant', 'open'); record(); present.disabled = true;
-      if (P.read) { endRoom.classList.add('read'); requestAnimationFrame(() => cardFx(false)); }
+      if (P.read) { endRoom.classList.add('read'); requestAnimationFrame(() => { cardFx(false); nightOn(4000); }); }
       settle(); unInstant(endRoom);
     }
     nearGift();
