@@ -49,7 +49,8 @@
 html,body{margin:0;height:100%;background:var(--void);color:var(--chalk);font-family:var(--sans);
   -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;
   -webkit-user-select:none;user-select:none}
-p{margin:0}
+/* 段落折行时不把最后一两个字单独甩到下一行，也尽量不把一个词拆开 */
+p{margin:0;text-wrap:pretty}
 button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webkit-appearance:none;appearance:none}
 
 /* 镜头：dolly 推拉，track 平移，rope 是前景隔离带（移动得比展厅快，产生纵深） */
@@ -67,8 +68,9 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .vignette{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse 80% 72% at 50% 44%,transparent 52%,rgba(0,0,0,.56) 100%)}
 
-/* 展厅：每个厅一种墙色，地面共用 */
-.room{position:relative;flex:none;width:var(--W);height:100%;overflow:hidden;overflow:clip;
+/* 展厅：每个厅一种墙色，地面共用。每个厅自成一层，从后往前按源码顺序叠：
+   门柱 < 厅号、灯光、题字 < 挂镜线、证据墙 < 展品 < 答题台 < 暗场；只有要盖过同层的东西才写 z-index */
+.room{position:relative;isolation:isolate;flex:none;width:var(--W);height:100%;overflow:hidden;overflow:clip;
   --wall:#3a1619;--wall-deep:#260d10;--wall-low:#331317;
   background:
     var(--grain),
@@ -81,8 +83,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   background-size:192px 192px,100% calc(100% - var(--floor-h)),100% 100%,100% 100%,100% 100%,100% 100%;
   background-repeat:repeat,no-repeat,no-repeat,no-repeat,no-repeat,no-repeat;
   background-blend-mode:soft-light,normal,normal,normal,normal,normal}
-/* 挂镜线：一道铜条横过展厅的墙，在厅号下面；两列证据的铜牌挂在上面 */
-.rail{position:absolute;left:0;right:0;top:calc(var(--hud) + var(--st) + 156px);height:4px;pointer-events:none;opacity:.6;
+/* 挂镜线：一道铜条横过展厅的墙，在厅号下面；两列证据的铜牌挂在上面。--rail 是它的高度，铜牌和签都从这里往下排 */
+.rail{position:absolute;left:0;right:0;top:var(--rail);height:4px;pointer-events:none;opacity:.6;
   background:linear-gradient(to bottom,#e9cf95,#8a6634);box-shadow:0 2px 3px rgba(0,0,0,.4)}
 .room.k-vitrine{--wall:#1a2c42;--wall-deep:#0d1826;--wall-low:#16263a}
 .room.k-painting{--wall:#1d3529;--wall-deep:#0f1d17;--wall-low:#1a2f25}
@@ -90,7 +92,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 #end{--wall:#3b2816;--wall-deep:#1e140b;--wall-low:#332212}
 #intro{--wall:#331215;--wall-deep:#1f0a0d;--wall-low:#2c1013}
 /* 门柱：跨在两个展厅交界处，左右各一半；正面受光，两侧往墙上投影 */
-.room::before,.room::after{content:"";position:absolute;top:0;width:40px;bottom:var(--floor-h);pointer-events:none}
+.room::before,.room::after{content:"";position:absolute;z-index:-1;top:0;width:40px;bottom:var(--floor-h);pointer-events:none}
 .room::before{left:0;background:linear-gradient(to right,rgba(var(--L),.1) 0,rgba(var(--L),.04) 12px,rgba(0,0,0,.5) 16px,rgba(0,0,0,.24) 20px,transparent 40px)}
 .room::after{right:0;background:linear-gradient(to left,rgba(var(--L),.1) 0,rgba(var(--L),.04) 12px,rgba(0,0,0,.5) 16px,rgba(0,0,0,.24) 20px,transparent 40px)}
 .defs{position:absolute;width:0;height:0;overflow:hidden}
@@ -136,36 +138,42 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .wish{display:block;overflow:visible}
 .wish .swing{transform-box:view-box;transform-origin:88px 12px}
 .wt{font-family:var(--serif);font-size:20px;fill:#2b1b1c}
-/* 证据墙：答过的展品按正确答案挂到两侧墙上，揭晓时每张签的钉头换成暗号 */
-.ev{position:absolute;z-index:1;top:calc(var(--hud) + var(--st) + 180px);bottom:calc(var(--floor-h) + 8px);width:24px;padding-top:20px;
-  display:flex;flex-direction:column;align-items:center;gap:18px;overflow:hidden;pointer-events:none;
-  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 24px),transparent)}
-.ev.l{left:max(8px,calc(50% - 160px))}
-.ev.r{right:max(8px,calc(50% - 160px))}
+/* 证据墙：答过的展品按正确答案挂到两侧墙上，揭晓时每张签的钉头换成暗号。
+   --evx 是两列中线离墙边多远，铜牌和签都按它摆；两列中间留给展品（展品区宽 232，见各件展品） */
+.room{--rail:calc(var(--hud) + var(--st) + 156px);--evx:max(28px,calc(50% - 148px))}
+/* 一列挂不下的签换到第二列去，第二列在画面外、被裁掉：墙上只挂整张的签，不会露半张。
+   裁切框往左右各放宽 40px：签歪着、晃着、带着影子都不会被切边 */
+.ev{position:absolute;top:calc(var(--rail) + 24px);bottom:calc(var(--floor-h) + 24px);width:24px;padding-top:24px;
+  display:flex;flex-flow:column wrap;align-content:flex-start;gap:24px 96px;pointer-events:none;clip-path:inset(-24px -40px)}
+.ev.l{left:calc(var(--evx) - 12px)}
+.ev.r{right:calc(var(--evx) - 12px)}
 /* 两列顶上各一块铜牌，用两个小钩挂在挂镜线上，写着这一列是哪个答案 */
-.evh{position:absolute;z-index:1;top:calc(var(--hud) + var(--st) + 164px);width:48px;text-align:center;white-space:nowrap;pointer-events:none;
+.evh{position:absolute;top:calc(var(--rail) + 8px);width:48px;text-align:center;white-space:nowrap;pointer-events:none;
   font:12px/16px var(--serif);color:#2a1a08;background:linear-gradient(#ecd29a,#b08a4f);border-radius:2px;
   box-shadow:0 2px 3px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.2)}
 .evh::before,.evh::after{content:"";position:absolute;bottom:100%;width:1px;height:4px;background:rgba(201,164,106,.8)}
 .evh::before{left:8px}
 .evh::after{right:8px}
-.evh.l{left:max(4px,calc(max(8px,calc(50% - 160px)) - 12px))}
-.evh.r{right:max(4px,calc(max(8px,calc(50% - 160px)) - 12px))}
-/* 每张签用一根细绳挂在一颗铜钉上，各歪一点；刚挂上的会晃两下 */
-.tag{flex:none;position:relative;width:24px;padding:12px 0 6px;border-radius:2px;display:flex;flex-direction:column;align-items:center;color:var(--ink);
+.evh.l{left:calc(var(--evx) - 24px)}
+.evh.r{right:calc(var(--evx) - 24px)}
+/* 每张签用一根细绳挂在一颗铜钉上，各歪一点；刚挂上的会晃两下。
+   一张签从后往前叠：签纸 < 细绳 < 孔（细绳从孔里穿到背后）< 钉头 < 揭晓时换上的暗号。
+   签与签隔 24px：暗号牌比钉头大，挂在两张签中间，上下各留 4px */
+.tag{flex:none;position:relative;width:24px;padding:12px 0 8px;border-radius:2px;display:flex;flex-direction:column;align-items:center;color:var(--ink);
   background-color:#ddd5c7;background-image:var(--grain);background-size:192px 192px;background-blend-mode:soft-light;box-shadow:0 2px 4px rgba(0,0,0,.45);
   transform-origin:50% -12px}
-.tag::before{content:"";position:absolute;top:4px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#2a1c16;box-shadow:0 0 0 1px rgba(255,255,255,.5)}
-.tag::after{content:"";position:absolute;left:50%;top:-12px;width:1px;height:17px;margin-left:-.5px;background:linear-gradient(#c9a46a,#a8875a)}
+.tag::after{content:"";position:absolute;z-index:1;left:50%;top:-12px;width:1px;height:17px;margin-left:-.5px;background:linear-gradient(#c9a46a,#a8875a)}
+.tag::before{content:"";position:absolute;z-index:2;top:4px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#2a1c16;box-shadow:0 0 0 1px rgba(255,255,255,.5)}
 .tag .tk{writing-mode:vertical-rl;font:12px/24px var(--serif);letter-spacing:0}
-.tag .tk::before{content:"";position:absolute;left:50%;top:-15px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;
+.tag .tk::before{content:"";position:absolute;z-index:3;left:50%;top:-15px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;
   background:radial-gradient(circle at 40% 35%,#f6e2b0,#8a6634 70%);box-shadow:0 1px 1px rgba(0,0,0,.6)}
-.tag .mk{position:absolute;top:-20px;left:4px;display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--brass);color:#241707;
+.tag .mk{position:absolute;z-index:4;top:-20px;left:4px;display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--brass);color:#241707;
   box-shadow:0 1px 2px rgba(0,0,0,.5);
   font:400 12px/16px var(--display);opacity:0;transform:scale(.4);transition:opacity .3s,transform .4s cubic-bezier(.3,1.6,.5,1);transition-delay:var(--d,0s)}
 .tag .mk.hollow{background:#3a3550;box-shadow:inset 0 0 0 1px var(--brass),0 1px 2px rgba(0,0,0,.5)}
 .tag .mk svg{display:block}
 .room.clear .tag .mk{opacity:1;transform:none}
+/* 不在墙上的签：从展品飞向墙的那张、被挤出这一列滑走的那张，都浮在展品前面 */
 .tag.fly{position:absolute;z-index:2;margin:0;pointer-events:none}
 /* 恢复进度时，已经走过的状态直接摆好，不再播一遍 */
 .instant,.instant *{transition-duration:0s!important;transition-delay:0s!important;animation-duration:0s!important;animation-delay:0s!important}
@@ -275,8 +283,9 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 @keyframes hop-sway{25%{transform:rotate(4deg)}55%{transform:rotate(-2.5deg)}80%{transform:rotate(1deg)}}
 .torn .ch::after{opacity:1}
 
-/* 展品 02：挂画，揭晓时画往前浮出、画框往后上方退开，圈出筷子尖 */
-.pic{position:relative;width:240px;height:184px;transform-origin:50% 0}
+/* 展品 02：挂画，揭晓时画往前浮出、画框往后上方退开，圈出筷子尖。
+   画布只画到 208 宽（盘子居中，两边各裁掉 4px 空白），连画框 232 宽，正好放进展品区 */
+.pic{position:relative;width:232px;height:184px;transform-origin:50% 0}
 .canvas{position:absolute;z-index:1;left:12px;top:12px;display:block;
   box-shadow:0 0 0 2px #e9d08f,0 0 0 3px rgba(60,40,10,.55),0 8px 16px rgba(0,0,0,.36);
   transition:transform .8s var(--ease),box-shadow .8s}
@@ -287,17 +296,17 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .ring::before{content:"";position:absolute;inset:-7px;border:1px solid rgba(70,48,16,.5);box-shadow:0 0 0 1px rgba(255,240,200,.22);pointer-events:none}
 .tagt{font-family:var(--serif);font-size:16px;fill:#3a2a22}
 .menu{font-family:var(--serif);font-size:12px;fill:#3a2a22}
-/* 画放大 1.12 倍后，筷子尖落在 (44,152) 或 (196,152) */
+/* 画放大 1.12 倍后，筷子尖落在 (40,152) 或 (192,152) */
 .tipmark{position:absolute;z-index:2;top:144px;width:16px;height:16px;border:1px solid #6b4a1f;border-radius:50%;
   opacity:0;transition:opacity .4s .8s}
-.pic.L .tipmark{left:36px}
-.pic.R .tipmark{left:188px}
+.pic.L .tipmark{left:32px}
+.pic.R .tipmark{left:184px}
 .torn .canvas{transform:scale(1.12);box-shadow:0 0 0 2px #e9d08f,0 0 0 3px rgba(60,40,10,.55),0 24px 48px rgba(0,0,0,.56)}
 .torn .ring{transform:translateY(-48px) scale(.96);opacity:.8}
 .torn .tipmark{opacity:1}
 
-/* 展品 03：礼物，揭晓时盒盖连同吊牌掀起 */
-.gift{display:block;margin-left:48px;overflow:visible;transform-origin:50% 100%}
+/* 展品 03：礼物，揭晓时盒盖连同吊牌掀起。盒子居中，吊牌挂在右边、不出展品区 */
+.gift{display:block;margin-left:40px;overflow:visible;transform-origin:50% 100%}
 .gift .lid{transition:transform .8s var(--ease)}
 .gco{opacity:0;transition:opacity .4s 1s}
 .gnum{font-family:var(--display);font-size:12px;fill:#241707}
@@ -630,15 +639,22 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
 .snd[aria-pressed="true"] .x{display:inline}
 .snd:focus-visible{outline:2px solid var(--brass);outline-offset:-4px}
 
-/* 窄屏：题字小一号，跟左边的厅号隔开至少 16px；320 宽的屏幕上厅号也小一号 */
+/* 窄屏：题字小一号，跟左边的厅号隔开至少 16px */
 @media (max-width:389px){.bl{font-size:16px;line-height:24px}}
+/* 320 宽的屏幕和矮屏：厅号小一号 */
+@media (max-width:359px),(max-height:600px){.rno{font-size:120px;line-height:120px;letter-spacing:-4px}}
+/* 320 宽的屏幕：证据墙贴到墙边也只剩 200 宽给展品，展品连展台按 .84 缩小；
+   规则卡片放宽一点，最长的一行（17 个字）也不折行 */
 @media (max-width:359px){
-  .rno{font-size:120px;line-height:120px;letter-spacing:-4px}
   .rno-end{font-size:64px;line-height:64px;letter-spacing:0}
+  .room[data-lv] .stage{scale:.84;transform-origin:50% 100%}
+  .done{left:8px;right:8px}
+  .drule{padding:8px 12px}
 }
 /* 矮屏：题字小一号；玻璃罩少抬一点、画框原地不动，别碰到右上角的题字；
-   挂镜线会从展柜玻璃后面穿过展品的名字，矮屏上不挂，铜牌直接钉在墙上 */
+   挂镜线会从展柜玻璃后面穿过展品的名字，矮屏上不挂，铜牌直接钉在墙上，跟着变小的厅号往上提 40px，墙上多挂得下一张签 */
 @media (max-height:600px){
+  .room{--rail:calc(var(--hud) + var(--st) + 116px)}
   .rail,.evh::before,.evh::after{display:none}
   .bl{top:calc(var(--hud) + var(--st) + 4px);font-size:16px;line-height:24px}
   .torn .glass{transform:translateY(-48px)}
@@ -796,7 +812,7 @@ const LEVELS = [
            '生日帽','小蛋糕','烟花棒','许愿卡','冰淇淋','伞','花','酒','灭火器','电饭锅'],
     ans: w => [...w].length === 2 ? 0 : 1,
     hint: '别管它跟生日有没有关系，数一数名字。',
-    rule: '名字是两个字的就能带，跟生日没关系。',
+    rule: '名字是两个字的就能带，\n跟生日没关系。',
     bless: ['丁总张律，', '生日快乐！'] },
   { title: '主厨这道菜', opts: ['好吃', '不好吃'], kind: 'painting', streak: 4,
     pool: ['红烧肉','番茄炒蛋','清蒸鲈鱼','白灼虾','拍黄瓜','宫保鸡丁','隔夜饭','煮糊的粥','白水煮菜'],
@@ -908,7 +924,7 @@ const LID = (n, w) => `<rect x="16" y="36" width="128" height="20" fill="${w ? W
   + '<path d="M80 36C96 12 116 20 100 34Z" fill="url(#gBow)"/>'
   + '<path d="M78 34C68 22 58 22 62 30M82 34C92 22 102 22 98 30" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/>'
   + '<circle cx="80" cy="34" r="6" fill="url(#gRib)"/>'
-  + '<path d="M86 36C112 40 132 50 142 62" fill="none" stroke="#8d7a5f" stroke-width="1"/>';
+  + '<path d="M86 36C106 40 124 50 134 62" fill="none" stroke="#8d7a5f" stroke-width="1"/>';
 // 许愿牌：挂在铜架上的木牌，红绳穿过牌子上的孔
 const RACK = '<ellipse cx="88" cy="152" rx="76" ry="4" fill="#000" opacity=".28"/>'
   + '<rect x="12" y="12" width="4" height="140" fill="url(#gPost)"/><rect x="160" y="12" width="4" height="140" fill="url(#gPost)"/>'
@@ -1013,15 +1029,15 @@ const VIEW = {
   vitrine: it => `<div class="vit"><svg class="obj" viewBox="0 0 72 72" width="80" height="80" aria-hidden="true">${OBJ[it.key] || ''}</svg><div class="glass"></div><span class="word">`
     + [...it.key].map((c, n) => `<span class="ch" data-n="${n + 1}">${c}</span>`).join('')
     + '</span></div><div class="vbase"></div>',
-  painting: it => `<div class="pic ${it.dir}"><svg class="canvas" viewBox="0 0 216 160" width="216" height="160" aria-hidden="true">${paintBg(it.plate)}`
+  painting: it => `<div class="pic ${it.dir}"><svg class="canvas" viewBox="4 0 208 160" width="208" height="160" aria-hidden="true">${paintBg(it.plate)}`
     + DISH[it.key]
-    + `<rect x="8" y="8" width="56" height="24" rx="2" fill="#fbfaf6" stroke="#d6cec0"/>`
-    + `<text class="menu" x="36" y="24" text-anchor="middle">${it.key}</text>`
+    + `<rect x="12" y="8" width="56" height="24" rx="2" fill="#fbfaf6" stroke="#d6cec0"/>`
+    + `<text class="menu" x="40" y="24" text-anchor="middle">${it.key}</text>`
     + `<g${it.dir === 'R' ? ' transform="translate(216 0) scale(-1 1)"' : ''}>${CHOP}</g></svg>`
     + '<div class="ring"></div><span class="tipmark"></span></div>',
-  gift: it => `<svg class="gift" viewBox="0 0 208 136" width="208" height="136" aria-hidden="true"><g>${BODY(it.n, it.wrap)}</g>`
-    + `<g class="lid">${LID(it.n, it.wrap)}<g transform="rotate(-6 168 76)"><rect x="136" y="60" width="64" height="32" rx="4" fill="#f5f2ec" stroke="#cbbfac"/>`
-    + `<circle cx="144" cy="68" r="2" fill="#8d7a5f"/><text class="tagt" x="172" y="82" text-anchor="middle">${it.key}</text></g></g>`
+  gift: it => `<svg class="gift" viewBox="0 0 200 136" width="200" height="136" aria-hidden="true"><g>${BODY(it.n, it.wrap)}</g>`
+    + `<g class="lid">${LID(it.n, it.wrap)}<g transform="rotate(-6 160 76)"><rect x="128" y="60" width="64" height="32" rx="4" fill="#f5f2ec" stroke="#cbbfac"/>`
+    + `<circle cx="136" cy="68" r="2" fill="#8d7a5f"/><text class="tagt" x="164" y="82" text-anchor="middle">${it.key}</text></g></g>`
     + '<g class="gco">' + RIB[it.n].map((x, j) => `<circle cx="${x}" cy="112" r="8" fill="#c9a46a"/>`
       + `<text class="gnum" x="${x}" y="116" text-anchor="middle">${j + 1}</text>`).join('') + '</g></svg>',
   wish: it => `<svg class="wish" viewBox="0 0 176 152" width="176" height="152" aria-hidden="true">${RACK}<g class="swing">${plate(it.wood)}`
@@ -1302,19 +1318,25 @@ function prepare(i) {
   if (sv.done) markDone(S, sv.by === 'docent');
 }
 // 答过的展品按正确答案贴到墙上：左边按钮对的贴左墙，右边对的贴右墙，新的在上面。
-// 刚答的那张从展品飞过去，墙上原有的签顺着往下让一格
+// 刚答的那张从展品飞过去，墙上原有的签顺着往下让一格；最下面那张挂不下了，跟着往下滑、淡出
 const TILT = [-3, -2, -1, 1, 2, 3];
 function pin(it, fresh) {
   const col = S.room.querySelector(it.ans === 0 ? '.ev.l' : '.ev.r'), t = document.createElement('span');
   const tilt = TILT[Math.floor(Math.random() * TILT.length)];
   t.className = 'tag'; t.style.rotate = `${tilt}deg`;
   t.innerHTML = `<span class="tk">${it.key}</span>${MARK[S.L.kind](it)}`;
-  const anim = fresh && !reduce && !!t.animate, was = anim ? [...col.children].map(c => [c, c.getBoundingClientRect().top]) : [];
+  // 墙上看得见的签都在第一列（offsetLeft 是 0）；挂不下的在画面外的第二列
+  const anim = fresh && !reduce && !!t.animate, was = anim ? [...col.children].filter(c => c.offsetLeft === 0).map(c => [c, c.offsetTop]) : [];
   col.prepend(t);
   while (col.children.length > 12) col.lastChild.remove();
   if (!anim) return;
+  const slide = { duration: 360, easing: 'cubic-bezier(.2,.8,.2,1)' }, step = t.offsetHeight + parseFloat(getComputedStyle(col).rowGap);
   was.forEach(([c, y]) => {
-    if (c.isConnected) c.animate([{ transform: `translateY(${y - c.getBoundingClientRect().top}px)` }, { transform: 'none' }], { duration: 360, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    if (c.isConnected && c.offsetLeft === 0) { c.animate([{ transform: `translateY(${y - c.offsetTop}px)` }, { transform: 'none' }], slide); return; }
+    const g = c.cloneNode(true);
+    g.classList.add('fly'); g.style.left = `${col.offsetLeft}px`; g.style.top = `${col.offsetTop + y}px`;
+    S.room.appendChild(g);
+    g.animate([{ transform: 'none', opacity: 1 }, { transform: `translateY(${step}px)`, opacity: 0 }], slide).onfinish = () => g.remove();
   });
   fly(t, S.piece, S.room, tilt);
 }
