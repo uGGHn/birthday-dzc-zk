@@ -49,8 +49,7 @@
 html,body{margin:0;height:100%;background:var(--void);color:var(--chalk);font-family:var(--sans);
   -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;
   -webkit-user-select:none;user-select:none}
-/* 段落折行时不把最后一两个字单独甩到下一行，也尽量不把一个词拆开 */
-p{margin:0;text-wrap:pretty}
+p{margin:0}
 button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webkit-appearance:none;appearance:none}
 
 /* 镜头：dolly 推拉，track 平移，rope 是前景隔离带（移动得比展厅快，产生纵深） */
@@ -368,7 +367,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .room.clear .play,.room.clear .res,.room.clear .sub{opacity:0;pointer-events:none}
 .room.clear .done{opacity:1;pointer-events:auto}
 .done>*{flex:none}
-.drule{position:relative;padding:8px 16px;border-radius:2px;font:16px/24px var(--serif);color:#2b1b1c;text-align:center;white-space:pre-line;
+.drule{position:relative;padding:8px 16px;border-radius:2px;font:16px/24px var(--serif);color:#2b1b1c;text-align:center;white-space:pre;
   background-color:#efe9dd;background-image:var(--grain);background-size:192px 192px;background-blend-mode:soft-light;
   box-shadow:0 8px 16px rgba(0,0,0,.45),inset 0 0 0 1px rgba(176,138,79,.4);transform:translateY(8px);transition:transform .8s var(--ease) .6s}
 .drule::before{content:"规　则";display:block;margin-bottom:2px;font:12px/16px var(--sans);letter-spacing:2px;color:#8a6634;text-align:left}
@@ -379,7 +378,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 /* 滑动提示：箭头指着该滑的方向 */
 .swipe{display:inline-flex;align-items:center;gap:8px;border:0;background:none;padding:0;color:var(--chalk-2)}
 .swipe svg{flex:none;width:16px;height:16px}
-.next{height:40px;padding:0 16px;font:16px/24px var(--serif);opacity:0;transition:opacity .6s}
+/* 规则卡两行（82px）加这一行（32px）正好放进地面上那 120px，不会被屏幕底边切掉 */
+.next{height:32px;padding:0 16px;font:16px/24px var(--serif);opacity:0;transition:opacity .6s}
 .room.clear .next{opacity:1;transition-delay:2.6s}
 /* 「往左滑」的箭头每 4 秒往左轻点两下：和票根轻抖、礼盒盖轻跳一样，只动要你碰的东西，不动整个画面 */
 .room.clear .next svg{animation:nudge-l 4s ease-in-out 3.2s infinite}
@@ -478,7 +478,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .thint{margin-top:8px;font:12px/16px var(--sans);transition:opacity .4s}
 .ticket.torn+.thint{opacity:0}
 
-/* 结语：一个酒红礼盒，掀盖时盒缝透光；拆开时盒口炸开一圈金光，盒子从中间裂开，贺卡升起，纸屑落下 */
+/* 结语：一个酒红礼盒，掀盖时盒缝透光；拆开时盒口炸开一圈金光，贺卡从盒里升起，空盒子往下沉、淡出，纸屑落下 */
 .present{display:block;padding:0;border:0;background:none}
 .present:focus-visible{outline:2px solid var(--brass);outline-offset:8px}
 .bigbox{display:block;overflow:visible}
@@ -513,9 +513,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .focus{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1.6s .9s;
   background:radial-gradient(ellipse 60% 48% at 50% 42%,transparent 55%,rgba(0,0,0,.5) 100%)}
 #end.read .focus{opacity:1}
-#end.open .bigbox .half{opacity:0;transition:transform 1s var(--ease),opacity .8s 1.4s}
-#end.open .bigbox .half.l{transform:translateX(-32px) rotate(-10deg)}
-#end.open .bigbox .half.r{transform:translateX(32px) rotate(10deg)}
+/* 盒身是一整个：贺卡升走后，空盒子跟着展台往下沉一点、淡出，不再左右裂开 */
+#end.open .bigbox .half{opacity:0;transform:translateY(12px);transition:transform 1.2s var(--ease) .6s,opacity .8s 1.4s}
 #end .plinth .plaque{top:24px;transform:none}
 .pair{display:flex;align-items:center;gap:12px;font:16px/16px var(--display)}
 .pair i{width:1px;height:16px;background:repeating-linear-gradient(to bottom,rgba(122,106,102,.8) 0 4px,transparent 4px 8px)}
@@ -542,7 +541,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   padding:0;border:0;border-radius:4px;color:#e9cf8f;pointer-events:none;
   background:radial-gradient(ellipse at 50% 40%,#8f2433,#5a121d);
   box-shadow:inset 0 0 0 6px #5a121d,inset 0 0 0 8px #c9a46a,inset 0 0 0 12px #5a121d,inset 0 0 0 13px rgba(201,164,106,.6);
-  transform-origin:0 50%;-webkit-backface-visibility:hidden;backface-visibility:hidden;transition:transform .9s var(--ease),opacity .3s .6s}
+  transform-origin:0 50%;-webkit-backface-visibility:hidden;backface-visibility:hidden}
 .cover b{font:400 40px/48px var(--serif);letter-spacing:8px;padding-left:8px;color:transparent;-webkit-background-clip:text;background-clip:text;
   background-image:linear-gradient(100deg,#b8904c,#f6e2b0 40%,#c9a46a 60%,#f0d9a2 80%,#a07a38)}
 .cover .ck{font:12px/16px var(--sans);letter-spacing:4px}
@@ -551,17 +550,31 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .cover:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
 #end.open:not(.read) .cover{pointer-events:auto;cursor:pointer;animation:ajar 4s 3s infinite}
 @keyframes ajar{0%,84%,100%{transform:none}90%{transform:perspective(900px) rotateY(-10deg)}95%{transform:perspective(900px) rotateY(-4deg)}}
-#end.read .cover{transform:perspective(900px) rotateY(-110deg);opacity:0}
+#end.read .cover{transform:perspective(900px) rotateY(-110deg);opacity:0;visibility:hidden}
+/* 翻开时封面越翻越暗；底下那页先压着封面的影子，翻开后影子退去（都由 readCard 播） */
+.cover .sh{position:absolute;inset:0;border-radius:4px;opacity:0;pointer-events:none;background:linear-gradient(to left,rgba(0,0,0,.6),rgba(0,0,0,.2))}
+.fold{position:absolute;inset:0;z-index:1;border-radius:4px;opacity:0;pointer-events:none;background:linear-gradient(to right,rgba(40,20,10,.5),rgba(40,20,10,0) 72%)}
 /* 翻开后：两个名字按生日先后各闪过一道金光，祝福一个字一个字写出来 */
-.letter .m span{display:block}
+.letter .m>span{display:block}
 .letter .m i{font-style:normal;opacity:0;filter:blur(2px);transition:opacity .5s,filter .5s;transition-delay:calc(1.3s + var(--n) * .12s)}
 #end.read .letter .m i{opacity:1;filter:none}
 .lh{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(201,164,106,.56);
   font:12px/16px var(--sans);color:var(--ink-2)}
-.letter .lp{font:16px/24px var(--serif);color:var(--ink-2)}
-.letter .m{margin-top:12px;font:24px/36px var(--serif)}
-/* 320 宽的老机型上，祝福那一句一行放得下 */
-@media (max-width:359px){.letter .m{font-size:20px;line-height:32px}}
+/* 卡片里的字分三层：引子轻、居中；金色菱形隔开；祝福上句是铺垫（20px 浅色），下句是重点（32px），
+   「虚惊一场」用朱红，字写完后底下刷一道金，接着盖花佳的印 */
+.letter .lp{font:16px/24px var(--serif);color:var(--ink-2);text-align:center}
+.orn{position:relative;display:block;width:120px;height:16px;margin:16px auto 0;
+  background:linear-gradient(to right,transparent,rgba(176,138,79,.8) 40%,transparent 40% 60%,rgba(176,138,79,.8) 60%,transparent) center/100% 1px no-repeat}
+.orn::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;background:#b08a4f;transform:rotate(45deg)}
+.letter .m{margin-top:8px;text-align:center;font:20px/32px var(--serif);color:var(--ink-2)}
+.letter .m>span:last-child{margin-top:4px;font-size:32px;line-height:44px;color:var(--ink)}
+.letter .m .key{position:relative;color:#9e2a22}
+.letter .m .key::after{content:"";position:absolute;z-index:-1;left:-4px;right:-4px;bottom:4px;height:12px;border-radius:4px;
+  background:linear-gradient(to right,rgba(236,210,154,0),rgba(236,210,154,.9) 12%,rgba(222,186,116,.9) 88%,rgba(236,210,154,0));
+  transform:scaleX(0);transform-origin:0 50%;transition:transform .8s var(--ease) 3.1s}
+#end.read .letter .m .key::after{transform:none}
+/* 320 宽的老机型上，祝福下句一行放得下 */
+@media (max-width:359px){.letter .m>span:last-child{font-size:28px;line-height:40px}}
 .duo{display:grid;grid-template-columns:1fr 1px 1fr;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(201,164,106,.56)}
 .duo>i{background:repeating-linear-gradient(to bottom,rgba(201,164,106,.8) 0 4px,transparent 4px 8px)}
 .who{display:flex;flex-direction:column;align-items:center}
@@ -770,14 +783,16 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
         </div>
         <div class="bloom" aria-hidden="true"></div>
         <div class="lwrap"><div class="letter paper" aria-live="polite">
-          <button class="cover" type="button" aria-label="打开贺卡"><span class="ck">生日特展 · 后记</span><b>生日快乐</b><span class="cn">ZK &amp; DZC</span><span class="ct">轻点打开</span></button>
+          <i class="fold" aria-hidden="true"></i>
+          <button class="cover" type="button" aria-label="打开贺卡"><i class="sh" aria-hidden="true"></i><span class="ck">生日特展 · 后记</span><b>生日快乐</b><span class="cn">ZK &amp; DZC</span><span class="ct">轻点打开</span></button>
           <p class="lh"><span>生日特展图录</span><span>后记</span></p>
           <div class="duo">
             <p class="who"><span class="wn" data-who="ZK">ZK</span><span class="wb">生日快乐</span></p><i aria-hidden="true"></i>
             <p class="who"><span class="wn" data-who="DZC">DZC</span><span class="wb">生日快乐</span></p>
           </div>
           <p class="lp">前面<span class="cnt">三</span>件展品都藏着规则，<br>墙上的字是写给你们的。<br>这一件没有规则，只有一句话：</p>
-          <p class="m">希望你们的所有担忧，<br>都是虚惊一场。</p>
+          <i class="orn" aria-hidden="true"></i>
+          <p class="m" data-key="虚惊一场">希望你们的所有担忧，<br>都是虚惊一场。</p>
           <p class="s">花花和佳佳<button class="seal" type="button" aria-label="花佳印章"><i>花</i><i>佳</i></button></p>
         </div></div>
         <canvas class="confetti" aria-hidden="true"></canvas>
@@ -1672,13 +1687,20 @@ skipBtn.onclick = () => {
 // 结语：拆礼盒。贺卡从盒子的位置升到墙中间，纸屑一部分从盒口炸开、一部分从光里落下；轻点贺卡翻开
 const present = endRoom.querySelector('.present'),
       letter = endRoom.querySelector('.letter'), cv = endRoom.querySelector('.confetti'),
-      lid = endRoom.querySelector('.blid'), halfL = endRoom.querySelector('.half.l'), halfR = endRoom.querySelector('.half.r'), leak = endRoom.querySelector('.leak'),
+      lid = endRoom.querySelector('.blid'), leak = endRoom.querySelector('.leak'),
       lwrap = endRoom.querySelector('.lwrap'), cover = endRoom.querySelector('.cover'), endDeck = endRoom.querySelector('.deck'),
       seal = endRoom.querySelector('.seal'), rst = endRoom.querySelector('.rst'),
       rt = endRoom.querySelector('.rt'), cnt = endRoom.querySelector('.cnt');
 // 祝福那一句拆成一个个字，翻开贺卡后一个字一个字写出来
 const msg = letter.querySelector('.m');
 msg.innerHTML = blessHTML(msg.innerHTML.split('<br>'));
+// 重点那几个字（data-key）包一层，好上朱红、刷金
+msg.querySelectorAll('span').forEach(line => {
+  const cs = [...line.children], at = cs.map(c => c.textContent).join('').indexOf(msg.dataset.key);
+  if (at < 0) return;
+  const k = document.createElement('span'); k.className = 'key';
+  cs[at].before(k); cs.slice(at, at + msg.dataset.key.length).forEach(c => k.appendChild(c));
+});
 // 卡片停在整面墙的正中（拆开后展台就淡出了）；屏幕太矮放不下时，卡片整体缩小
 function fitLetter() {
   letter.style.setProperty('--fit', Math.min(1, (lwrap.clientHeight - 16) / letter.offsetHeight).toFixed(3));
@@ -1752,7 +1774,23 @@ function readCard() {
   audio();
   P.read = true; save();
   const marks = record();
+  // 刷新后接着看的：结语厅还挂着「直接摆好、不播动画」的 instant（5 秒后才摘），这时翻开会没有动效。
+  // 拆盒那一段早就摆好了，翻开之前先摘掉，再翻
+  endRoom.classList.remove('instant'); void endRoom.offsetWidth;
   endRoom.classList.add('read');
+  // 翻开：封面先往前拱起一点，再绕左边翻过去，越翻越暗；下面那页的影子跟着退去。
+  // 用动画直接播，不靠 class 切换的过渡——那样会和封面「微微翘一下」的循环动画抢，Safari 上时有时无
+  if (!reduce && cover.animate) {
+    const P3 = 'perspective(1000px) ';
+    cover.animate([
+      { transform: P3 + 'rotateY(0deg)', opacity: 1, visibility: 'visible' },
+      { transform: P3 + 'rotateY(-16deg) translateZ(16px)', opacity: 1, visibility: 'visible', offset: .22 },
+      { transform: P3 + 'rotateY(-84deg) translateZ(16px)', opacity: 1, visibility: 'visible', offset: .78 },
+      { transform: P3 + 'rotateY(-104deg)', opacity: 0, visibility: 'visible' }
+    ], { duration: 1100, easing: 'cubic-bezier(.45,0,.2,1)' });
+    cover.querySelector('.sh').animate([{ opacity: 0 }, { opacity: 0, offset: .2 }, { opacity: 1 }], { duration: 1100, easing: 'ease-in' });
+    letter.querySelector('.fold').animate([{ opacity: 1 }, { opacity: 1, offset: .3 }, { opacity: 0 }], { duration: 1300, easing: 'ease-out' });
+  }
   sfx(c => { const t = c.currentTime; stamp(t + 3.63, .6); for (let k = 0; k < marks; k++) stamp(t + 4.43 + k * .24, .35); });
   setTimeout(hudSet, 5200);
 }
@@ -1816,18 +1854,16 @@ const DRAG = {
     }
   },
   gift: {
-    // 盒盖跟着手指抬起，两半盒身微微分开，盒缝里的光越抬越亮
+    // 盒盖跟着手指抬起，盒口里的光越抬越亮；盒身不动
     move(dx, dy) {
       const p = clamp(-dy / 120, 0, 1.2);
       lid.style.transform = `translateY(${-p * 64}px) rotate(${-p * 6}deg)`;
-      halfL.style.transform = `translateX(${-p * 8}px) rotate(${-p * 2}deg)`;
-      halfR.style.transform = `translateX(${p * 8}px) rotate(${p * 2}deg)`;
       endRoom.style.setProperty('--leak', Math.min(1, p * 1.25).toFixed(3));
       return p;
     },
     end(g) {
       endRoom.classList.remove('drag');
-      [lid, halfL, halfR].forEach(el => { el.style.transform = ''; });
+      lid.style.transform = '';
       endRoom.style.removeProperty('--leak');
       if (g.p >= .6 || (g.p > .2 && g.vy < -.6)) openGift();
     }
