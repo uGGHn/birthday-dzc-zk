@@ -487,6 +487,12 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
 .snd[aria-pressed="true"] .x{display:inline}
 .snd:focus-visible{outline:2px solid var(--brass);outline-offset:-4px}
 
+/* 窄屏：题字小一号，跟左边的厅号隔开至少 16px；320 宽的屏幕上厅号也小一号 */
+@media (max-width:389px){.bl{font-size:16px;line-height:24px}}
+@media (max-width:359px){
+  .rno{font-size:120px;line-height:120px;letter-spacing:-4px}
+  .rno-end{font-size:64px;line-height:64px;letter-spacing:0}
+}
 /* 矮屏：题字小一号；玻璃罩少抬一点、画框原地不动，别碰到右上角的题字 */
 @media (max-height:600px){
   .bl{top:calc(var(--hud) + var(--st) + 4px);font-size:16px;line-height:24px}
