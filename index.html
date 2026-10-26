@@ -593,7 +593,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
     repeating-linear-gradient(115deg,#ff9a9e 0,#fad0c4 4%,#fbc2eb 8%,#a6c1ee 12%,#c2e9fb 16%,#d4fc79 20%,#ff9a9e 24%) var(--px,50%) 0/300% 100%}
 #end.read .holo{opacity:.5}
 /* 金粉：画在卡片外扩一圈的画布上，粉可以从卡片下面的纸屑里飞上来 */
-.gold{position:absolute;z-index:3;left:-48px;top:-48px;width:calc(100% + 96px);height:calc(100% + 240px);pointer-events:none}
+.lgold{position:absolute;z-index:3;left:-48px;top:-48px;width:calc(100% + 96px);height:calc(100% + 240px);pointer-events:none}
 #end.read .who:last-child .wn::after{animation-delay:.9s}
 @keyframes glint{to{background-position:0 0}}
 .wb{font:16px/24px var(--serif);color:var(--brass-ink)}
@@ -794,7 +794,7 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
         </div>
         <div class="bloom" aria-hidden="true"></div>
         <div class="lwrap"><div class="letter paper" aria-live="polite">
-          <i class="fold" aria-hidden="true"></i><i class="holo" aria-hidden="true"></i><canvas class="gold" aria-hidden="true"></canvas>
+          <i class="fold" aria-hidden="true"></i><i class="holo" aria-hidden="true"></i><canvas class="lgold" aria-hidden="true"></canvas>
           <button class="cover" type="button" aria-label="打开贺卡"><i class="sh" aria-hidden="true"></i><span class="ck">生日特展 · 后记</span><b>生日快乐</b><span class="cn">ZK &amp; DZC</span><span class="ct">轻点打开</span></button>
           <p class="lh"><span>生日特展图录</span><span>后记</span></p>
           <div class="duo">
@@ -1808,7 +1808,7 @@ function readCard() {
 }
 cover.addEventListener('click', readCard);
 // 闪卡：手指位置 → 光的位置和卡的转角；不碰时光自己慢慢来回。按住不动 0.3 秒，祝福下句散成金粉，松手聚回去
-const gold = letter.querySelector('.gold'), line2 = msg.lastElementChild;
+const gold = letter.querySelector('.lgold'), line2 = msg.lastElementChild;
 let card = null;
 function cardFx(form) {
   if (reduce || card) return;
