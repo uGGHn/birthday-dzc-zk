@@ -1990,26 +1990,39 @@ const SCO = {
   order: [3, 0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12],
   from: { 0: 3, 1: 3, 2: 3, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7, 9: 8, 10: 9, 11: 10, 12: 11 }
 };
-// 星座背后那只蝎子的剪影：钳子、身子、四对脚、一节节的尾巴和毒刺，糊一点、半透明，像星图上画的那种
+// 星座背后那只蝎子：照星图上的插画画成细线描边的半透明剪影——钳子、身子、四对脚、一节节的尾巴和毒刺。
+// 不加模糊：线是 1px 的清楚细线（不随缩放变粗变细），里面只铺一层很淡的光，星和连线压在它上面最清楚
 const SCORP_TAIL = [[338, 160, 34, 26], [284, 190, 30, 24], [226, 214, 28, 22], [168, 212, 26, 20], [118, 186, 24, 19],
   [84, 146, 22, 18], [74, 104, 21, 17], [92, 70, 19, 16], [128, 54, 18, 15], [170, 48, 16, 13]];
 endRoom.querySelector('.scorp').innerHTML = (() => {
   const T = SCORP_TAIL, ang = i => { const a = T[Math.max(0, i - 1)], b = T[Math.min(T.length - 1, i + 1)]; return (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI).toFixed(1); };
+  const VE = ' vector-effect="non-scaling-stroke"';
+  // 钳子的臂和钳指：顺着一条二次曲线，左右各偏出半个宽度围成一块，宽度从 w0 渐变到 w1（钳指尖收成一个点）
+  const taper = (x0, y0, cx, cy, x1, y1, w0, w1) => {
+    const L = [], R = [];
+    for (let i = 0; i <= 16; i++) {
+      const t = i / 16, u = 1 - t, x = u * u * x0 + 2 * u * t * cx + t * t * x1, y = u * u * y0 + 2 * u * t * cy + t * t * y1;
+      const dx = 2 * u * (cx - x0) + 2 * t * (x1 - cx), dy = 2 * u * (cy - y0) + 2 * t * (y1 - cy), l = Math.hypot(dx, dy) || 1, w = (w0 + (w1 - w0) * t) / 2;
+      L.push(`${(x - dy / l * w).toFixed(1)} ${(y + dx / l * w).toFixed(1)}`); R.unshift(`${(x + dy / l * w).toFixed(1)} ${(y - dx / l * w).toFixed(1)}`);
+    }
+    return `<path d="M${L.join('L')}L${R.join('L')}Z"${VE}/>`;
+  };
   // 四对脚：每条两节、膝盖往外拐；前两对朝前，后两对朝后
   const legs = ['M500 100L520 76L540 64', 'M476 104L488 76L500 58', 'M450 108L448 78L436 58', 'M424 114L410 88L390 74',
     'M498 160L522 186L544 196', 'M472 166L486 194L496 214', 'M446 170L444 200L430 220', 'M420 172L404 198L384 210'];
-  const claws = [['M545 108Q600 84 650 90', 16], ['M650 88Q700 60 742 92', 9], ['M652 96Q700 112 736 112', 8],
-    ['M545 132Q585 190 630 210', 16], ['M632 206Q670 168 708 168', 9], ['M634 214Q680 214 712 186', 8]];
-  const seg = (x, y, rx, ry, r) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(${r} ${x} ${y})" fill="url(#scS)"/>`;
-  return '<defs><radialGradient id="scS" cx=".5" cy=".42" r=".62"><stop offset="0" stop-color="#f4f0fa" stop-opacity=".95"/><stop offset=".7" stop-color="#d8d2e6" stop-opacity=".55"/><stop offset="1" stop-color="#c4bdd6" stop-opacity=".2"/></radialGradient>'
-    + '<filter id="scB" x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="1.6"/></filter></defs>'
-    + '<g filter="url(#scB)" opacity=".3" fill="none" stroke="#e4dff0" stroke-linecap="round" stroke-linejoin="round">'
-    + legs.map(d => `<path d="${d}" stroke-width="7"/>`).join('') + claws.map(([d, w]) => `<path d="${d}" stroke-width="${w}"/>`).join('')
-    + '<path d="M210 50C236 50 252 66 250 90C248 100 242 106 236 108C240 96 238 84 230 76C222 68 212 64 202 64Z" fill="url(#scS)" stroke="none"/>'
-    + '<g stroke="none">' + seg(200, 54, 18, 13, 15) + T.slice().reverse().map((p, j) => seg(p[0], p[1], p[2], p[3], ang(T.length - 1 - j))).join('')
+  const claws = [[545, 108, 600, 84, 650, 90, 16, 11], [650, 88, 700, 60, 742, 92, 9, 1], [652, 96, 700, 112, 736, 112, 8, 1],
+    [545, 132, 585, 190, 630, 210, 16, 11], [632, 206, 670, 168, 708, 168, 9, 1], [634, 214, 680, 214, 712, 186, 8, 1]];
+  const seg = (x, y, rx, ry, r) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(${r} ${x} ${y})"${VE}/>`;
+  return '<defs><radialGradient id="scS" cx=".5" cy=".42" r=".62"><stop offset="0" stop-color="#f4f0fa"/><stop offset="1" stop-color="#c4bdd6" stop-opacity=".3"/></radialGradient></defs>'
+    + '<g fill="none" stroke="#efe9f8" stroke-opacity=".3" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">'
+    + legs.map(d => `<path d="${d}"${VE}/>`).join('') + '</g>'
+    + '<g fill="url(#scS)" fill-opacity=".1" stroke="#efe9f8" stroke-opacity=".34" stroke-width="1" stroke-linejoin="round">'
+    + claws.map(c => taper(...c)).join('')
+    + `<path d="M210 50C236 50 252 66 250 90C248 100 242 106 236 108C240 96 238 84 230 76C222 68 212 64 202 64Z"${VE}/>`
+    + seg(200, 54, 18, 13, 15) + T.slice().reverse().map((p, j) => seg(p[0], p[1], p[2], p[3], ang(T.length - 1 - j))).join('')
     + seg(430, 140, 100, 40, -12) + seg(528, 120, 40, 30, -12) + seg(566, 114, 12, 8, -12) + '</g>'
-    + [360, 392, 424, 456, 488].map(x => `<path d="M${x} ${168 - (x - 360) * .21 - 30}l${-6} 60" stroke="#fff" stroke-opacity=".35" stroke-width="2"/>`).join('')
-    + '</g>';
+    + '<g stroke="#efe9f8" stroke-opacity=".22" stroke-width="1">'
+    + [360, 392, 424, 456, 488].map(x => `<path d="M${x} ${168 - (x - 360) * .21 - 30}l${-6} 60"${VE}/>`).join('') + '</g>';
 })();
 // 天蝎座跟着生日歌的头两句一颗颗亮：每颗星一个音，节奏照歌来（一拍 0.3 秒），最后一颗毒刺高八度叮一下。
 // SCO_AT 是按 SCO.order 第几颗亮起的时刻（毫秒）；每颗星那条线从上一颗亮的时候开始长，最多长 0.3 秒
@@ -2041,7 +2054,8 @@ function place(r, want, half) {
 // 夜空的版面：卡片缩小后底边停在地面上方 16px；卡片上面整片是夜空，天蝎座挂在上半截，大朵的烟花只在这片里炸；
 // 卡片两边那两条窄的放远处的小烟花。转屏、工具栏收放改了大小，就重新排一遍
 function nightLayout(ns) {
-  const L = inRoom(lwrap), fit = parseFloat(letter.style.getPropertyValue('--fit')) || 1, dpr = Math.min(devicePixelRatio || 1, 2);
+  // 画布按屏幕真实的像素密度画（iPhone 是 3 倍屏），放在整像素的位置上：不被拉伸、不重采样，线和星才清楚
+  const L = inRoom(lwrap), fit = parseFloat(letter.style.getPropertyValue('--fit')) || 1, dpr = Math.min(devicePixelRatio || 1, 3);
   const w = endRoom.clientWidth, h = Math.round(L.y + L.h), nk = fit * NIGHT;
   const cw = letter.offsetWidth * nk, ch = letter.offsetHeight * nk, bottom = L.y + L.h - 16, top = bottom - ch, left = (w - cw) / 2, right = left + cw;
   letter.style.setProperty('--nk', nk.toFixed(3));
@@ -2049,11 +2063,11 @@ function nightLayout(ns) {
   ns.g = sky.getContext('2d'); sky.width = Math.round(w * dpr); sky.height = Math.round(h * dpr); ns.g.setTransform(dpr, 0, 0, dpr, 0, 0);
   // 天蝎座：放在卡片上方那片夜空里偏上的位置，等比缩放、左右居中；蝎子剪影和画线的画布跟着摆到同一个框
   const bt = L.y + 12, bandH = Math.max(48, top - 12 - bt), k = Math.min((w - 32) / 800, bandH / 280);
-  const bx = (w - 800 * k) / 2, by = bt + (bandH - 280 * k) * .4, m = 32;
+  const bx = Math.round((w - 800 * k) / 2), by = Math.round(bt + (bandH - 280 * k) * .4), m = 32;
   ns.scorp = endRoom.querySelector('.scorp');
   ns.scorp.setAttribute('style', `left:${bx.toFixed(1)}px;top:${by.toFixed(1)}px;width:${(800 * k).toFixed(1)}px;height:${(280 * k).toFixed(1)}px`);
   ns.cw = Math.ceil(800 * k + m * 2); ns.chh = Math.ceil(280 * k + m * 2);
-  cst.setAttribute('style', `left:${(bx - m).toFixed(1)}px;top:${(by - m).toFixed(1)}px;width:${ns.cw}px;height:${ns.chh}px`);
+  cst.setAttribute('style', `left:${bx - m}px;top:${by - m}px;width:${ns.cw}px;height:${ns.chh}px`);
   ns.c = cst.getContext('2d'); cst.width = Math.round(ns.cw * dpr); cst.height = Math.round(ns.chh * dpr); ns.c.setTransform(dpr, 0, 0, dpr, 0, 0);
   ns.sco = SCO.stars.map(([x, y, r]) => [m + x * k, m + y * k, r]);
   // 背景的星星：撒满整片夜空，避开卡片和天蝎座
@@ -2121,7 +2135,7 @@ function nightDraw(ns, now, still) {
   // 星有柔光，会闪，偶尔闪出四道星芒；连好的线上不时有一点光顺着跑
   const c = ns.c, S = ns.sco;
   c.clearRect(0, 0, ns.cw, ns.chh);
-  c.lineWidth = .8; c.strokeStyle = 'rgba(255,244,228,.5)';
+  c.lineWidth = 1; c.lineCap = 'round'; c.strokeStyle = 'rgba(255,244,228,.72)';
   Object.entries(SCO.from).forEach(([k, f]) => {
     const T = SCO_T[k], u = clamp((t - T.at + T.grow) / T.grow, 0, 1); if (u <= 0) return;
     const [ax, ay] = S[f], [bx, by] = S[k];
@@ -2135,18 +2149,18 @@ function nightDraw(ns, now, still) {
   });
   S.forEach(([x, y, r], k) => {
     const on = clamp((t - SCO_T[k].at) / 260, 0, 1); if (on <= 0) return;
+    // 星：一颗边缘清楚的亮核，外面一圈收得很小的淡光；亮起时光圈先胀一下，平时光圈轻轻呼吸，偶尔闪出 1px 的四道星芒
     const red = k === 3, pop = 1 + Math.sin(on * Math.PI) * .9;
-    const a = on * (still ? .9 : .8 + .2 * Math.sin(now / (520 + k * 41) + k * 1.7));
+    const a = on * (still ? .9 : .75 + .25 * Math.sin(now / (520 + k * 41) + k * 1.7));
     const fl = still ? 0 : Math.max(Math.sin(on * Math.PI), Math.pow(Math.max(0, Math.sin(now / 1300 + k * 2.3)), 14));
-    const hg = c.createRadialGradient(x, y, 0, x, y, r * 5 * pop);
-    hg.addColorStop(0, red ? 'rgba(255,150,170,.6)' : 'rgba(255,236,210,.45)'); hg.addColorStop(1, 'rgba(255,236,210,0)');
-    c.globalAlpha = a; c.fillStyle = hg; c.beginPath(); c.arc(x, y, r * 5 * pop, 0, 6.283); c.fill();
+    const R = r * 3.2 * pop, hg = c.createRadialGradient(x, y, 0, x, y, R);
+    hg.addColorStop(0, red ? 'rgba(255,150,170,.5)' : 'rgba(255,236,210,.36)'); hg.addColorStop(1, 'rgba(255,236,210,0)');
+    c.globalAlpha = a; c.fillStyle = hg; c.beginPath(); c.arc(x, y, R, 0, 6.283); c.fill();
     if (fl > .05) {
-      c.globalAlpha = a * fl; c.strokeStyle = red ? '#ffd6de' : '#fff8ec'; c.lineWidth = .8;
-      const L2 = r * 6; c.beginPath(); c.moveTo(x - L2, y); c.lineTo(x + L2, y); c.moveTo(x, y - L2); c.lineTo(x, y + L2); c.stroke();
-      c.strokeStyle = 'rgba(255,244,228,.5)';
+      c.globalAlpha = on * fl; c.strokeStyle = red ? '#ffd6de' : '#fff8ec'; c.lineWidth = 1;
+      const L2 = r * 5; c.beginPath(); c.moveTo(x - L2, y); c.lineTo(x + L2, y); c.moveTo(x, y - L2); c.lineTo(x, y + L2); c.stroke();
     }
-    c.globalAlpha = a; c.fillStyle = red ? '#ffe0e6' : '#fffaf0'; c.beginPath(); c.arc(x, y, r * pop * .8, 0, 6.283); c.fill();
+    c.globalAlpha = on; c.fillStyle = red ? '#ffd2dc' : '#fffaf2'; c.beginPath(); c.arc(x, y, r * (.95 + (pop - 1) * .3), 0, 6.283); c.fill();
   });
   c.globalAlpha = 1;
   if (t > SCO_DONE + 200 && !ns.scorp.classList.contains('on')) ns.scorp.classList.add('on');
@@ -2176,14 +2190,15 @@ function fireworks(ns, now, t) {
     g.globalAlpha = (1 - e) * .8 * o.dim; g.fillStyle = rg; g.beginPath(); g.arc(o.x, o.y, R, 0, 6.283); g.fill();
   });
   ns.fw = ns.fw.filter(p => now - p.t < p.life);
+  g.lineCap = 'round';
   ns.fw.forEach(p => {
     // 每颗火星画成一小段：从 0.08 秒前的位置到现在，刚炸开时拉得长，像一根根放射出去的光丝
     const a = now - p.t, e = a / p.life, [d, s] = fwAt(a, p.v), [d0, s0] = fwAt(Math.max(0, a - 80), p.v);
     g.globalAlpha = (1 - e * e * e) * p.dim * (e > .6 && Math.random() < .45 ? .3 : 1);
-    g.strokeStyle = p.c; g.lineWidth = .9 + p.sc;
+    g.strokeStyle = p.c; g.lineWidth = (.9 + p.sc) * (1 - e * .5);
     g.beginPath(); g.moveTo(p.x + d0 * p.ca * p.sc, p.y + (d0 * p.sa + s0) * p.sc); g.lineTo(p.x + d * p.ca * p.sc, p.y + (d * p.sa + s) * p.sc); g.stroke();
   });
-  g.globalAlpha = 1;
+  g.globalAlpha = 1; g.lineCap = 'butt';
 }
 // 减弱动态效果时没有闪卡（card 是空的）：轻点卡片照样进夜空，再点放大、缩回
 letter.addEventListener('click', e => {
