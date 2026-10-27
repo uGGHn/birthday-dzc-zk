@@ -180,7 +180,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .instant,.instant *{transition-duration:0s!important;transition-delay:0s!important;animation-duration:0s!important;animation-delay:0s!important}
 /* 结语两束追光：先一起对准礼盒，拆开后各照卡片的一栏 */
 #end{--spot:66px;--aim:12deg}
-#end .beam{transform-origin:50% 0;transition:transform 1.4s var(--ease) .4s}
+#end .beam{transform-origin:50% 0;transition:transform 1.4s var(--ease) .4s,filter 2s ease-in-out}
 #end .beam.l{margin-left:calc(-192px - var(--spot));transform:rotate(calc(-1 * var(--aim)))}
 #end .beam.r{margin-left:calc(-192px + var(--spot));transform:rotate(var(--aim))}
 #end .lamp.l{margin-left:calc(-8px - var(--spot))}
@@ -586,7 +586,9 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 #end.read .wn::after{animation:glint .9s ease-in-out .6s both}
 /* 闪卡：翻开后手指在卡上划，卡跟着微微转（--tx/--ty），光（--px/--py）跟着手指在卡面上流过；不碰时自己慢慢晃。
    两个名字是烫金字，亮带跟着光走；整张卡面上一层彩虹光泽，用柔光叠在纸上 */
-#end.read .letter{pointer-events:auto;touch-action:none;transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg))}
+/* 翻开以后卡片的缩放跟手：点一下马上开始动，不再等升起时那 0.3 秒的延迟 */
+#end.read .letter{pointer-events:auto;touch-action:none;transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));
+  transition:translate .7s var(--ease),scale .7s var(--ease),rotate .9s cubic-bezier(.4,0,.2,1),opacity .6s}
 #end.read .wn{color:transparent;-webkit-background-clip:text;background-clip:text;
   background-image:linear-gradient(110deg,#5e3f17 0,#9c7433 calc(var(--px,50%) - 20%),#e9c77b calc(var(--px,50%) - 4%),#f6dfa4 var(--px,50%),#e9c77b calc(var(--px,50%) + 4%),#9c7433 calc(var(--px,50%) + 20%),#5e3f17 100%)}
 .holo{position:absolute;inset:0;z-index:1;border-radius:4px;pointer-events:none;opacity:0;transition:opacity 1.2s 1s;
@@ -594,7 +596,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
     repeating-linear-gradient(115deg,#ff9a9e 0,#fad0c4 4%,#fbc2eb 8%,#a6c1ee 12%,#c2e9fb 16%,#d4fc79 20%,#ff9a9e 24%) var(--px,50%) 0/300% 100%}
 #end.read .holo{opacity:.1}
 /* 夜景：读完祝福后卡片缩小、往下让，墙暗成夜空。后面是慢慢流动的酒红和金色光晕；
-   星星一颗颗亮起，连成天蝎座；天上放烟花，烟花的光映在卡上；四个展厅答过的展品像照片一样顺着两边漂上去。轻点卡片放大/缩回 */
+   星星一颗颗亮起，连成天蝎座；天上放烟花，烟花的光映在卡上；四个展厅答过的展品像照片一样顺着两边漂上去 */
 .aura{position:absolute;inset:0;bottom:var(--floor-h);opacity:0;transition:opacity 2s;pointer-events:none;overflow:hidden;background:#12060a}
 .aura::before,.aura::after{content:"";position:absolute;width:520px;height:520px;border-radius:50%}
 .aura::before{left:-200px;top:-120px;background:radial-gradient(circle,rgba(150,32,52,.7),rgba(150,32,52,0) 66%);animation:aura-a 18s ease-in-out infinite alternate}
@@ -602,14 +604,15 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 @keyframes aura-a{to{transform:translate(180px,240px) scale(1.2)}}
 @keyframes aura-b{to{transform:translate(-200px,-260px) scale(.9)}}
 #end.night .aura{opacity:1}
-#end.night .beam{opacity:.4!important;transition:opacity 2s}
+/* 夜景里两束追光暗下去，让星空亮出来。用 filter 压暗，不去改 opacity：开灯动画占着 opacity，硬改会跳 */
+#end.night .beam{filter:opacity(.4)}
 .sky,.film{position:absolute;inset:0;pointer-events:none}
-/* 天蝎座背后那只半透明的蝎子：星连完线才慢慢显出来；卡片放大读字时淡下去 */
+/* 天蝎座背后那只半透明的蝎子：星连完线才慢慢显出来 */
 .scorp{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;pointer-events:none;opacity:0;scale:.96;transition:opacity 1.6s ease-out,scale 1.6s var(--ease)}
 .scorp.on{opacity:1;scale:1}
-#end:not(.night) .scorp.on{opacity:.3}
 .sky{width:100%;height:100%}
-#end.night .letter{scale:calc(var(--fit,1) * .7);translate:0 40px}
+/* 夜空一出来就一直在；轻点卡片只是放大（.zoom）读字、再点缩回去，背景不跟着变 */
+#end.night:not(.zoom) .letter{scale:calc(var(--fit,1) * .7);translate:0 40px}
 .pol{position:absolute;left:0;top:0;width:56px;padding:4px 4px 12px;background:#f2efe9;box-shadow:0 6px 12px rgba(0,0,0,.5);opacity:0}
 .pol svg{display:block;width:48px;height:40px;background:#e7e0d2}
 .flash{position:absolute;inset:0;z-index:2;border-radius:4px;pointer-events:none;opacity:0}
@@ -1897,8 +1900,8 @@ letter.addEventListener('pointermove', e => {
 });
 ['pointerup', 'pointercancel'].forEach(n => letter.addEventListener(n, e => {
   if (!card) return;
-  // 轻点（没拖、没按久）：夜景里放大卡片，再点缩回去
-  if (n === 'pointerup' && card.down && !card.moved && performance.now() - card.down < 280 && nightSky) endRoom.classList.toggle('night');
+  // 轻点（没拖、没按久）：夜景里放大卡片读字，再点缩回去；只动卡片，夜空不变
+  if (n === 'pointerup' && card.down && !card.moved && performance.now() - card.down < 280 && nightSky) endRoom.classList.toggle('zoom');
   card.hold = 0; card.goal = 0; card.down = 0;
 }));
 function aim(e) {
@@ -2001,9 +2004,8 @@ function nightFrame(now) {
   if (!endRoom.classList.contains('read')) { nightSky = null; return; }
   const t = now - ns.t0, g = ns.ctx;
   g.clearRect(0, 0, ns.w, ns.h);
-  const sh = endRoom.classList.contains('night') ? 1 : .35;
   // 星星慢慢亮起、闪
-  ns.stars.forEach(st => { const a = Math.min(1, t / 1600) * (.45 + .4 * Math.sin(now / 700 + st.p)) * sh;
+  ns.stars.forEach(st => { const a = Math.min(1, t / 1600) * (.45 + .4 * Math.sin(now / 700 + st.p));
     g.globalAlpha = a; g.fillStyle = '#fff6dc'; g.beginPath(); g.arc(st.x, st.y, st.r, 0, 6.283); g.fill(); });
   // 天蝎座：心宿二先亮，再顺着钳子、身子、尾巴一颗颗亮，线从上一颗长过来；连完后背后的蝎子慢慢显出来。
   // 星有柔光，会闪，偶尔闪出四道星芒；连好的线上不时有一点光顺着跑
@@ -2013,11 +2015,11 @@ function nightFrame(now) {
   Object.entries(SCO.from).forEach(([k, f]) => {
     const u = clamp((t - at[k] + step) / step, 0, 1); if (u <= 0) return;
     const [ax, ay] = S[f], [bx, by] = S[k];
-    g.globalAlpha = sh; g.beginPath(); g.moveTo(ax, ay); g.lineTo(ax + (bx - ax) * u, ay + (by - ay) * u); g.stroke();
+    g.globalAlpha = 1; g.beginPath(); g.moveTo(ax, ay); g.lineTo(ax + (bx - ax) * u, ay + (by - ay) * u); g.stroke();
     // 线上跑的光：每条线隔几秒跑一趟
     const f2 = ((now + k * 977) % 5200) / 1400;
     if (t > done && f2 < 1) {
-      const x = ax + (bx - ax) * f2, y = ay + (by - ay) * f2, a = Math.sin(Math.PI * f2) * sh;
+      const x = ax + (bx - ax) * f2, y = ay + (by - ay) * f2, a = Math.sin(Math.PI * f2);
       const pg = g.createRadialGradient(x, y, 0, x, y, 4); pg.addColorStop(0, 'rgba(255,248,232,.9)'); pg.addColorStop(1, 'rgba(255,248,232,0)');
       g.globalAlpha = a; g.fillStyle = pg; g.beginPath(); g.arc(x, y, 4, 0, 6.283); g.fill();
     }
@@ -2025,7 +2027,7 @@ function nightFrame(now) {
   S.forEach(([x, y, r], k) => {
     const on = clamp((t - at[k]) / 260, 0, 1); if (on <= 0) return;
     const red = k === 3, pop = 1 + Math.sin(on * Math.PI) * .9;
-    const a = sh * on * (.8 + .2 * Math.sin(now / (520 + k * 41) + k * 1.7));
+    const a = on * (.8 + .2 * Math.sin(now / (520 + k * 41) + k * 1.7));
     const fl = Math.max(Math.sin(on * Math.PI), Math.pow(Math.max(0, Math.sin(now / 1300 + k * 2.3)), 14));
     const hg = g.createRadialGradient(x, y, 0, x, y, r * 5 * pop);
     hg.addColorStop(0, red ? 'rgba(255,150,170,.6)' : 'rgba(255,236,210,.45)'); hg.addColorStop(1, 'rgba(255,236,210,0)');
@@ -2045,17 +2047,17 @@ function nightFrame(now) {
     r.tr.push([x, y]); if (r.tr.length > 6) r.tr.shift();
     // 尾焰：最近六帧的位置连成一小条，越往后越淡越细
     for (let i = 1; i < r.tr.length; i++) {
-      g.globalAlpha = i / r.tr.length * .8 * sh; g.strokeStyle = r.c; g.lineWidth = i / r.tr.length * 2;
+      g.globalAlpha = i / r.tr.length * .8; g.strokeStyle = r.c; g.lineWidth = i / r.tr.length * 2;
       g.beginPath(); g.moveTo(r.tr[i - 1][0], r.tr[i - 1][1]); g.lineTo(r.tr[i][0], r.tr[i][1]); g.stroke();
     }
-    g.globalAlpha = sh; g.fillStyle = '#fff6dc'; g.beginPath(); g.arc(x, y, 1.6, 0, 6.283); g.fill();
+    g.globalAlpha = 1; g.fillStyle = '#fff6dc'; g.beginPath(); g.arc(x, y, 1.6, 0, 6.283); g.fill();
     if (u >= 1) { burst(ns, now, r.x, r.y, r.c); return false; }
     return true;
   });
   ns.fw = ns.fw.filter(p => now - p.t < p.life);
   g.lineWidth = 1.4;
   ns.fw.forEach(p => { const e = (now - p.t) / p.life; p.px = p.x; p.py = p.y; p.vx *= .985; p.vy = p.vy * .985 + .025; p.x += p.vx; p.y += p.vy;
-    g.globalAlpha = (1 - e) * sh; g.strokeStyle = p.c; g.beginPath(); g.moveTo(p.px - p.vx * 3, p.py - p.vy * 3); g.lineTo(p.x, p.y); g.stroke(); });
+    g.globalAlpha = (1 - e); g.strokeStyle = p.c; g.beginPath(); g.moveTo(p.px - p.vx * 3, p.py - p.vy * 3); g.lineTo(p.x, p.y); g.stroke(); });
   // 照片
   if (ns.pics.length && t > ns.pic) { photo(ns); ns.pic = t + 2800; }
   g.globalAlpha = 1;
