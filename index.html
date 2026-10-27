@@ -1984,21 +1984,29 @@ function nightOn() {
   const stars = Array.from({ length: 70 }, () => { const left = Math.random() < .5;
     return { x: Math.random() < .5 ? Math.random() * w : (left ? Math.random() * side : w - Math.random() * side), y: bt + Math.random() * (h - 160 - bt), r: .4 + Math.random(), p: Math.random() * 6.3 }; })
     .filter(st => (st.y < top || st.x < side || st.x > w - side) && !(st.x > bx && st.x < w - bx && st.y > by && st.y < by + 280 * k));
-  nightSky = { ctx, w, h, stars, sco, scorp, top, bt, side, fw: [], rk: [], next: 2600, t0: performance.now() };
+  // 烟花等天蝎座连完、蝎子显出来以后再放
+  nightSky = { ctx, w, h, stars, sco, scorp, top, bt, side, ch, zone: 0, fw: [], rk: [], glow: [], next: 4200, t0: performance.now() };
   requestAnimationFrame(nightFrame);
 }
-// 烟花：先从卡片后面升起一颗，拖着一小条尾焰，越飞越慢，到点炸开
+// 烟花：先升起一颗，拖着一小条尾焰，越飞越慢，到点炸开。
+// 炸开的点一定在卡片外面（卡片挡在烟花前面）：卡片上方那一条夜空、卡片左边、卡片右边，三处换着来
 function launch(ns, now) {
-  const x = 32 + Math.random() * (ns.w - 64), y = ns.bt + Math.random() * Math.max(40, ns.top - ns.bt + 40);
+  const zone = ns.zone = (ns.zone + 1 + Math.floor(Math.random() * 2)) % 3;
+  let x, y;
+  // 两边的炸在卡片上角斜外侧：大半火星落在空着的夜空里，只有朝卡片那一角的火星从卡片后面划过
+  if (zone === 0) { x = 48 + Math.random() * (ns.w - 96); y = ns.bt + 16 + Math.random() * Math.max(8, ns.top - ns.bt - 56); }
+  else { const f = .3 + Math.random() * .3; x = zone === 1 ? ns.side * f : ns.w - ns.side * f; y = ns.top - 24 + Math.random() * ns.ch * .3; }
   const c = ['#ffd98f', '#ff9aa8', '#fff6dc', '#f0b866'][Math.floor(Math.random() * 4)];
-  // 起飞点藏在卡片后面：卡片正下方那条缝里不露出尾焰；卡片两边的从地面升起
-  const sx = x + (Math.random() - .5) * 80, behind = sx > ns.side && sx < ns.w - ns.side;
-  ns.rk.push({ sx, sy: behind ? ns.top + 80 : ns.h - 180, x, y, c, t: now, dur: (behind ? 700 : 1000) + Math.random() * 300, tr: [] });
+  // 起飞点：卡片两边的从地面升起；落在卡片上方的从卡片后面升起，卡片下面那条缝里不露尾焰
+  const sx = x + (Math.random() - .5) * 48, behind = sx > ns.side && sx < ns.w - ns.side;
+  ns.rk.push({ sx, sy: behind ? ns.top + 80 : ns.h - 180, x, y, c, t: now, dur: (behind ? 700 : 1100) + Math.random() * 300, tr: [] });
 }
+// 炸开：比原来大三成，火星更密，中心先亮一团；快熄的时候噼啪闪几下
 function burst(ns, now, x, y, c) {
-  const n = 56;
-  for (let i = 0; i < n; i++) { const a = i / n * 6.283, v = 1.2 + Math.random() * 1.6;
-    ns.fw.push({ x, y, px: x, py: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: now, life: 1200 + Math.random() * 600, c }); }
+  const n = 72;
+  ns.glow.push({ x, y, t: now, c });
+  for (let i = 0; i < n; i++) { const a = i / n * 6.283 + Math.random() * .08, v = 1.6 + Math.random() * 1.6;
+    ns.fw.push({ x, y, px: x, py: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: now, life: 1400 + Math.random() * 600, c }); }
   // 烟花的光映到卡上：从烟花那一侧照过来
   const R = inRoom(letter), fx = ((x - R.x) / R.w * 100).toFixed(0), fy = ((y - R.y) / R.h * 100).toFixed(0);
   flash.style.background = `radial-gradient(circle at ${fx}% ${fy}%, ${c}, transparent 70%)`;
@@ -2045,7 +2053,8 @@ function nightFrame(now) {
   });
   if (t > done + 200 && !ns.scorp.classList.contains('on')) ns.scorp.classList.add('on');
   // 烟花
-  if (t > ns.next) { launch(ns, now); ns.next = t + 1600 + Math.random() * 1600; }
+  // 卡片放大读字时不放：放了也全挡在卡片后面
+  if (t > ns.next && !endRoom.classList.contains('zoom')) { launch(ns, now); ns.next = t + 1400 + Math.random() * 1400; }
   ns.rk = ns.rk.filter(r => {
     const u = Math.min(1, (now - r.t) / r.dur), e = 1 - Math.pow(1 - u, 2.2);
     const x = r.sx + (r.x - r.sx) * e + Math.sin(u * 9) * 2, y = r.sy + (r.y - r.sy) * e;
@@ -2059,10 +2068,15 @@ function nightFrame(now) {
     if (u >= 1) { burst(ns, now, r.x, r.y, r.c); return false; }
     return true;
   });
+  ns.glow = ns.glow.filter(o => now - o.t < 420);
+  ns.glow.forEach(o => { const e = (now - o.t) / 420, rg = g.createRadialGradient(o.x, o.y, 0, o.x, o.y, 40);
+    rg.addColorStop(0, 'rgba(255,250,236,.95)'); rg.addColorStop(.35, o.c); rg.addColorStop(1, 'rgba(255,220,160,0)');
+    g.globalAlpha = (1 - e) * .8; g.fillStyle = rg; g.beginPath(); g.arc(o.x, o.y, 40, 0, 6.283); g.fill(); });
   ns.fw = ns.fw.filter(p => now - p.t < p.life);
-  g.lineWidth = 1.4;
+  g.lineWidth = 1.8;
   ns.fw.forEach(p => { const e = (now - p.t) / p.life; p.px = p.x; p.py = p.y; p.vx *= .985; p.vy = p.vy * .985 + .025; p.x += p.vx; p.y += p.vy;
-    g.globalAlpha = (1 - e); g.strokeStyle = p.c; g.beginPath(); g.moveTo(p.px - p.vx * 3, p.py - p.vy * 3); g.lineTo(p.x, p.y); g.stroke(); });
+    g.globalAlpha = (1 - e) * (e > .62 && Math.random() < .45 ? .25 : 1); g.strokeStyle = p.c;
+    g.beginPath(); g.moveTo(p.px - p.vx * 4, p.py - p.vy * 4); g.lineTo(p.x, p.y); g.stroke(); });
   g.globalAlpha = 1;
   requestAnimationFrame(nightFrame);
 }
