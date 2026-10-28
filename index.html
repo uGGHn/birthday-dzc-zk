@@ -144,6 +144,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 /* 牌子、章和小钟都按 176×152 的许愿牌图摆：牌面中心在 (88, 99) */
 .k-wish .piece{position:relative}
 .k-wish .piece.hang .swing{animation:hang-in .64s cubic-bezier(.3,1.5,.5,1) both}
+.k-wish .piece.hang.fast .swing{animation-duration:.2s}
 @keyframes hang-in{from{opacity:0;transform:translateY(-24px) rotate(-10deg)}40%{opacity:1}}
 .wfly{position:absolute;z-index:2;pointer-events:none}
 .wfly svg{display:block;overflow:visible}
@@ -827,6 +828,10 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
   display:flex;align-items:center;justify-content:flex-end;font:16px/24px var(--serif);color:var(--chalk-2)}
 .hud .r{display:flex;align-items:center;gap:8px;margin-left:auto}
 .hl{pointer-events:auto;height:40px;margin-left:-8px;padding:0 8px;border:0;background:none;font:12px/16px var(--sans);color:var(--chalk-2);text-decoration:underline;text-underline-offset:4px}
+/* 一键全部实现：比「重新入场」轻——不加下划线、半透明，前面一个小小的快进号；出现、收起都淡入淡出 */
+.hud .auto{display:flex;align-items:center;gap:4px;text-decoration:none;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .4s,visibility 0s .4s}
+.hud .auto::before{content:"»";font-size:16px;line-height:16px;margin-top:-4px}
+.hud .auto.on{opacity:.48;visibility:visible;pointer-events:auto;transition:opacity .8s .6s}
 .hl:focus-visible{outline:2px solid var(--brass);outline-offset:-4px}
 .snd{pointer-events:auto;width:40px;height:40px;margin-right:-12px;padding:12px;border:0;background:none;color:var(--chalk-2)}
 .snd svg{display:block;width:16px;height:16px}
@@ -1008,7 +1013,7 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
     <div id="door" aria-hidden="true"></div>
   </div>
   <div class="vignette"></div>
-  <header class="hud"><button class="hl again" type="button" hidden>重新入场</button><button class="hl auto" type="button" hidden>一键全部实现</button><span class="r">
+  <header class="hud"><button class="hl again" type="button" hidden>重新入场</button><button class="hl auto" type="button" tabindex="-1">一键全部实现</button><span class="r">
     <button class="snd" type="button" aria-label="静音" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true">
       <path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/>
       <path class="w" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6 6 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
@@ -1499,8 +1504,9 @@ function hudSet(walking) {
   // 只有镜头所在的展厅能被按到、被读屏读到；别的展厅里的按钮不会被 Tab 或读屏焦点选中
   if (!walking) rooms.forEach((r, k) => { r.inert = k !== cur; });
   againBtn.hidden = !!walking || !(rooms[cur] === endRoom && P.read);
-  // 祝福厅实现过第一个以后，左上角出现「一键全部实现」：再来一遍时不用一个个按
-  autoBtn.hidden = !!walking || wfast || !(S && S.L === WISH && rooms[cur] === WISH.room && !S.done && S.streak >= 1);
+  // 祝福厅里左上角一直有「一键全部实现」（再来一遍时不用一个个按）；点了、或者十二个都实现了就淡出
+  const au = !walking && !wfast && !!S && S.L === WISH && rooms[cur] === WISH.room && !S.done;
+  autoBtn.classList.toggle('on', au); autoBtn.tabIndex = au ? 0 : -1;
 }
 async function moveTo(to, ease, near) {
   // 每走一个厅 1.8 秒；走进隐藏展厅慢一些，2.6 秒
@@ -1751,9 +1757,10 @@ function wishAt(st, el) {
 }
 // 挂上下一块：牌子从上面荡下来，木牌磕一声，顶灯闪一下
 function wishHang(st, it) {
-  st.piece.classList.remove('hang');
-  paint(st.piece, st.L, it); void st.piece.offsetWidth; st.piece.classList.add('hang');
-  flick(st.room);
+  st.piece.classList.remove('hang', 'fast');
+  paint(st.piece, st.L, it); void st.piece.offsetWidth; st.piece.classList.add('hang'); st.piece.classList.toggle('fast', wfast);
+  // 快进时不闪顶灯：一秒闪三四次全屏暗场，又晃眼又卡；牌子照样荡下来
+  if (!wfast) flick(st.room);
   sfx(c => thud(c.currentTime + .02, 240, .05, .1, 1800, 1.4));
   return wait(wt(560));
 }
@@ -1857,7 +1864,7 @@ function wishBoom(st, it, k, n) {
   wishSeal(st, it, k);
   st.lamps[(n - 1) % 4].classList.add('on');
   st.lampsEl.setAttribute('aria-label', `实现了 ${n} 个愿望`);
-  bump(1.006 + n * .0012 + (k ? .006 : 0), 420);
+  if (!wfast) bump(1.006 + n * .0012 + (k ? .006 : 0), 420);
   // 第二层起每一下都带一点金光，第三层更亮；等来的那一下也亮一点
   if (n > 4 || k) wishFlash(st, .12 * (n >> 2) + (k ? .2 : 0));
   sfx(x => { const t = x.currentTime + .005, f = WSCALE[n - 1]; stamp(t, .5); pluck(t, f, .5); pluck(t + .03, f * 2, .14); });
@@ -2001,7 +2008,8 @@ function wfxGo() {
   Object.assign(WFX, { g: cv.getContext('2d'), w, h, dpr, run: true, last: performance.now(), floor: room.querySelector('.deck').offsetTop });
   requestAnimationFrame(wfxFrame);
 }
-const wfxAdd = p => { if (WFX.ps.length < 1600) WFX.ps.push(p); };
+// 快进时同屏最多 900 粒：一秒炸三四次，粒子叠得太多手机会掉帧
+const wfxAdd = p => { if (WFX.ps.length < (wfast ? 900 : 1600)) WFX.ps.push(p); };
 // 火星：从 (x, y) 往四面八方冲出去，很快慢下来，再慢慢往下坠、熄掉；sp 越大冲得越远、越粗
 function wfxBurst(x, y, n, sp) {
   wfxGo();
