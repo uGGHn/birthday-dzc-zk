@@ -17,7 +17,7 @@ PAGE = Path(__file__).resolve().parent.parent / 'index.html'
 REGULAR = sys.argv[1] if len(sys.argv) > 1 else '/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc'
 BOLD = sys.argv[2] if len(sys.argv) > 2 else '/usr/share/fonts/opentype/noto/NotoSerifCJK-Bold.ttc'
 FACE = 2  # .ttc 里第 3 个字体是简体中文（SC）
-BOLD_TEXT = '看穿揭晓已检花佳'  # 印章、检票章、观展记录的章用粗体，只有这几个字
+BOLD_TEXT = '看穿揭晓已检花佳实现等到了'  # 印章、检票章、观展记录的章、祝福厅的章用粗体，只有这几个字
 BEGIN, END = '/* FONT:BEGIN', '/* FONT:END */'
 
 def page_text(html):
