@@ -42,7 +42,7 @@ def main():
     html = PAGE.read_text(encoding='utf-8')
     text = page_text(html)
     han = sorted(set(c for c in text if '　' <= c <= '鿿' or '＀' <= c <= '￯'))
-    latin = ''.join(chr(i) for i in range(0x20, 0x7f)) + '·—…“”‘’'
+    latin = ''.join(chr(i) for i in range(0x20, 0x7f)) + '·—…“”‘’×'
     with tempfile.TemporaryDirectory() as d:
         reg = subset(REGULAR, ''.join(han) + latin, f'{d}/r.woff2')
         bold = subset(BOLD, BOLD_TEXT, f'{d}/b.woff2')
