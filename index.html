@@ -752,9 +752,6 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .gdots i{width:8px;height:8px;background:rgba(246,226,176,.45);clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%)}
 .gdots i.on{background:#fff6dc;scale:2;animation:twinkle 2.4s ease-in-out infinite}
 #end.sa .gdots{opacity:1}
-/* ZK、DZC：混在天蝎座旁边背景里的两颗普通小星，只在旁边用很淡的小字注一下名字，要细看才发现 */
-.nml{position:absolute;font:12px/16px var(--sans);letter-spacing:1px;color:var(--chalk-2);white-space:nowrap;opacity:0;transition:opacity 2s 1s}
-#end.sa .nml{opacity:.5}
 /* 轻点提示：看天时卡片上沿一行字（轻）；看卡时天上一条（看卡时天是暗的，提示要看得见） */
 .chint,.khint{position:absolute;z-index:7;left:50%;display:flex;align-items:center;gap:8px;margin:0;translate:-50% 0;white-space:nowrap;pointer-events:none;
   font:12px/16px var(--sans);letter-spacing:1px;color:var(--chalk);opacity:0;transition:opacity .5s}
@@ -2785,9 +2782,15 @@ const ART = { sco: SCO_ART,
 };
 // 一组两个星座的（一对情侣）在竖屏上下排：每个星座只取它自己那半边（400 宽）放大；天蝎座一个占整个 800 宽，下面补两颗以 ZK、DZC 命名的星
 const CROP = { sco: 0, aqr: 0, leo: 400, cap: 0, psc: 400 };
+// 用星星拼字母：每个字母 6～7 颗星，坐标在一个宽 0.6、高 1 的格子里（0～1）
+const LETTER = {
+  Z: [[0, 0], [.5, 0], [1, 0], [.5, .5], [0, 1], [.5, 1], [1, 1]],
+  K: [[0, 0], [0, .5], [0, 1], [.55, .22], [1, 0], [.55, .78], [1, 1]],
+  D: [[0, 0], [0, .5], [0, 1], [.5, 0], [.95, .3], [.95, .7], [.5, 1]],
+  C: [[1, .12], [.45, 0], [0, .35], [0, .7], [.45, 1], [1, .88]]
+};
 cons.innerHTML = GROUPS.map((ks, gi) => '<div class="grp">'
   + ks.map(k => `<svg class="art" data-k="${k}" viewBox="${ks.length > 1 ? `${CROP[k]} 0 400 280` : '0 0 280 800'}">${ks.length > 1 ? ART[k] : `<g transform="translate(0 800) rotate(-90)">${ART[k]}</g>`}</svg><span class="cname" data-k="${k}">${CONS[k].name}</span>`).join('')
-  + (ks.length > 1 ? '' : '<span class="nml">ZK</span><span class="nml">DZC</span>')
   + `<svg class="cst"></svg><span class="gdots">${[0, 1, 2].map(j => `<i${j === gi ? ' class="on"' : ''}></i>`).join('')}</span></div>`).join('');
 // 生日歌转一圈正好唱完：天蝎座唱头两句（一颗星一个音，最后毒刺高八度叮一下）；之后先转到的那组唱第三句、最后那组唱第四句。
 // [音, 第几拍]，一拍 0.3 秒；一组里的星按先后均匀分到各个音上，一个音分到几颗就依次亮，多出来的轻轻带一个高八度的音
@@ -2846,10 +2849,13 @@ function nightLayout(ns) {
     const gh = (pair ? 2 * (fhc + NAME) : fhc + NAME) + DOT, bw = pair ? fwc : gw, bx = (w - bw) / 2, by = gt + (avail - gh) / 2;
     gr.el.setAttribute('style', `left:${bx.toFixed(1)}px;top:${by.toFixed(1)}px;width:${bw.toFixed(1)}px;height:${gh.toFixed(1)}px`);
     gr.cons.forEach((c, ci) => Object.assign(c, { kc, rot: !pair, ox: CROP[c.k], fx: (bw - fwc) / 2, fy: ci * (fhc + NAME), fw: fwc, fh: fhc }));
-    // ZK、DZC：天蝎座左右两边各一颗普通的小星，位置随机、不压在天蝎座上，旁边小小地注个名字
-    const side = (bw - fwc) / 2, ry = () => 16 + Math.random() * (fhc - 48);
-    gr.nm = pair ? null : { pts: Math.random() < .5 ? [[8 + Math.random() * (side - 40), ry()], [bw - side + 24 + Math.random() * (side - 40), ry()]]
-      : [[bw - side + 24 + Math.random() * (side - 40), ry()], [8 + Math.random() * (side - 40), ry()]] };
+    // ZK、DZC：天蝎座左右两边，各用星星拼出几个字母（不连线），位置随机、不压在天蝎座上；字母大小按两边空出来的宽度定
+    const side = (bw - fwc) / 2, L = Math.min(28, (side - 12) / 2.15), zl = Math.random() < .5;
+    const word = (txt, left) => { const ww = (txt.length * .6 + (txt.length - 1) * .35) * L, x0 = left ? 4 + Math.random() * Math.max(0, side - 8 - ww) : bw - side + 4 + Math.random() * Math.max(0, side - 8 - ww);
+      const y0 = 8 + Math.random() * Math.max(0, fhc - L - 16), pts = [];
+      [...txt].forEach((ch, i) => LETTER[ch].forEach(([u, v]) => pts.push([x0 + i * .95 * L + u * .6 * L + (Math.random() - .5) * 2, y0 + v * L + (Math.random() - .5) * 2, 1 + Math.random() * .5])));
+      return { pts, ph: Math.random() * 6.28 }; };
+    gr.nm = pair ? null : [word('ZK', zl), word('DZC', !zl)];
     gr.gh = gh;
     grpBuild(gr);
   });
@@ -2922,8 +2928,7 @@ function grpBuild(gr) {
   });
   // ZK、DZC 两颗星：和背景里的星一样大小、一样闪，不连线
   if (gr.nm) {
-    gr.nm.st = gr.nm.pts.map(([x, y]) => add('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 1.5, fill: '#fff6dc' }));
-    gr.el.querySelectorAll('.nml').forEach((l, j) => l.setAttribute('style', `left:${(gr.nm.pts[j][0] + 6).toFixed(1)}px;top:${(gr.nm.pts[j][1] - 6).toFixed(1)}px`));
+    gr.nm.forEach(wd => { wd.st = wd.pts.map(([x, y, r]) => add('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: r.toFixed(2), fill: '#fff6dc', opacity: 0 })); });
   }
   gr.el.querySelector('.gdots').style.top = `${(gr.gh - 12).toFixed(1)}px`;
   gr.cons.forEach(c => {
@@ -3160,7 +3165,11 @@ function grpDraw(ns, gr, gi, now, still) {
     });
   });
   if (lit && t > gr.done + 200) gr.el.classList.add('on');
-  if (gr.nm) gr.nm.st.forEach((c, j) => svgSet(c, 'opacity', still ? .8 : .55 + .35 * Math.sin(now / 760 + j * 2.1)));
+  // 若隐若现：整个字慢慢浮出来又淡下去（两个字错开），每颗星再各自闪；天蝎座连好以后才开始
+  if (gr.nm) gr.nm.forEach(wd => {
+    const on = lit ? clamp((t - gr.done - 800) / 2000, 0, 1) : 0, br = still ? .7 : Math.pow(.5 + .5 * Math.sin(now / 3800 + wd.ph), 1.6);
+    wd.st.forEach((c, j) => svgSet(c, 'opacity', on * (.12 + .7 * br) * (still ? 1 : .7 + .3 * Math.sin(now / 640 + j * 1.9))));
+  });
 }
 function fireworks(ns, now, t) {
   const g = ns.g;
