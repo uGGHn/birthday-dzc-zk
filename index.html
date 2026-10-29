@@ -778,8 +778,15 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .cons{transition:opacity 1.2s}
 #end.cred .shint,#end.cred .chint,#end.cred .sarr{opacity:0!important;pointer-events:none!important}
 /* 读图台上的便签：一张米色小纸条，斜压在台面右边 */
-.dnote{position:absolute;right:16px;top:16px;width:136px;margin:0;padding:8px 12px;background:#f4ecd9;color:var(--ink);rotate:4deg;
-  font:12px/16px var(--serif);box-shadow:0 4px 8px rgba(0,0,0,.45);background-image:linear-gradient(rgba(201,164,106,.18) 1px,transparent 1px);background-size:100% 16px}
+.dnote{position:absolute;right:16px;top:12px;width:112px;height:72px;padding:12px 8px 8px 12px;box-sizing:border-box;background:#ede9df var(--grain) 0 0/96px 96px;rotate:5deg;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.5));
+  /* 开场撕下来的那一截票根，翻到背面横放：上沿是齿孔撕开的毛边，两端是票上那两个半圆缺口 */
+  -webkit-mask-image:radial-gradient(circle at 0 0,transparent 8px,#000 8.5px),radial-gradient(circle at 100% 0,transparent 8px,#000 8.5px);
+  -webkit-mask-composite:source-in;mask-image:radial-gradient(circle at 0 0,transparent 8px,#000 8.5px),radial-gradient(circle at 100% 0,transparent 8px,#000 8.5px);mask-composite:intersect}
+.dnote::before{content:"";position:absolute;left:8px;right:8px;top:0;height:3px;background:repeating-linear-gradient(90deg,rgba(43,27,28,.28) 0 3px,transparent 3px 6px)}
+.dnote p{position:relative;margin:0;font:12px/16px var(--serif);color:#3a2a2c}
+/* 正面印的票号从纸背透过来一点，是反的 */
+.dbleed{position:absolute;right:8px;bottom:4px;font:12px/16px var(--display);font-style:normal;color:var(--ink);opacity:.08;transform:scaleX(-1)}
 /* 轻点提示：看天时卡片上沿一行字（轻）；看卡时天上一条（看卡时天是暗的，提示要看得见） */
 .chint,.khint{position:absolute;z-index:7;left:50%;display:flex;align-items:center;gap:8px;margin:0;translate:-50% 0;white-space:nowrap;pointer-events:none;
   font:12px/16px var(--sans);letter-spacing:1px;color:var(--chalk);opacity:0;transition:opacity .5s}
@@ -2914,7 +2921,8 @@ function nightLayout(ns) {
   endRoom.style.setProperty('--fyc', `${Math.round(top + 8 - ch / 2 - cy0)}px`);
   endRoom.style.setProperty('--fys', `${Math.round(H - 96 + ch / 2 - cy0)}px`);
   endRoom.style.setProperty('--dk', `${top}px`);
-  desk.innerHTML = deskArt(W) + `<div class="dtk">${endRoom.querySelector('.rcard').outerHTML}</div><p class="dnote">${NOTE_TEXT}</p>`;
+  desk.style.transition = 'none'; requestAnimationFrame(() => requestAnimationFrame(() => { desk.style.transition = ''; }));
+  desk.innerHTML = deskArt(W) + `<div class="dtk">${endRoom.querySelector('.rcard').outerHTML}</div><div class="dnote"><i class="dbleed" aria-hidden="true">No. 1009 1012</i><p>${NOTE_TEXT}</p></div>`;
   ns.g = sky.getContext('2d'); sky.width = Math.round(w * dpr); sky.height = Math.round(h * dpr); ns.g.setTransform(dpr, 0, 0, dpr, 0, 0); ns.dpr = dpr;
   // 星座框：中心在屏幕三成高的地方，等比缩放、左右居中；三组都摆在这个框里，转的时候整组左右平移
   // 星座区：屏幕上从 72px 到卡片露出的上沿再往上 64px（留给「左右滑」）；换成缝里的坐标（缝顶在屏幕上方 M）
@@ -2951,7 +2959,7 @@ function nightLayout(ns) {
 }
 // 圆顶内壁：从天顶往外一圈圈的环、一根根的肋，缝两边是金属包边和一排观星用的红色小灯；右下角伸进来半截望远镜
 // 送礼人的私语：一张小便签压在读图台上（内容暂定）
-const NOTE_TEXT = '认识你们，<br>是我们最好的运气。';
+const NOTE_TEXT = '认识你们，<br>是我们最好的<br>运气。';
 // 片尾字幕：收尾以后从缝里慢慢往上滚
 const CREDITS = [['策展', '花花 · 佳佳'], ['主演', 'ZK · DZC'], ['友情出演', '水瓶 · 狮子 · 摩羯 · 双鱼'], ['鸣谢', '那位做饭很好吃的主厨'], ['', '生日快乐']];
 function deskArt(W) {
