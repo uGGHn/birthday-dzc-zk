@@ -182,9 +182,10 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   background:radial-gradient(circle at 50% 56%,rgba(255,252,240,.95) 0,rgba(255,224,160,.6) 36%,rgba(255,200,120,0) 72%)}
 /* 层名：升层时在牌子的位置亮出来，停一下再往上淡出 */
 .wtier{position:absolute;left:0;right:0;bottom:calc(var(--floor-h) + 116px);margin:0;text-align:center;pointer-events:none;opacity:0;
-  font:400 40px/48px var(--serif);letter-spacing:8px;padding-left:8px;color:#f6dfa4;text-shadow:0 0 2px rgba(255,240,210,.8),0 0 24px rgba(255,210,130,.7)}
+  font:400 min(56px,calc((100vw - 32px) / 5.6))/1.2 var(--serif);letter-spacing:4px;padding-left:4px;color:#fff1c8;
+  text-shadow:0 0 2px #fff,0 0 16px rgba(255,214,130,.95),0 0 40px rgba(255,180,90,.7),0 2px 4px rgba(0,0,0,.6)}
 .wtier.top{bottom:calc(var(--floor-h) + 256px)}
-.wtier small{display:block;margin-bottom:4px;font:12px/16px var(--sans);letter-spacing:4px;padding-left:4px;color:var(--chalk);text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.wtier small{display:block;margin-bottom:8px;font:16px/24px var(--sans);letter-spacing:8px;padding-left:8px;color:#f6e2b0;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 /* 祝福：每个展厅右上角两行题字，和左上角的厅号一左一右，是墙上本来就有的字。
    进门时只是浅浅的压印，过关后（盖完章、绳子落地）一个字一个字描上金 */
 .bl{position:absolute;right:24px;top:calc(var(--hud) + var(--st) + 16px);margin:0;pointer-events:none;
@@ -743,18 +744,19 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .grp.on .cname{opacity:1}
 /* 两侧的箭头和下面三个点：天蝎座连完就一直在，箭头一呼一吸往外指；放大读字时收起 */
 .sarr{position:absolute;z-index:1;top:var(--ay,120px);width:40px;height:48px;margin-top:-24px;padding:0;border:0;background:none;color:#f6e2b0;
-  opacity:0;visibility:hidden;transition:opacity .6s,visibility 0s .6s;filter:drop-shadow(0 0 6px rgba(255,214,140,.8))}
+  opacity:0;visibility:hidden;transition:opacity .6s,visibility 0s .6s}
 .sarr.l{left:0}
 .sarr.r{right:0}
-.sarr svg{display:block;width:20px;height:20px;margin:auto}
-#end.sa.up .sarr{opacity:.9;visibility:visible;transition:opacity .8s}
-#end.sa .sarr.l svg{animation:nudge-l 2.4s ease-in-out infinite}
-/* 流星飞去天蝎座那边以后：那一侧的箭头更亮，外面一圈光一下下往外扩，引人转过去 */
-.sarr::after{content:"";position:absolute;left:50%;top:50%;width:32px;height:32px;margin:-16px 0 0 -16px;border-radius:50%;border:1px solid rgba(255,236,190,.9);opacity:0;pointer-events:none}
-.sarr.lure{opacity:1!important}
-.sarr.lure::after{animation:lure 1.6s ease-out infinite}
-@keyframes lure{0%{opacity:1;transform:scale(.6)}100%{opacity:0;transform:scale(1.8)}}
-#end.sa .sarr.r svg{animation:nudge-r 2.4s ease-in-out infinite}
+.sarr svg{display:block;width:16px;height:16px;margin:auto}
+#end.sa.up .sarr{opacity:.36;visibility:visible;transition:opacity .8s}
+#end.sa .sarr.l svg{animation:nudge-l 2.4s ease-in-out 2}
+/* 流星飞去天蝎座那边以后：那一侧的箭头亮一点、往那边轻轻点两下，不画圈 */
+#end.sa.up .sarr.lure{opacity:.8}
+#end.sa .sarr.l.lure svg{animation:nudge-l2 1.2s ease-in-out 2}
+#end.sa .sarr.r.lure svg{animation:nudge-r2 1.2s ease-in-out 2}
+@keyframes nudge-l2{0%,100%{transform:none}30%,70%{transform:translateX(-4px)}50%{transform:none}}
+@keyframes nudge-r2{0%,100%{transform:none}30%,70%{transform:translateX(4px)}50%{transform:none}}
+#end.sa .sarr.r svg{animation:nudge-r 2.4s ease-in-out 2}
 /* 第几组：每组星座下面三颗属于这片天的小星，第几组就亮第几颗；跟着星座一起转、一起在缝边露出来 */
 .gdots{position:absolute;left:50%;display:flex;align-items:center;gap:12px;translate:-50% -50%;filter:drop-shadow(0 0 3px rgba(255,226,170,.9));opacity:0;transition:opacity 1.2s .4s}
 .gdots i{width:8px;height:8px;background:rgba(246,226,176,.45);clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%)}
@@ -2073,8 +2075,12 @@ function wishBanner(st, small, big, top) {
   const b = st.room.querySelector('.wtier');
   b.innerHTML = `<small>${small}</small>${big}`; b.classList.toggle('top', !!top);
   if (reduce || !b.animate) { b.style.opacity = 1; return wait(reduce ? 900 : 0).then(() => { b.style.opacity = ''; }); }
-  return b.animate([{ opacity: 0, transform: 'scale(1.3)' }, { opacity: 1, transform: 'none', offset: .14 }, { opacity: 1, transform: 'none', offset: .78 }, { opacity: 0, transform: 'translateY(-12px)' }],
-    { duration: wfast ? 700 : 1400, easing: 'ease-out' }).finished.catch(() => {});
+  // 层名从大砸下来（略压扁再弹回），停住发光，最后往上淡出；一键播放时也停够 1.2 秒看得清
+  bump(1.02, 360, 120);
+  sfx(c => { const t = c.currentTime + .12; thud(t, 110, .14, .3); stamp(t, .5); });
+  return b.animate([{ opacity: 0, transform: 'scale(2.4)', filter: 'blur(2px)' }, { opacity: 1, transform: 'scale(.92)', filter: 'none', offset: .1 }, { opacity: 1, transform: 'scale(1.04)', offset: .16 },
+    { opacity: 1, transform: 'none', offset: .22 }, { opacity: 1, transform: 'scale(1.02)', offset: .8 }, { opacity: 0, transform: 'translateY(-16px) scale(1.02)' }],
+    { duration: wfast ? 1200 : 1600, easing: 'ease-out' }).finished.catch(() => {});
 }
 function wishFlash(st, a) {
   const f = st.room.querySelector('.wflash');
@@ -3474,18 +3480,12 @@ const DRAG = {
   },
   gift: {
     // 盒盖跟着手指抬起，盒口里的光越抬越亮；盒身不动
+    // 往上一划（超过 24px）就直接打开，不再跟着手指走、划一半还能放回去
     move(dx, dy) {
-      const p = clamp(-dy / 120, 0, 1.2);
-      lid.style.transform = `translateY(${-p * 64}px) rotate(${-p * 6}deg)`;
-      endRoom.style.setProperty('--leak', Math.min(1, p * 1.25).toFixed(3));
-      return p;
+      if (-dy > 24 && -dy > Math.abs(dx)) { endRoom.classList.remove('drag'); openGift(); return 1; }
+      return 0;
     },
-    end(g) {
-      endRoom.classList.remove('drag');
-      lid.style.transform = '';
-      endRoom.style.removeProperty('--leak');
-      if (g.p >= .6 || (g.p > .2 && g.vy < -.6)) openGift();
-    }
+    end() { endRoom.classList.remove('drag'); }
   },
   // 夜空：左右拖，整片天跟着手指转；松手按速度顺势滑一段，停在最近的一组（一次最多转过一组）
   sky: {
