@@ -647,6 +647,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   background:repeating-conic-gradient(from 0deg,rgba(255,224,160,0) 0deg 8deg,rgba(255,224,160,.32) 10deg 12deg,rgba(255,224,160,0) 14deg 22deg);
   -webkit-mask-image:radial-gradient(circle,#000 0,#000 20%,transparent 64%);mask-image:radial-gradient(circle,#000 0,#000 20%,transparent 64%);animation:rays-spin 60s linear infinite}
 #end.open .lwrap::before{opacity:.5}
+#end.up .lwrap::before{opacity:0;transition:opacity .6s}
 .cover .ck{font:12px/16px var(--sans);letter-spacing:4px}
 .cover .cn{font:16px/24px var(--display);letter-spacing:2px}
 .cover .ct{position:absolute;bottom:32px;font:12px/16px var(--sans);letter-spacing:2px;color:rgba(233,207,143,.72)}
@@ -747,8 +748,10 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 #end.sa .sarr.l svg{animation:nudge-l 2.4s ease-in-out infinite}
 #end.sa .sarr.r svg{animation:nudge-r 2.4s ease-in-out infinite}
 .sdots{position:absolute;z-index:1;left:50%;top:var(--dy2,200px);display:flex;gap:8px;margin:0;translate:-50% 0;opacity:0;transition:opacity .8s;pointer-events:none}
-.sdots i{width:6px;height:6px;border-radius:50%;background:rgba(246,226,176,.32);transition:background .4s,scale .4s}
-.sdots i.on{background:#f6e2b0;scale:1.3;box-shadow:0 0 6px rgba(255,214,140,.9)}
+/* 第几组：三颗小星，混在星空里；当前那颗大、亮、一闪一闪 */
+.sdots{gap:12px;align-items:center;filter:drop-shadow(0 0 3px rgba(255,226,170,.9))}
+.sdots i{width:8px;height:8px;background:rgba(246,226,176,.4);clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);transition:background .4s,scale .4s}
+.sdots i.on{background:#fff6dc;scale:2;animation:twinkle 2.4s ease-in-out infinite}
 #end.sa.up .sdots{opacity:1}
 /* 夜空的画布只到地面那条线：星星和烟花都在地平线以上，从地面升起的烟花是从这条线冒出来的 */
 .sky{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
@@ -775,13 +778,28 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .leaf.r{right:0;background:repeating-linear-gradient(transparent 0 46px,rgba(255,224,196,.08) 46px 48px),linear-gradient(270deg,#1a1216,#2b1f23 70%,#3a2a2c);box-shadow:inset 1px 0 0 rgba(255,230,200,.25)}
 #end.sopen .leaf.l{translate:-101% 0}
 #end.sopen .leaf.r{translate:101% 0}
-/* 低头：回到展厅看贺卡 */
-.odown{position:absolute;left:50%;bottom:calc(16px + var(--sb, 0px));display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border:0;background:none;
-  translate:-50% 0;font:12px/16px var(--sans);letter-spacing:1px;color:var(--chalk-2);opacity:0;visibility:hidden;transition:opacity .4s,visibility 0s .4s}
-.odown svg{width:16px;height:16px}
-#end.sa.up .odown{opacity:.72;visibility:visible;transition:opacity .8s 1s}
-#end.sa.up .odown svg{animation:nudge-d 2.4s ease-in-out infinite}
-@keyframes nudge-d{0%,16%,100%{transform:none}4%,12%{transform:translateY(4px)}8%{transform:none}}
+/* 抬头以后卡片不消失：落到圆顶下沿的读图台上，台上一盏红色小灯照着它（观星时看星图用红光）。
+   轻点星空 = 看天（镜头仰着，卡片沉到底边、只露出上沿和名字，暗一点）；轻点卡片 = 看卡（镜头往下一俯，卡片立在台上，缝里的天暗下去） */
+.lwrap{z-index:6}
+.otilt{position:absolute;inset:0;transition:translate .9s cubic-bezier(.65,0,.3,1)}
+#end.up.fc .otilt{translate:0 calc(-1 * var(--T, 0px))}
+.ocam{bottom:calc(-40px - var(--T, 0px))}
+#end.up .letter{scale:var(--us,.6);translate:0 var(--fys,0px);transition:translate 1.1s cubic-bezier(.65,0,.3,1),scale 1.1s cubic-bezier(.65,0,.3,1),opacity .6s}
+#end.up.fc .letter{translate:0 var(--fyc,0px);transition:translate .9s cubic-bezier(.65,0,.3,1),scale .9s cubic-bezier(.65,0,.3,1)}
+.ldim{position:absolute;inset:0;z-index:4;border-radius:4px;pointer-events:none;opacity:0;transition:opacity .9s;background:linear-gradient(rgba(12,6,10,.28),rgba(12,6,10,.6))}
+#end.up:not(.fc) .ldim{opacity:1}
+.lred{position:absolute;inset:0;z-index:4;border-radius:4px;pointer-events:none;opacity:0;transition:opacity 1.2s .6s;
+  background:radial-gradient(ellipse 90% 70% at 100% 100%,rgba(255,96,64,.22),rgba(255,96,64,0) 70%)}
+#end.up .lred{opacity:1}
+.sdim{position:absolute;inset:0;pointer-events:none;background:rgba(4,5,16,.6);opacity:0;transition:opacity .9s}
+#end.fc .sdim{opacity:1}
+#end.fc .sarr,#end.fc .sdots,#end.fc .shint{opacity:0!important;pointer-events:none!important}
+/* 读图台：深色胡桃木台面，前沿一道亮边；右边一盏黄铜小灯，红色灯罩，往卡片上洒一片红光 */
+.desk{position:absolute;left:0;right:0;top:var(--dk,600px);height:160px;pointer-events:none;translate:0 calc(var(--fys,0px) - var(--fyc,0px));
+  transition:translate 1.1s cubic-bezier(.65,0,.3,1)}
+#end.up.fc .desk{translate:none;transition:translate .9s cubic-bezier(.65,0,.3,1)}
+.desk>svg:first-child{display:block;width:100%;height:160px}
+.desk .dlamp{display:block;filter:drop-shadow(0 0 6px rgba(255,106,74,.5))}
 
 .flash{position:absolute;inset:0;z-index:2;border-radius:4px;pointer-events:none;opacity:0}
 /* 金粉：画在卡片外扩一圈的画布上，粉可以从卡片下面的纸屑里飞上来 */
@@ -910,7 +928,7 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
   /* 祝福厅：章直接盖好、牌子直接挂好、金光不转 */
   .k-wish .piece.hang .swing,.wclock,.wclock .mh,.room.clear .wrays{animation:none}
   .wseal{animation:none;opacity:.94}
-  .ground,.obs,#end.up .obs,.leaf,.ocam::after,.odown svg{transition:none!important;animation:none!important}
+  .ground,.obs,#end.up .obs,.leaf,.ocam::after,.otilt,.desk,#end.up .letter,.ldim,.sdim,.lred{transition:none!important;animation:none!important}
   #end.open:not(.read) .cover b,#end.open:not(.read) .cover::after,#end.open:not(.read) .cover .cw::after,#end.open:not(.read) .letter,.lwrap::before,#end.read .lsweep::before,.sarr svg{animation:none}
 }
 </style>
@@ -1014,7 +1032,7 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
         </div>
         <div class="bloom" aria-hidden="true"></div>
         <div class="lwrap"><p class="nhint" aria-hidden="true"><i></i>轻点卡片，抬头看星空</p><div class="letter paper" aria-live="polite">
-          <i class="fold" aria-hidden="true"></i><i class="holo" aria-hidden="true"></i><canvas class="lgold" aria-hidden="true"></canvas><i class="flash" aria-hidden="true"></i>
+          <i class="fold" aria-hidden="true"></i><i class="lred" aria-hidden="true"></i><i class="ldim" aria-hidden="true"></i><i class="holo" aria-hidden="true"></i><canvas class="lgold" aria-hidden="true"></canvas><i class="flash" aria-hidden="true"></i>
           <button class="cover" type="button" aria-label="打开贺卡"><i class="sh" aria-hidden="true"></i><span class="ck">生日特展 · 后记</span><b>生日快乐</b><span class="cn">ZK &amp; DZC</span><i class="cw" aria-hidden="true"><i>花</i><i>佳</i></i><span class="ct">轻点打开</span></button><i class="lburst" aria-hidden="true"></i><i class="lsweep" aria-hidden="true"></i>
           <p class="lh"><span>生日特展图录</span><span>后记</span></p>
           <div class="duo">
@@ -1036,7 +1054,7 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
           </div></div></div>
         <div class="shade"></div>
         <!-- 抬头：天文台的圆顶。中间一道缝，两扇门往两边拉开，星空从缝里露出来；左右滑是圆顶带着人转 -->
-        <div class="obs"><div class="ocam"><div class="osky"><canvas class="sky" aria-hidden="true"></canvas><div class="cons" aria-hidden="true"></div><i class="leaf l"></i><i class="leaf r"></i></div><svg class="dome" aria-hidden="true"></svg></div><button class="sarr l" type="button" aria-label="上一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="sarr r" type="button" aria-label="下一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><p class="sdots" aria-hidden="true"><i></i><i></i><i></i></p><button class="shint" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5L4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>左右滑，看看另外两组星座</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="odown" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>低头看贺卡</span></button></div>
+        <div class="obs"><div class="otilt"><div class="ocam"><div class="osky"><canvas class="sky" aria-hidden="true"></canvas><div class="cons" aria-hidden="true"></div><i class="sdim"></i><i class="leaf l"></i><i class="leaf r"></i></div><svg class="dome" aria-hidden="true"></svg></div></div><button class="sarr l" type="button" aria-label="上一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="sarr r" type="button" aria-label="下一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><p class="sdots" aria-hidden="true"><i></i><i></i><i></i></p><button class="shint" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5L4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>左右滑，看看另外两组星座</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="desk" aria-hidden="true"></div></div>
       </section>
     </div>
     <div id="rope"></div>
@@ -2586,7 +2604,7 @@ letter.addEventListener('pointermove', e => {
   if (!card) return;
   // 轻点（没拖、没按久）：第一次点进夜空；之后点一下放大卡片读字，再点缩回去，夜空不变
   if (n === 'pointerup' && card.down && !card.moved && performance.now() - card.down < 280 && performance.now() >= card.readyAt) {
-    lookUp();
+    if (endRoom.classList.contains('up')) focusCard(true); else lookUp();
   }
   card.hold = 0; card.goal = 0; card.down = 0;
 }));
@@ -2599,10 +2617,11 @@ function aim(e) {
 // 三组排成一圈，像站在原地转身看天：天蝎 → 水瓶+狮子 → 摩羯+双鱼 → 天蝎……左右拖动，整片天跟着转，松手停在最近的一组
 const sky = endRoom.querySelector('.sky'), cons = endRoom.querySelector('.cons'), shint = endRoom.querySelector('.shint'), flash = letter.querySelector('.flash');
 const sarr = [...endRoom.querySelectorAll('.sarr')], sdots = [...endRoom.querySelectorAll('.sdots i')];
-const obs = endRoom.querySelector('.obs'), ocam = obs.querySelector('.ocam'), osky = obs.querySelector('.osky'), domeSvg = obs.querySelector('.dome'), odown = obs.querySelector('.odown');
+const obs = endRoom.querySelector('.obs'), ocam = obs.querySelector('.ocam'), osky = obs.querySelector('.osky'), domeSvg = obs.querySelector('.dome'), desk = obs.querySelector('.desk');
 // 展厅里原来的东西都收进 .ground：抬头时整个往下滑出去
 const ground = document.createElement('div'); ground.className = 'ground';
-[...endRoom.children].filter(c => c !== obs).forEach(c => ground.appendChild(c));
+// 卡片（.lwrap）不收进去：抬头时它是唯一留在画面里的东西，落到读图台上
+[...endRoom.children].filter(c => c !== obs && c !== lwrap).forEach(c => ground.appendChild(c));
 endRoom.prepend(ground);
 // 旁边两组只露一点边：缩到 NQ 倍、暗一些，摆在中间那组两侧，各露出屏幕边上一窄条
 const NQ = .8;
@@ -2776,9 +2795,19 @@ function place(r, want, half) {
 function nightLayout(ns) {
   // 圆顶比屏幕四边各大 40px（镜头升上来、晃的时候边上不露底）；缝在中间，两边各留 32px 的内壁，底下留 112px 放内壁下沿、望远镜和「低头」
   const W = endRoom.clientWidth, H = endRoom.clientHeight, dpr = Math.min(devicePixelRatio || 1, 3), M = 40;
-  const sl = 32, OW = W + 2 * M, OH = H + 2 * M, x0 = M + sl, x1 = M + W - sl, y1 = OH - M - 112, w = x1 - x0, h = y1;
+  // 看卡时镜头往下俯 T：圆顶往下多画 T，下面是读图台
+  const T = Math.round(H * .22), sl = 32, OW = W + 2 * M, OH = H + 2 * M + T, x0 = M + sl, x1 = M + W - sl, y1 = H + M - 112, w = x1 - x0, h = y1;
   osky.style.cssText = `left:${x0}px;top:0;width:${w}px;height:${h}px`;
   domeSvg.setAttribute('viewBox', `0 0 ${OW} ${OH}`); domeSvg.innerHTML = domeArt(OW, OH, x0, x1, y1, H, M);
+  // 卡片：看卡时立在台面上（台面在屏幕底上 72px），高度占台面以上的六成；看天时往下沉，只露出上沿 96px（名字那一栏）
+  const L = inRoom(lwrap), fit = parseFloat(letter.style.getPropertyValue('--fit')) || 1, lh = letter.offsetHeight, top = H - 72;
+  const ch = Math.min(lh * fit, top * .6), us = ch / lh, cy0 = L.y + L.h / 2;
+  endRoom.style.setProperty('--T', `${T}px`);
+  endRoom.style.setProperty('--us', us.toFixed(3));
+  endRoom.style.setProperty('--fyc', `${Math.round(top + 8 - ch / 2 - cy0)}px`);
+  endRoom.style.setProperty('--fys', `${Math.round(H - 96 + ch / 2 - cy0)}px`);
+  endRoom.style.setProperty('--dk', `${top}px`);
+  desk.innerHTML = deskArt(W);
   ns.g = sky.getContext('2d'); sky.width = Math.round(w * dpr); sky.height = Math.round(h * dpr); ns.g.setTransform(dpr, 0, 0, dpr, 0, 0); ns.dpr = dpr;
   // 星座框：中心在屏幕三成高的地方，等比缩放、左右居中；三组都摆在这个框里，转的时候整组左右平移
   const k = Math.min((w * .86 - 16) / 800, h * .3 / 280), fw = 800 * k, fh = 280 * k, bx = Math.round((w - fw) / 2), by = Math.round(M + H * .3 - fh / 2);
@@ -2805,13 +2834,29 @@ function nightLayout(ns) {
   ns.fw = []; ns.rk = []; ns.glow = [];
 }
 // 圆顶内壁：从天顶往外一圈圈的环、一根根的肋，缝两边是金属包边和一排观星用的红色小灯；右下角伸进来半截望远镜
+function deskArt(W) {
+  const lx = W - 28;
+  return `<svg viewBox="0 0 ${W} 160" preserveAspectRatio="none" aria-hidden="true">`
+    + '<defs><linearGradient id="gDesk" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6e4a32"/><stop offset=".09" stop-color="#4a3022"/><stop offset=".1" stop-color="#22150f"/><stop offset="1" stop-color="#100906"/></linearGradient>'
+    + '<radialGradient id="gRed" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#ff6a4a" stop-opacity=".5"/><stop offset="1" stop-color="#ff6a4a" stop-opacity="0"/></radialGradient></defs>'
+    + `<rect y="0" width="${W}" height="160" fill="url(#gDesk)"/><rect y="0" width="${W}" height="2" fill="#c9a46a" opacity=".5"/><rect y="15" width="${W}" height="1" fill="#c9a46a" opacity=".3"/>`
+    // 台面上一片红光
+    + `<ellipse cx="${lx - 48}" cy="6" rx="${Math.min(176, W * .45)}" ry="24" fill="url(#gRed)"/>`
+    + '</svg>'
+    // 台灯：底座、两节铜臂、红色灯罩（单独一张，不跟着台面拉伸）
+    + `<svg class="dlamp" viewBox="0 0 64 96" width="48" height="72" style="position:absolute;left:${lx - 24}px;top:-66px;overflow:visible" aria-hidden="true">`
+    + '<ellipse cx="40" cy="92" rx="14" ry="4" fill="#120b08"/><rect x="28" y="86" width="24" height="6" rx="2" fill="#8a6634"/>'
+    + '<path d="M40 86L46 52L22 30" fill="none" stroke="#c9a46a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="46" cy="52" r="3" fill="#e3c98f"/>'
+    + '<path d="M28 22L10 34L18 46L36 32Z" fill="#8e2230"/><path d="M10 34L18 46" stroke="#ff8a6a" stroke-width="2"/>'
+    + '<path d="M14 40L-40 96H40Z" fill="#ff6a4a" opacity=".08"/></svg>';
+}
 function domeArt(OW, OH, x0, x1, y1, H, M) {
   const zx = OW / 2, zy = M + H * .3, f = v => v.toFixed(1);
   let rings = '', mer = '', leds = '';
   for (let r = 64; r < OH * 1.4; r += 64) rings += `<ellipse cx="${f(zx)}" cy="${f(zy)}" rx="${r}" ry="${f(r * .9)}"/>`;
   for (let a = 0; a < 360; a += 12) { const t = a * Math.PI / 180; mer += `M${f(zx)} ${f(zy)}L${f(zx + Math.cos(t) * OH * 1.5)} ${f(zy + Math.sin(t) * OH * 1.5)}`; }
   for (let y = 20; y < y1 - 8; y += 32) leds += `<circle cx="${x0 - 12}" cy="${y}" r="1.6"/><circle cx="${x1 + 12}" cy="${y}" r="1.6"/>`;
-  const tx = OW * .72, ty = OH - M + 24, len = H * .2;
+  const tx = OW * .72, ty = OH, len = H * .2 + (OH - 2 * M - H) + M - 24;
   return '<defs><linearGradient id="gDome" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0f0a0e"/><stop offset=".72" stop-color="#1c1317"/><stop offset="1" stop-color="#33231a"/></linearGradient>'
     + `<mask id="mWall"><rect width="${OW}" height="${OH}" fill="#fff"/><rect x="${x0}" y="0" width="${x1 - x0}" height="${y1}" fill="#000"/></mask></defs>`
     + `<g mask="url(#mWall)"><rect width="${OW}" height="${OH}" fill="url(#gDome)"/>`
@@ -2867,7 +2912,12 @@ function lookUp() {
   sfx(c => whirr(c, c.currentTime + .05, 1));
   if (!reduce && ocam.animate) ocam.animate([{ scale: '.93' }, { scale: '.93', offset: .4 }, { scale: '1' }], { duration: 2200, easing: 'cubic-bezier(.3,0,.15,1)' });
   if (first) setTimeout(openShutter, reduce ? 0 : 1500);
-  setTimeout(() => odown.focus({ preventScroll: true }), reduce ? 0 : 1200);
+}
+// 焦点：看天 ⇄ 看卡
+function focusCard(on) {
+  if (!endRoom.classList.contains('up') || endRoom.classList.contains('fc') === on) return;
+  endRoom.classList.toggle('fc', on);
+  sfx(c => whirr(c, c.currentTime + .02, .5));
 }
 function openShutter() {
   const ns = nightSky; if (!ns) return;
@@ -2877,12 +2927,6 @@ function openShutter() {
   const go = () => { ns.t0 = performance.now(); grpStart(ns, ns.grps[0], 0, ns.t0); if (reduce) nightDraw(ns, ns.t0, true); };
   if (reduce) go(); else setTimeout(go, 900);
 }
-function lookDown() {
-  if (!endRoom.classList.contains('up')) return;
-  endRoom.classList.remove('up');
-  sfx(c => whirr(c, c.currentTime + .05, .8));
-}
-odown.onclick = lookDown;
 // 一组第一次转到：开始一颗颗亮，唱它那一句（第 n 句，天蝎座是第 0 句）。每颗星亮的时刻 T、它那条线长多久 G 都在这时排好
 function grpStart(ns, gr, n, now) {
   const tune = TUNES[n], N = tune.length, AT = tune.map(([, b]) => (n ? 400 : 800) + b * 300), note = (i, m) => Math.min(N - 1, Math.floor(i * N / m));
@@ -2945,6 +2989,11 @@ function burst(ns, now, r) {
     ns.fw.push({ x: r.x, y: r.y, ca: Math.cos(a), sa: Math.sin(a), v: FW.v * (.55 + Math.random() * .45), t: now, life: 1400 + Math.random() * 500, c: r.c, sc: r.sc, dim });
   }
   // 烟花的光映到卡上：从烟花那一侧照过来，远处的小朵只映一点点
+  // 烟花的光映到卡上：从烟花那一侧照过来；看卡时卡更亮、映得多一点
+  const O = osky.getBoundingClientRect(), C = letter.getBoundingClientRect(), k = O.width / ns.w;
+  const fx = ((O.left + r.x * k - C.left) / C.width * 100).toFixed(0), fy = ((O.top + r.y * k - C.top) / C.height * 100).toFixed(0);
+  flash.style.background = `radial-gradient(circle at ${fx}% ${fy}%, ${r.c}, transparent 70%)`;
+  flash.animate([{ opacity: 0 }, { opacity: (r.big ? .3 : .12) * (endRoom.classList.contains('fc') ? 1 : .6), offset: .12 }, { opacity: 0 }], { duration: 900, easing: 'ease-out' });
   sfx(c => boom(c, c.currentTime + (r.big ? .06 : .22), r.big));
 }
 function nightFrame(now) {
@@ -3067,7 +3116,7 @@ function fireworks(ns, now, t) {
 // 减弱动态效果时没有闪卡（card 是空的）：轻点卡片照样进夜空，再点放大、缩回
 letter.addEventListener('click', e => {
   if (!reduce || !endRoom.classList.contains('read') || e.target.closest('.seal, .cover')) return;
-  lookUp();
+  if (endRoom.classList.contains('up')) focusCard(true); else lookUp();
 });
 present.addEventListener('click', e => {
   if (endRoom.classList.contains('open') || performance.now() - justDragged < 400) return;
@@ -3164,7 +3213,7 @@ function dragMode(target) {
   if (cur === 0) return intro.classList.contains('on') && !ticket.classList.contains('torn') && target.closest('.ticket, .thint') ? 'ticket' : null;
   if (S && S.done && rooms[cur] === S.room && performance.now() >= (S.walkAt || 0)) return 'walk';
   if (rooms[cur] === endRoom && endRoom.classList.contains('lit') && !endRoom.classList.contains('open')) return 'gift';
-  if (rooms[cur] === endRoom && nightSky && endRoom.classList.contains('up') && !target.closest('.shint, .sarr, .odown')) return 'sky';
+  if (rooms[cur] === endRoom && nightSky && endRoom.classList.contains('up') && !target.closest('.shint, .sarr')) return 'sky';
   return null;
 }
 const app = $('#app');
@@ -3174,7 +3223,7 @@ app.addEventListener('pointerdown', e => {
   const mode = dragMode(e.target);
   if (!mode) return;
   if (mode !== 'walk') audio();
-  G = { mode, id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, t: e.timeStamp, vx: 0, vy: 0, moved: false, p: 0 };
+  G = { tgt: e.target, mode, id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, t: e.timeStamp, vx: 0, vy: 0, moved: false, p: 0 };
 });
 app.addEventListener('pointermove', e => {
   if (!G || e.pointerId !== G.id) return;
@@ -3195,7 +3244,8 @@ app.addEventListener('pointermove', e => {
 function release(e, cancel) {
   if (!G || e.pointerId !== G.id) return;
   const g = G; G = null;
-  if (!g.moved) return;
+  // 看卡时轻点星空（没拖动、不是点在卡片上）：仰回去看天
+  if (!g.moved) { if (g.mode === 'sky' && !cancel && !g.tgt.closest('.letter')) focusCard(false); return; }
   justDragged = performance.now();
   if (cancel) g.p = 0;
   if (e.timeStamp - g.t > 80) { g.vx = 0; g.vy = 0; }
