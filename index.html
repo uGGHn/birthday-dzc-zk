@@ -40,10 +40,11 @@
   /* 颗粒：透明底上零星的细小亮点和暗点，原样盖在墙、地面和印上。不用混合模式：微信内置浏览器不执行混合模式，会把整面墙盖成一片灰 */
   --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Cfilter id='g' x='0' y='0' width='1' height='1' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch' result='n'/%3E%3CfeColorMatrix in='n' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -.094 -.315 -.032 0 .22' result='k'/%3E%3CfeColorMatrix in='n' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .021 .072 .007 0 -.05' result='w'/%3E%3CfeMerge%3E%3CfeMergeNode in='k'/%3E%3CfeMergeNode in='w'/%3E%3C/feMerge%3E%3C/filter%3E%3Crect width='192' height='192' filter='url(%23g)'/%3E%3C/svg%3E");
   /* 票根的外形：右边圆角，左边撕开的毛边，上下两个半圆缺口 */
-  /* 票根的撕口：和观展记录左边那道毛边同一条（同一串齿孔撕开的锯齿），分成左、右、上三个方向的 8px 窄条 */
-  --tornL:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 112' preserveAspectRatio='none'%3E%3Cpath d='M8 0V112H8A8 8 0 0 0 0 104L2.8 100.3L3.4 96.2L3.4 92.2L2.0 89.6L2.5 85.2L0.9 80.9L1.3 77.5L2.3 73.9L1.3 71.4L3.3 68.3L1.1 64.3L1.0 60.2L1.0 56.5L3.2 54.0L1.2 51.0L3.2 46.6L3.5 43.5L2.6 39.9L3.4 37.0L3.5 33.1L1.5 28.8L1.1 25.6L0.8 22.8L2.4 19.7L2.6 17.2L1.5 14.0L2.0 9.9L0 8A8 8 0 0 0 8 0Z'/%3E%3C/svg%3E");
-  --tornR:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 112' preserveAspectRatio='none'%3E%3Cpath transform='translate(8 0) scale(-1 1)' d='M8 0V112H8A8 8 0 0 0 0 104L2.8 100.3L3.4 96.2L3.4 92.2L2.0 89.6L2.5 85.2L0.9 80.9L1.3 77.5L2.3 73.9L1.3 71.4L3.3 68.3L1.1 64.3L1.0 60.2L1.0 56.5L3.2 54.0L1.2 51.0L3.2 46.6L3.5 43.5L2.6 39.9L3.4 37.0L3.5 33.1L1.5 28.8L1.1 25.6L0.8 22.8L2.4 19.7L2.6 17.2L1.5 14.0L2.0 9.9L0 8A8 8 0 0 0 8 0Z'/%3E%3C/svg%3E");
-  --tornT:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 112 8' preserveAspectRatio='none'%3E%3Cpath transform='matrix(0 1 1 0 0 0)' d='M8 0V112H8A8 8 0 0 0 0 104L2.8 100.3L3.4 96.2L3.4 92.2L2.0 89.6L2.5 85.2L0.9 80.9L1.3 77.5L2.3 73.9L1.3 71.4L3.3 68.3L1.1 64.3L1.0 60.2L1.0 56.5L3.2 54.0L1.2 51.0L3.2 46.6L3.5 43.5L2.6 39.9L3.4 37.0L3.5 33.1L1.5 28.8L1.1 25.6L0.8 22.8L2.4 19.7L2.6 17.2L1.5 14.0L2.0 9.9L0 8A8 8 0 0 0 8 0Z'/%3E%3C/svg%3E");
+  /* 齿孔：和观展记录左边那道毛边同一串锯齿。票身右边、票根左边各一条 16px 的条带，叠在一起正好拼合，撕开前后都是这一道口子；
+     读图台上的票根背面是票根翻过来，口子在右边 */
+  --tearM:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 112' preserveAspectRatio='none'%3E%3Cpath d='M0 0A8 8 0 0 0 8 8L8.0 9.9L7.5 14.0L8.6 17.2L8.4 19.7L6.8 22.8L7.1 25.6L7.5 28.8L9.5 33.1L9.4 37.0L8.6 39.9L9.5 43.5L9.2 46.6L7.2 51.0L9.2 54.0L7.0 56.5L7.0 60.2L7.1 64.3L9.3 68.3L7.3 71.4L8.3 73.9L7.3 77.5L6.9 80.9L8.5 85.2L8.0 89.6L9.4 92.2L9.4 96.2L8.8 100.3L8 104A8 8 0 0 0 0 112Z'/%3E%3C/svg%3E");
+  --tearS:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 112' preserveAspectRatio='none'%3E%3Cpath d='M16 0A8 8 0 0 1 8 8L8.0 9.9L7.5 14.0L8.6 17.2L8.4 19.7L6.8 22.8L7.1 25.6L7.5 28.8L9.5 33.1L9.4 37.0L8.6 39.9L9.5 43.5L9.2 46.6L7.2 51.0L9.2 54.0L7.0 56.5L7.0 60.2L7.1 64.3L9.3 68.3L7.3 71.4L8.3 73.9L7.3 77.5L6.9 80.9L8.5 85.2L8.0 89.6L9.4 92.2L9.4 96.2L8.8 100.3L8 104A8 8 0 0 1 16 112Z'/%3E%3C/svg%3E");
+  --tearB:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 112' preserveAspectRatio='none'%3E%3Cpath transform='translate(16 0) scale(-1 1)' d='M16 0A8 8 0 0 1 8 8L8.0 9.9L7.5 14.0L8.6 17.2L8.4 19.7L6.8 22.8L7.1 25.6L7.5 28.8L9.5 33.1L9.4 37.0L8.6 39.9L9.5 43.5L9.2 46.6L7.2 51.0L9.2 54.0L7.0 56.5L7.0 60.2L7.1 64.3L9.3 68.3L7.3 71.4L8.3 73.9L7.3 77.5L6.9 80.9L8.5 85.2L8.0 89.6L9.4 92.2L9.4 96.2L8.8 100.3L8 104A8 8 0 0 1 16 112Z'/%3E%3C/svg%3E");
   --torn:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 272 112' preserveAspectRatio='none'%3E%3Cpath d='M8 0H268A4 4 0 0 1 272 4V108A4 4 0 0 1 268 112H8A8 8 0 0 0 0 104L2.8 100.3L3.4 96.2L3.4 92.2L2.0 89.6L2.5 85.2L0.9 80.9L1.3 77.5L2.3 73.9L1.3 71.4L3.3 68.3L1.1 64.3L1.0 60.2L1.0 56.5L3.2 54.0L1.2 51.0L3.2 46.6L3.5 43.5L2.6 39.9L3.4 37.0L3.5 33.1L1.5 28.8L1.1 25.6L0.8 22.8L2.4 19.7L2.6 17.2L1.5 14.0L2.0 9.9L0 8A8 8 0 0 0 8 0Z'/%3E%3C/svg%3E");
   /* 印泥：分形噪声转成透明度，章面上零星几处浅、几个小缺口 */
   --inkpad:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='i' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.5' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 10 0 0 0 -2.6'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23i)'/%3E%3C/svg%3E");
@@ -514,14 +515,14 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
   background:none;color:var(--ink);text-align:left;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5)) drop-shadow(0 12px 12px rgba(0,0,0,.4));
   transform:rotate(-2deg)}
 /* 齿孔两端的半圆缺口：真的挖空，台面和墙从缺口里透出来 */
-.tmain{-webkit-mask-image:radial-gradient(circle at 100% 0,transparent 8px,#000 8.5px),radial-gradient(circle at 100% 100%,transparent 8px,#000 8.5px);
-  -webkit-mask-composite:source-in;mask-composite:intersect}
-.stub{-webkit-mask-image:radial-gradient(circle at 0 0,transparent 8px,#000 8.5px),radial-gradient(circle at 0 100%,transparent 8px,#000 8.5px);
-  -webkit-mask-composite:source-in;mask-composite:intersect}
-.tmain.paper{background-image:var(--guilloche);background-size:48px 16px}
-.tmain{position:relative;flex:1;min-width:0;padding:12px 16px;border-radius:4px 0 0 4px;display:flex;flex-direction:column;justify-content:space-between;
-  border-right:1px dashed rgba(43,27,28,.32)}
-.tmain::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;right:0;border:1px solid rgba(201,164,106,.56);border-right:0;pointer-events:none}
+.tmain{-webkit-mask:var(--tearM) right/16px 100% no-repeat,linear-gradient(#000 0 0) left/calc(100% - 15px) 100% no-repeat;
+  mask:var(--tearM) right/16px 100% no-repeat,linear-gradient(#000 0 0) left/calc(100% - 15px) 100% no-repeat}
+.stub{-webkit-mask:var(--tearS) left/16px 100% no-repeat,linear-gradient(#000 0 0) right/calc(100% - 15px) 100% no-repeat;
+  mask:var(--tearS) left/16px 100% no-repeat,linear-gradient(#000 0 0) right/calc(100% - 15px) 100% no-repeat}
+/* 底纹从右边起算：票身右沿和票根右沿差 72px（1.5 个花纹），票根错开 24px，两块的花纹接得上 */
+.tmain.paper{background-image:var(--guilloche);background-size:48px 16px;background-position:right 0 top 0}
+.tmain{position:relative;flex:1;min-width:0;padding:12px 16px;border-radius:4px 0 0 4px;display:flex;flex-direction:column;justify-content:space-between}
+.tmain::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;right:8px;border:1px solid rgba(201,164,106,.56);border-right:0;pointer-events:none}
 .trow{display:flex;align-items:baseline;gap:12px}
 .trow.sp{justify-content:space-between}
 .ttl{position:relative;font:24px/32px var(--serif);letter-spacing:4px;color:transparent;-webkit-background-clip:text;background-clip:text;
@@ -540,10 +541,10 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 /* 票面小字：提醒开声音（撕票后有生日歌）；320 宽的票面放不下，就不印 */
 .tsnd{display:flex;align-items:center;gap:4px;color:var(--brass-ink)}
 .tsnd svg{flex:none;width:12px;height:12px}
-/* 票根以左下角为轴：往下撕时上端先离开，裂口从上往下走 */
-.stub{flex:none;width:72px;display:flex;align-items:center;justify-content:center;border-radius:0 4px 4px 0;
-  background:#ede9df var(--guilloche) 0 0/48px 16px;
-  transform-origin:0 100%;transition:transform .32s var(--ease)}
+/* 票根往左多出 16px 叠在票身上（撕口条带），以撕口下端为轴：往下撕时上端先离开，裂口从上往下走 */
+.stub{flex:none;width:88px;margin-left:-16px;padding-left:16px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border-radius:0 4px 4px 0;
+  background:#ede9df var(--guilloche) right 24px top 0/48px 16px;
+  transform-origin:8px 100%;transition:transform .32s var(--ease)}
 .stub{flex-direction:column}
 .sno{font:12px/16px var(--display);color:var(--ink-2)}
 .snum{font:16px/24px var(--display);color:var(--ink)}
@@ -551,11 +552,6 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 @keyframes tug{0%,80%,100%{transform:none}86%{transform:rotate(6deg)}92%{transform:rotate(2deg)}}
 .ticket.drag .stub{transition:none;animation:none}
 .ticket.torn .stub{animation:none;transform:translate(-24px,36px) rotate(14deg);transition:transform .56s cubic-bezier(.3,1.3,.5,1)}
-/* 撕开以后：票身右边、票根左边都换成同一道毛边（两边的锯齿正好咬合），齿孔虚线没了 */
-.ticket.torn .tmain{border-right-color:transparent;-webkit-mask:var(--tornR) right/8px 100% no-repeat,linear-gradient(#000 0 0) left/calc(100% - 7px) 100% no-repeat;
-  mask:var(--tornR) right/8px 100% no-repeat,linear-gradient(#000 0 0) left/calc(100% - 7px) 100% no-repeat}
-.ticket.torn .stub{-webkit-mask:var(--tornL) left/8px 100% no-repeat,linear-gradient(#000 0 0) right/calc(100% - 7px) 100% no-repeat;
-  mask:var(--tornL) left/8px 100% no-repeat,linear-gradient(#000 0 0) right/calc(100% - 7px) 100% no-repeat}
 .thint{margin-top:8px;font:12px/16px var(--sans);transition:opacity .4s}
 .ticket.torn+.thint{opacity:0}
 
@@ -787,14 +783,15 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .cons{transition:opacity 1.2s}
 #end.cred .shint,#end.cred .chint,#end.cred .sarr{opacity:0!important;pointer-events:none!important}
 /* 读图台上的便签：一张米色小纸条，斜压在台面右边 */
-.dnote{position:absolute;right:16px;top:12px;width:112px;height:72px;padding:12px 8px 8px 12px;box-sizing:border-box;background:#ede9df var(--grain) 0 0/96px 96px;rotate:5deg;
-  filter:drop-shadow(0 4px 6px rgba(0,0,0,.5));
-  /* 开场撕下来的那一截票根，翻到背面横放：上沿是齿孔撕开的毛边，两端是票上那两个半圆缺口 */
-  -webkit-mask:var(--tornT) top/100% 8px no-repeat,linear-gradient(#000 0 0) bottom/100% calc(100% - 7px) no-repeat;
-  mask:var(--tornT) top/100% 8px no-repeat,linear-gradient(#000 0 0) bottom/100% calc(100% - 7px) no-repeat}
+/* 开场撕下来的那一截票根，翻到背面：和左边的观展记录同一个缩放（票根原大 72×112，跟着缩成一半），口子翻到了右边 */
+.dnote{position:absolute;right:24px;top:16px;width:88px;height:112px;padding:16px 16px 0 4px;box-sizing:border-box;scale:.5;transform-origin:100% 0;rotate:5deg;
+  border-radius:4px 0 0 4px;background:#ede9df var(--grain) 0 0/96px 96px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.5));
+  -webkit-mask:var(--tearB) right/16px 100% no-repeat,linear-gradient(#000 0 0) left/calc(100% - 15px) 100% no-repeat;
+  mask:var(--tearB) right/16px 100% no-repeat,linear-gradient(#000 0 0) left/calc(100% - 15px) 100% no-repeat}
 .dnote p{position:relative;margin:0;font:12px/16px var(--serif);color:#3a2a2c}
 /* 正面印的票号从纸背透过来一点，是反的 */
-.dbleed{position:absolute;right:8px;bottom:4px;font:12px/16px var(--display);font-style:normal;color:var(--ink);opacity:.08;transform:scaleX(-1)}
+.dbleed{position:absolute;left:0;right:16px;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-style:normal;color:var(--ink);opacity:.08;transform:scaleX(-1)}
+.dbleed b{font:400 12px/16px var(--display)}.dbleed b+b{font-size:16px;line-height:24px}
 /* 轻点提示：看天时卡片上沿一行字（轻）；看卡时天上一条（看卡时天是暗的，提示要看得见） */
 .chint,.khint{position:absolute;z-index:7;left:50%;display:flex;align-items:center;gap:8px;margin:0;translate:-50% 0;white-space:nowrap;pointer-events:none;
   font:12px/16px var(--sans);letter-spacing:1px;color:var(--chalk);opacity:0;transition:opacity .5s}
@@ -857,6 +854,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .dtk *{animation:none!important;transition:none!important}
 .dtk .rs{opacity:.94;transform:rotate(var(--rot,-8deg))}
 .dtk .rs.empty{opacity:.8}
+.dtk .rhint{opacity:1}
 .desk .dlamp{display:block;filter:drop-shadow(0 0 6px rgba(255,106,74,.5))}
 
 .flash{position:absolute;inset:0;z-index:2;border-radius:4px;pointer-events:none;opacity:0}
@@ -2594,8 +2592,10 @@ function openGift2() {
   confetti(b);
   // 用键盘拆开的，焦点交给贺卡封面，再按回车就翻开
   // 卡片升起来、立正以后自己翻开，不用再点一下
-  setTimeout(readCard, reduce ? 600 : 2400);
+  setTimeout(readCard, reduce ? 600 : SHEEN_DONE);
 }
+// 封面那道斜反光：1.4 秒起、4 秒一轮、前 45% 扫过去（见 cover-sheen），扫到右下角再停 0.2 秒才翻开
+const SHEEN_DONE = 1400 + 4000 * .45 + 200;
 // 翻开贺卡：两个名字闪过金光，祝福一个字一个字写出来，盖上花佳的印，地上的票根滑进来一枚枚盖章
 function readCard() {
   if (!endRoom.classList.contains('open') || endRoom.classList.contains('read')) return;
@@ -2936,7 +2936,7 @@ function nightLayout(ns) {
   endRoom.style.setProperty('--fys', `${Math.round(H - 96 + ch / 2 - cy0)}px`);
   endRoom.style.setProperty('--dk', `${top}px`);
   desk.style.transition = 'none'; requestAnimationFrame(() => requestAnimationFrame(() => { desk.style.transition = ''; }));
-  desk.innerHTML = deskArt(W) + `<div class="dtk">${endRoom.querySelector('.rcard').outerHTML}</div><div class="dnote"><i class="dbleed" aria-hidden="true">No. 1009 1012</i><p>${NOTE_TEXT}</p></div>`;
+  desk.innerHTML = deskArt(W) + `<div class="dtk">${endRoom.querySelector('.rcard').outerHTML}</div><div class="dnote"><i class="dbleed" aria-hidden="true"><b>No.</b><b>1009</b><b>1012</b></i><p>${NOTE_TEXT}</p></div>`;
   ns.g = sky.getContext('2d'); sky.width = Math.round(w * dpr); sky.height = Math.round(h * dpr); ns.g.setTransform(dpr, 0, 0, dpr, 0, 0); ns.dpr = dpr;
   // 星座框：中心在屏幕三成高的地方，等比缩放、左右居中；三组都摆在这个框里，转的时候整组左右平移
   // 星座区：屏幕上从 72px 到卡片露出的上沿再往上 64px（留给「左右滑」）；换成缝里的坐标（缝顶在屏幕上方 M）
@@ -2973,7 +2973,7 @@ function nightLayout(ns) {
 }
 // 圆顶内壁：从天顶往外一圈圈的环、一根根的肋，缝两边是金属包边和一排观星用的红色小灯；右下角伸进来半截望远镜
 // 送礼人的私语：一张小便签压在读图台上（内容暂定）
-const NOTE_TEXT = '认识你们，<br>是我们最好的<br>运气。';
+const NOTE_TEXT = '认识你们，<br>是我们<br>最好的<br>运气。';
 // 片尾字幕：收尾以后从缝里慢慢往上滚
 const CREDITS = [['策展', '花花 · 佳佳'], ['主演', 'ZK · DZC'], ['友情出演', '水瓶 · 狮子 · 摩羯 · 双鱼'], ['鸣谢', '那位做饭很好吃的主厨'], ['', '生日快乐']];
 function deskArt(W) {
@@ -3065,6 +3065,7 @@ function nightOn() {
 // 收尾（克制）：九颗小星一起亮、一轮烟花齐放、一个轻轻的和弦；之后左上角才出现「重新入场」
 function skyFinale(ns) {
   if (nightSky !== ns || P.fin || endRoom.classList.contains('fin')) return;
+  if (endRoom.classList.contains('fc')) { ns.wait = () => skyFinale(ns); return; }
   endRoom.classList.add('fin');
   setTimeout(() => rollCredits(ns), reduce ? 0 : 2400);
   if (!reduce) [0, 280, 560].forEach(d => setTimeout(() => { if (nightSky === ns) launch(ns, performance.now(), true); }, d));
@@ -3074,6 +3075,7 @@ function skyFinale(ns) {
 const credits = obs.querySelector('.credits');
 function rollCredits(ns, again) {
   if (nightSky !== ns || (P.fin && !again) || endRoom.classList.contains('cred')) return;
+  if (!again && endRoom.classList.contains('fc')) { ns.wait = () => rollCredits(ns); return; }
   credits.innerHTML = CREDITS.map(([r, n]) => `<p${r ? '' : ' class="cbig"'}>${r ? `<small>${r}</small>` : ''}${n}</p>`).join('');
   endRoom.classList.add('cred');
   const done = () => { endRoom.classList.remove('cred'); P.fin = true; save(); hudSet(); };
@@ -3130,7 +3132,11 @@ function focusCard(on) {
   if (!endRoom.classList.contains('up') || endRoom.classList.contains('fc') === on) return;
   endRoom.classList.toggle('fc', on);
   // 回到看天：至少再给 20 秒自己滑
-  if (!on && nightSky) nightSky.idleAt = Math.max(nightSky.idleAt, performance.now() + 20000);
+  if (!on && nightSky) {
+    const ns = nightSky; ns.idleAt = Math.max(ns.idleAt, performance.now() + 20000);
+    // 看卡时到点的收尾、谢幕：回到看天、镜头转稳了再放
+    if (ns.wait) { const w = ns.wait; ns.wait = null; setTimeout(() => { if (!endRoom.classList.contains('fc')) w(); else ns.wait = w; }, reduce ? 0 : 1200); }
+  }
   hudSet();
   sfx(c => whirr(c, c.currentTime + .02, .5));
 }
@@ -3688,7 +3694,7 @@ function restore() {
     if (P.opened) {
       endRoom.classList.add('instant', 'open'); record(); present.disabled = true;
       if (P.read) { endRoom.classList.add('read'); requestAnimationFrame(() => { cardFx(false); if (P.up) nightRestore(); else autoUp(12000); }); }
-      else setTimeout(readCard, 1200);
+      else setTimeout(readCard, reduce ? 600 : SHEEN_DONE);
       settle(); unInstant(endRoom);
     }
     nearGift();
