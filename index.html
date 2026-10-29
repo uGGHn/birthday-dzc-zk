@@ -2413,21 +2413,75 @@ function playSong(sparkle, n) {
     songEnd = t;
   });
 }
-// 烟花：远处传过来的一声「嘭」，低沉、很轻；大朵的快熄时再噼啪几下。远处的小朵更轻，也晚一点点才传到
-function boom(c, t, big) {
-  const v = big ? .1 : .05;
-  thud(t, big ? 96 : 120, v, big ? .5 : .32);
-  const s = c.createBufferSource(), lp = c.createBiquadFilter(), g = c.createGain();
-  s.buffer = noise(); lp.type = 'lowpass'; lp.frequency.value = big ? 640 : 480;
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * 1.4, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + (big ? .7 : .45));
-  s.connect(lp); lp.connect(g); g.connect(dry); s.start(t, Math.random() * .2, .8);
-  if (!big) return;
-  for (let k = 0; k < 9; k++) {
-    const tk = t + .9 + Math.random() * .6, n = c.createBufferSource(), bp = c.createBiquadFilter(), ng = c.createGain();
-    n.buffer = noise(); bp.type = 'bandpass'; bp.frequency.value = 2400 + Math.random() * 2400; bp.Q.value = 1.2;
-    ng.gain.setValueAtTime(0, tk); ng.gain.linearRampToValueAtTime(.025 + Math.random() * .02, tk + .002); ng.gain.exponentialRampToValueAtTime(.0001, tk + .03);
-    n.connect(bp); bp.connect(ng); ng.connect(dry); n.start(tk, Math.random() * .8, .05);
+// 烟花单走一路：自己的压限器（响而不破）+ 一段夜空旷野的回响（约 2.8 秒，越往后越暗），和八音盒、风声分开，不再被盖住
+let fwBus = null;
+function fwOut(c) {
+  if (fwBus) return fwBus;
+  const comp = c.createDynamicsCompressor();
+  comp.threshold.value = -16; comp.knee.value = 8; comp.ratio.value = 5; comp.attack.value = .002; comp.release.value = .3;
+  comp.connect(out);
+  fwBus = c.createGain(); fwBus.connect(comp);
+  const rv = c.createConvolver(), n = Math.round(c.sampleRate * 2.8), ir = c.createBuffer(2, n, c.sampleRate), send = c.createGain();
+  for (let ch = 0; ch < 2; ch++) {
+    const d = ir.getChannelData(ch); let lp = 0;
+    for (let i = 0; i < n; i++) { const u = i / n; lp += (Math.random() * 2 - 1 - lp) * (.6 - .5 * u); d[i] = lp * Math.pow(1 - u, 2.4) * Math.min(1, u / .02); }
   }
+  rv.buffer = ir; send.gain.value = .5; fwBus.connect(send); send.connect(rv); rv.connect(comp);
+  return fwBus;
+}
+// 一段滤过的噪声：att 秒冲上去，dur 秒内落到无声；fEnd 给了就让滤波频率一路滑过去
+function nz(c, t, dur, type, f, q, v, dest, fEnd, att = .003) {
+  const s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = noise(); fl.type = type; fl.Q.value = q; fl.frequency.setValueAtTime(f, t);
+  if (fEnd) fl.frequency.exponentialRampToValueAtTime(fEnd, t + dur);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + att); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.loop = true; s.connect(fl); fl.connect(g); g.connect(dest); s.start(t, Math.random() * .5); s.stop(t + dur + .05);
+}
+function tone(c, t, type, f0, f1, dur, v, dest, att = .004) {
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + att); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + .05);
+}
+// 声像：烟花在左边，声音就偏左
+function fwPan(c, ns, x) {
+  const p = c.createStereoPanner ? c.createStereoPanner() : c.createGain();
+  if (p.pan) p.pan.value = clamp(x / ns.w * 2 - 1, -1, 1) * .6;
+  p.connect(fwOut(c)); return p;
+}
+// 一炸开，八音盒和风声往下让一让（约 -7dB，0.2 秒后慢慢回来），烟花那一下就冒出来了
+function duck(c, t) {
+  [[master, .4], [dry, .6]].forEach(([n, b]) => { n.gain.cancelScheduledValues(t); n.gain.setTargetAtTime(b * .45, t, .015); n.gain.setTargetAtTime(b, t + .2, .4); });
+}
+// 升空：大多是一声细细的「嗖——」，三颗里约有一颗是带哨的，音越拉越高
+function lift(c, ns, r) {
+  const t = c.currentTime + .02, len = r.dur / 1000, p = fwPan(c, ns, r.sx), v = r.big ? 1 : .5;
+  if (r.big && Math.random() < .35) tone(c, t, 'sine', 1100, 2600, len * .95, .05 * v, p, len * .5);
+  else nz(c, t, len, 'bandpass', 900, 1.4, .07 * v, p, 2600, len * .6);
+}
+// 炸开：先一下很脆的「啪」，紧跟着「嘭」（滤波从亮到闷，手机喇叭放得出来）、一层中低频的胸腔感、一层耳机里才有的超低；
+// 再交给回响拖一条尾巴。音量只看大小朵，高低只差一点点；越高越远、声音越晚到、越闷一些（先看见光，后听到响）。
+// 碎花在火星爆点的时候噼啪一串；金柳一直有细细的沙沙声
+function fwBoom(c, ns, r) {
+  const far = clamp(1 - r.y / ns.h, 0, 1), t = c.currentTime + .03 + far * .2 + (r.big ? 0 : .1);
+  shell(c, t, (r.big ? 1 : .55) * (1 - far * .12), 1 - far * .3, fwPan(c, ns, r.x), r.big, r.kind, x => fwPan(c, ns, r.x + x * ns.w * .4));
+}
+// 祝福厅升层那一声也用同一颗「嘭」，在正中、轻一些
+function boom(c, t, big) { shell(c, t, big ? .6 : .35, 1, fwOut(c), big, 'peony', () => fwOut(c)); }
+function shell(c, t, v, dark, p, big, kind, side) {
+  const r = { big, kind };
+  nz(c, t, .03, 'highpass', 1800, .7, .55 * v, p);
+  nz(c, t, r.big ? 1 : .7, 'lowpass', 2600 * dark, .8, .9 * v, p, 240);
+  tone(c, t, 'triangle', 200, 80, .4, .3 * v, p);
+  tone(c, t, 'sine', 70, 40, r.big ? 1 : .6, .45 * v, p);
+  duck(c, t);
+  if (r.kind === 'crackle') {
+    for (let k = 0; k < (r.big ? 32 : 16); k++) {
+      const tk = t + .75 + Math.random() * .45, pp = side(Math.random() - .5);
+      nz(c, tk, .02, 'highpass', 2400 + Math.random() * 3000, .8, (.12 + Math.random() * .12) * v, pp);
+    }
+  } else if (r.kind === 'willow') nz(c, t + .2, 2.4, 'bandpass', 5200, .7, .05 * v, p, 3000, .6);
+  else if (r.big) for (let k = 0; k < 6; k++) nz(c, t + .9 + Math.random() * .6, .02, 'bandpass', 2400 + Math.random() * 2400, 1.2, .06 * v, p);
 }
 snd.onclick = () => {
   muted = !muted;
@@ -2902,7 +2956,7 @@ const SCO_DONE = 800 + 6 * 300 + 500;
 // 位置直接按炸开后过了多久算，不按帧累加——iPhone 低电量模式会把动画降到 30 帧，这样烟花也不会缩成一半。
 // fwAt 给出 [往外走了多远, 往下坠了多少]；亮度按 1 - (过了多久/寿命)³ 往下掉，大半程都亮，最后才熄
 const FW = { tau: 380, vt: .032, v: .326, life: 1900 };
-function fwAt(a, v) { const q = 1 - Math.exp(-a / FW.tau); return [v * FW.tau * q, FW.vt * (a - FW.tau * q)]; }
+function fwAt(a, v, gr = 1) { const q = 1 - Math.exp(-a / FW.tau); return [v * FW.tau * q, gr * FW.vt * (a - FW.tau * q)]; }
 // 一朵（不缩放时）看得见的部分往上、往下、往两边各伸多远：亮度掉到一成半以下的不算
 const FW_EXT = (() => {
   let up = 0, dn = 0, hw = 0;
@@ -3208,13 +3262,21 @@ document.addEventListener('keydown', e => {
 });
 // 烟花：先升起一颗，拖着一小条尾焰，越飞越慢，到点炸开。一半是大朵，在卡片上方那片夜空里炸，左右两半换着来；
 // 另一半是卡片两边远处的小朵，左右换着来。卡片正上方的从卡片后面升起，其余的从地平线冒出来
+// 颜色：暖色为主（金、粉、米白、橙），偶尔一朵冷色（天蓝、淡紫、薄荷）
+const FWC = ['#ffd98f', '#ff9aa8', '#fff6dc', '#f0b866', '#ffd98f', '#ff9aa8', '#9fd8ff', '#c8a8ff', '#a8f0c8'];
+// 花型：大朵六种轮着随机——牡丹（一色）、双色（外圈一色、芯另一色）、环（一圈整齐的光点）、金柳（金色长丝慢慢垂下来）、
+// 碎花（散开后每颗火星「啪」地爆成一个白亮点，伴一串噼啪）、变色（散到一半换一种颜色）；远处的小朵只有牡丹、环、碎花
+const KINDS = ['peony', 'two', 'ring', 'willow', 'crackle', 'change'], KINDS_S = ['peony', 'ring', 'crackle'];
 function launch(ns, now, force) {
-  const big = force || Math.random() < .55, c = ['#ffd98f', '#ff9aa8', '#fff6dc', '#f0b866'][Math.floor(Math.random() * 4)];
+  const big = force || Math.random() < .55, c = pick(FWC);
   let b;
   if (big) { ns.half = 1 - ns.half; b = place(ns.big, .5 + Math.random() * .3, ns.half); }
   else { ns.far = 1 - ns.far; b = place(ns.far ? ns.right : ns.left, .32 + Math.random() * .1); }
   const behind = big && b.x > ns.card[0] + 12 && b.x < ns.card[2] - 12, sx = b.x + (Math.random() - .5) * (big ? 24 : 12);
-  ns.rk.push(Object.assign(b, { big, c, sx, sy: behind ? ns.card[1] + 48 : ns.h + 8, t: now, dur: (behind ? 700 : big ? 1100 : 900) + Math.random() * 300 }));
+  let kind = pick(big ? KINDS : KINDS_S); if (kind === ns.lastKind) kind = pick(big ? KINDS : KINDS_S); ns.lastKind = kind;
+  const r = Object.assign(b, { big, c, kind, sx, sy: behind ? ns.card[1] + 48 : ns.h + 8, t: now, dur: (behind ? 700 : big ? 1100 : 900) + Math.random() * 300 });
+  ns.rk.push(r);
+  sfx(c => lift(c, ns, r));
 }
 function rkAt(r, at) {
   const u = clamp((at - r.t) / r.dur, 0, 1), e = 1 - Math.pow(1 - u, 2.2);
@@ -3222,19 +3284,26 @@ function rkAt(r, at) {
 }
 // 炸开：中心先亮一团，火星往外散；快熄的时候噼啪闪几下。远处的小朵火星少、暗一些、线细一些
 function burst(ns, now, r) {
-  const n = r.big ? 96 : 44, dim = r.big ? 1 : .7;
-  ns.glow.push({ x: r.x, y: r.y, t: now, c: r.c, sc: r.sc, dim });
-  for (let i = 0; i < n; i++) {
-    const a = i / n * 6.283 + Math.random() * .08;
-    ns.fw.push({ x: r.x, y: r.y, ca: Math.cos(a), sa: Math.sin(a), v: FW.v * (.55 + Math.random() * .45), t: now, life: 1400 + Math.random() * 500, c: r.c, sc: r.sc, dim });
-  }
+  const big = r.big, dim = big ? 1 : .7, kd = r.kind, c2 = pick(FWC.filter(x => x !== r.c));
+  ns.glow.push({ x: r.x, y: r.y, t: now, c: r.c, sc: r.sc, dim, big });
+  const add = (n, o) => { for (let i = 0; i < n; i++) { const a = i / n * 6.283 + Math.random() * (o.even ? .02 : .08);
+    ns.fw.push(Object.assign({ x: r.x, y: r.y, ca: Math.cos(a), sa: Math.sin(a), t: now, c: r.c, sc: r.sc, dim, gr: 1, tl: 80 },
+      o, { v: FW.v * (o.v0 + Math.random() * (o.v1 - o.v0)), life: o.l0 + Math.random() * (o.l1 - o.l0) })); } };
+  const m = big ? 1 : .46;
+  if (kd === 'ring') { add(Math.round(72 * m), { v0: .9, v1: .96, l0: 1500, l1: 1800, even: true }); if (big) add(20, { v0: .15, v1: .35, l0: 900, l1: 1300, c: '#fff6dc' }); }
+  else if (kd === 'willow') add(80, { v0: .45, v1: .8, l0: 2400, l1: 3000, c: '#ffcf7a', gr: 1.6, tl: 240, glit: true });
+  else if (kd === 'two') { add(84, { v0: .7, v1: 1, l0: 1500, l1: 1900 }); add(44, { v0: .25, v1: .45, l0: 1200, l1: 1500, c: c2 }); }
+  else if (kd === 'change') add(96, { v0: .55, v1: 1, l0: 1600, l1: 2000, c2 });
+  else if (kd === 'crackle') add(Math.round(72 * m), { v0: .5, v1: 1, l0: 1500, l1: 1800, pop: true });
+  else add(Math.round(96 * m), { v0: .55, v1: 1, l0: 1400, l1: 1900 });
+  ns.fw.forEach(p => { if (p.pop && p.t === now) p.pa = (.5 + Math.random() * .25) * p.life; });
   // 烟花的光映到卡上：从烟花那一侧照过来，远处的小朵只映一点点
   // 烟花的光映到卡上：从烟花那一侧照过来；看卡时卡更亮、映得多一点
   const O = osky.getBoundingClientRect(), C = letter.getBoundingClientRect(), k = O.width / ns.w;
   const fx = ((O.left + r.x * k - C.left) / C.width * 100).toFixed(0), fy = ((O.top + r.y * k - C.top) / C.height * 100).toFixed(0);
   flash.style.background = `radial-gradient(circle at ${fx}% ${fy}%, ${r.c}, transparent 70%)`;
   flash.animate([{ opacity: 0 }, { opacity: (r.big ? .3 : .12) * (endRoom.classList.contains('fc') ? 1 : .6), offset: .12 }, { opacity: 0 }], { duration: 900, easing: 'ease-out' });
-  sfx(c => boom(c, c.currentTime + (r.big ? .06 : .22), r.big));
+  sfx(c => fwBoom(c, ns, r));
 }
 function nightFrame(now) {
   const ns = nightSky; if (!ns) return;
@@ -3447,8 +3516,11 @@ function fireworks(ns, now, t) {
     return true;
   });
   ns.glow = ns.glow.filter(o => now - o.t < 420);
+  // 大朵炸开的一瞬，周围一大片天被照亮一下（越远越淡），0.4 秒退掉
+  ns.glow.forEach(o => { if (!o.big) return; const e = (now - o.t) / 420, R = ns.h * .5, rg = g.createRadialGradient(o.x, o.y, 0, o.x, o.y, R);
+    rg.addColorStop(0, o.c); rg.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = (1 - e) * (1 - e) * .14; g.fillStyle = rg; g.fillRect(o.x - R, o.y - R, R * 2, R * 2); });
   ns.glow.forEach(o => {
-    const e = (now - o.t) / 420, R = 40 * o.sc, rg = g.createRadialGradient(o.x, o.y, 0, o.x, o.y, R);
+    const e = (now - o.t) / 420, R = (o.big ? 56 : 40) * o.sc, rg = g.createRadialGradient(o.x, o.y, 0, o.x, o.y, R);
     rg.addColorStop(0, 'rgba(255,250,236,.95)'); rg.addColorStop(.35, o.c); rg.addColorStop(1, 'rgba(255,220,160,0)');
     g.globalAlpha = (1 - e) * .8 * o.dim; g.fillStyle = rg; g.beginPath(); g.arc(o.x, o.y, R, 0, 6.283); g.fill();
   });
@@ -3456,10 +3528,15 @@ function fireworks(ns, now, t) {
   g.lineCap = 'round';
   ns.fw.forEach(p => {
     // 每颗火星画成一小段：从 0.08 秒前的位置到现在，刚炸开时拉得长，像一根根放射出去的光丝
-    const a = now - p.t, e = a / p.life, [d, s] = fwAt(a, p.v), [d0, s0] = fwAt(Math.max(0, a - 80), p.v);
-    g.globalAlpha = (1 - e * e * e) * p.dim * (e > .6 && Math.random() < .45 ? .3 : 1);
-    g.strokeStyle = p.c; g.lineWidth = (.9 + p.sc) * (1 - e * .5);
-    g.beginPath(); g.moveTo(p.x + d0 * p.ca * p.sc, p.y + (d0 * p.sa + s0) * p.sc); g.lineTo(p.x + d * p.ca * p.sc, p.y + (d * p.sa + s) * p.sc); g.stroke();
+    const a = now - p.t, e = a / p.life, [d, s] = fwAt(a, p.v, p.gr), [d0, s0] = fwAt(Math.max(0, a - p.tl), p.v, p.gr);
+    const x = p.x + d * p.ca * p.sc, y = p.y + (d * p.sa + s) * p.sc;
+    // 碎花：到点「啪」地爆成一个白亮点，0.16 秒后熄掉
+    if (p.pa) { if (a > p.pa + 160) return; if (a > p.pa) { const u = (a - p.pa) / 160; g.globalAlpha = (1 - u) * p.dim; g.fillStyle = '#fffbe8';
+      g.beginPath(); g.arc(x, y, (1.2 + 1.6 * (1 - u)) * Math.max(.6, p.sc), 0, 6.283); g.fill(); return; } }
+    const fl = p.glit ? (e > .25 && Math.random() < .35 ? .35 : 1) : (e > .6 && Math.random() < .45 ? .3 : 1);
+    g.globalAlpha = (1 - e * e * e) * p.dim * fl;
+    g.strokeStyle = p.c2 && e > .45 ? p.c2 : p.c; g.lineWidth = (.9 + p.sc) * (1 - e * .5) * (p.glit ? .8 : 1);
+    g.beginPath(); g.moveTo(p.x + d0 * p.ca * p.sc, p.y + (d0 * p.sa + s0) * p.sc); g.lineTo(x, y); g.stroke();
   });
   g.globalAlpha = 1; g.lineCap = 'butt';
 }
