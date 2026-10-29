@@ -749,6 +749,11 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .sarr svg{display:block;width:20px;height:20px;margin:auto}
 #end.sa.up .sarr{opacity:.9;visibility:visible;transition:opacity .8s}
 #end.sa .sarr.l svg{animation:nudge-l 2.4s ease-in-out infinite}
+/* 流星飞去天蝎座那边以后：那一侧的箭头更亮，外面一圈光一下下往外扩，引人转过去 */
+.sarr::after{content:"";position:absolute;left:50%;top:50%;width:32px;height:32px;margin:-16px 0 0 -16px;border-radius:50%;border:1px solid rgba(255,236,190,.9);opacity:0;pointer-events:none}
+.sarr.lure{opacity:1!important}
+.sarr.lure::after{animation:lure 1.6s ease-out infinite}
+@keyframes lure{0%{opacity:1;transform:scale(.6)}100%{opacity:0;transform:scale(1.8)}}
 #end.sa .sarr.r svg{animation:nudge-r 2.4s ease-in-out infinite}
 /* 第几组：每组星座下面三颗属于这片天的小星，第几组就亮第几颗；跟着星座一起转、一起在缝边露出来 */
 .gdots{position:absolute;left:50%;display:flex;align-items:center;gap:12px;translate:-50% -50%;filter:drop-shadow(0 0 3px rgba(255,226,170,.9));opacity:0;transition:opacity 1.2s .4s}
@@ -2912,11 +2917,11 @@ function nightLayout(ns) {
   ns.grps.forEach(gr => {
     // 天蝎座单独一组：竖着摆（头和钳子朝上、尾巴往下卷），正好填满竖屏
     const pair = gr.cons.length > 1, cw = pair ? 400 : 280, chh = pair ? 280 : 800;
-    const kc = pair ? Math.min(gw / 400, (avail - 2 * NAME - DOT - 20) / 560) : Math.min(gw / 280, (avail - NAME - DOT) / 800) * .95;
+    const kc = pair ? Math.min(gw / 400, (avail - 2 * NAME - DOT - 24) / 560) : Math.min(gw / 280, (avail - NAME - DOT) / 800) * .95;
     const fwc = cw * kc, fhc = chh * kc;
-    const gh = (pair ? 2 * (fhc + NAME) + 20 : fhc + NAME) + DOT, bw = pair ? fwc : gw, bx = (w - bw) / 2, by = gt + (avail - gh) / 2;
+    const gh = (pair ? 2 * (fhc + NAME) + 24 : fhc + NAME) + DOT, bw = pair ? fwc : gw, bx = (w - bw) / 2, by = gt + (avail - gh) / 2;
     gr.el.setAttribute('style', `left:${bx.toFixed(1)}px;top:${by.toFixed(1)}px;width:${bw.toFixed(1)}px;height:${gh.toFixed(1)}px`);
-    gr.cons.forEach((c, ci) => Object.assign(c, { kc, rot: !pair, ox: CROP[c.k], fx: (bw - fwc) / 2, fy: ci * (fhc + NAME), fw: fwc, fh: fhc }));
+    gr.cons.forEach((c, ci) => Object.assign(c, { kc, rot: !pair, ox: CROP[c.k], fx: (bw - fwc) / 2, fy: (pair ? 24 : 0) + ci * (fhc + NAME), fw: fwc, fh: fhc }));
     // ZK、DZC 两组星星字母：等天蝎座的星和线排好以后（grpBuild 里）再找地方放
     gr.nm = pair ? null : [];
     gr.bw = bw; gr.fh0 = fhc;
@@ -3007,7 +3012,7 @@ function grpBuild(gr) {
       head: add('circle', { r: 2, fill: '#fffdf6', opacity: 0 }), ring: add('circle', { r: 2, fill: 'none', stroke: '#fff4e2', 'stroke-width': 1, opacity: 0 }), m: null };
   }
   gr.el.querySelector('.gdots').style.top = `${(gr.gh - 12).toFixed(1)}px`;
-  const gn = gr.el.querySelector('.gnote'); if (gn) gn.style.top = `${(gr.gh - 44).toFixed(1)}px`;
+  const gn = gr.el.querySelector('.gnote'); if (gn) gn.style.top = '0px';
   gr.cons.forEach(c => {
     c.st = c.S.map(([x, y], i) => {
       const red = i === c.c.red, at = { cx: x.toFixed(2), cy: y.toFixed(2), opacity: 0 };
@@ -3140,6 +3145,7 @@ function skyStep(ns, now) {
   ns.snap = null;
   const gr = ns.grps[wrap(Math.round(ns.px / ns.w), 3)];
   if (gr.t0 == null) grpStart(ns, gr, ++ns.seen, now);
+  if (gr === ns.grps[0] && gr.pend) { sarr.forEach(b => b.classList.remove('lure')); meteor(gr, now + 300, gr.pend); gr.pend = null; }
 }
 shint.onclick = () => { if (nightSky) skyTo(nightSky, Math.round(nightSky.px / nightSky.w) + 1, performance.now()); };
 sarr.forEach((b, j) => { b.onclick = () => { if (nightSky) { audio(); skyTo(nightSky, Math.round(nightSky.px / nightSky.w) + (j ? 1 : -1), performance.now()); } }; });
@@ -3197,7 +3203,7 @@ function nightDraw(ns, now, still) {
   const rot = still ? 0 : Math.sin(T * .29 + .5) * .8, off = ns.vpx * ns.S / ns.w;
   // 圆顶（近）整个跟着晃；缝里的天远，星座只跟一半、近星少一些、远星和银河更少
   ocam.style.transform = still ? '' : `translate(${rx.toFixed(1)}px,${ry.toFixed(1)}px) rotate(${rot.toFixed(3)}deg)`;
-  ns.sx = -.5 * rx; ns.sy = -.5 * ry;
+  ns.sx = -.5 * rx; ns.sy = -.5 * ry; ns.ax = -.35 * rx; ns.ay = -.35 * ry;
   g.setTransform(ns.dpr, 0, 0, ns.dpr, 0, 0); g.clearRect(0, 0, ns.w, ns.h);
   g.fillStyle = '#e8e2ff';
   ns.milk.forEach(m => { const x = wrap(m.x - off * .9, W3) + ns.sx * 1.6 - 16; if (x > ns.w + 2 || x < -2) return;
@@ -3215,7 +3221,12 @@ function nightDraw(ns, now, still) {
   endRoom.classList.toggle('sh', !ns.panned && t > SCO_DONE + 1000);
   endRoom.classList.toggle('sa', t > SCO_DONE + 200);
   const g0 = ns.grps[0];
-  if (!still && t > ns.nextMet && g0.t0 != null && !ns.snap && ns.px0 == null && !endRoom.classList.contains('fc') && wrap(Math.round(ns.px / ns.w), 3) === 0) { meteor(g0, now); ns.nextMet = t + 30000; }
+  const cg = wrap(Math.round(ns.px / ns.w), 3);
+  if (!still && t > ns.nextMet && g0.t0 != null && g0.nm && !ns.snap && ns.px0 == null && !endRoom.classList.contains('fc') && !g0.met.m && !g0.pend && !ns.cm) {
+    if (cg === 0) meteor(g0, now); else crossMeteor(ns, now, cg);
+    ns.nextMet = t + 30000;
+  }
+  if (ns.cm) crossDraw(ns, now);
   // 「轻点卡片」排在「左右滑」后面：转过一组以后（或者一直没转、过了 8 秒）才浮出来
   endRoom.classList.toggle('ch', ns.panned || t > SCO_DONE + 8000);
 }
@@ -3230,6 +3241,8 @@ function grpDraw(ns, gr, gi, now, still) {
   if (!show) return;
   gr.el.style.transform = `translate(${(x + ns.sx).toFixed(1)}px,${ns.sy.toFixed(1)}px) scale(${sc.toFixed(3)})`;
   gr.el.style.opacity = (1 - .5 * au).toFixed(3);
+  // 插画在星和线后面一层：手持晃动时它少动一些（再往回收 0.35），两层就分开了
+  (gr.arts || (gr.arts = [...gr.el.querySelectorAll('.art')])).forEach(a => { a.style.translate = still ? '' : `${(ns.ax || 0).toFixed(1)}px ${(ns.ay || 0).toFixed(1)}px`; });
   const lit = gr.t0 != null, t = still ? Infinity : now - gr.t0;
   gr.cons.forEach((c, ci) => {
     const S = c.S;
@@ -3305,7 +3318,7 @@ function wordsDraw(gr, lit, t, now, still) {
     wd.st.forEach((c, j) => { const [, , r, per, ph] = wd.pts[j], tw = still ? 1 : .55 + .45 * Math.sin(now / per + ph);
       svgSet(c, 'opacity', Math.max(on * (.12 + .7 * br) * tw, lk * (.7 + .3 * tw))); });
   });
-  if (!m) return;
+  if (!m || now < m.t0) return;
   const M = gr.met, u = (now - m.t0) / m.dur;
   if (u < 1) {
     const e = 1 - Math.pow(1 - u, 2), hx = m.sx + (m.x - m.sx) * e, hy = m.sy + (m.y - m.sy) * e, len = Math.hypot(m.x - m.sx, m.y - m.sy), ux = (m.x - m.sx) / len, uy = (m.y - m.sy) / len;
@@ -3322,11 +3335,44 @@ function wordsDraw(gr, lit, t, now, still) {
   if (a > m.lines + 4200) { gr.met.m = null; gr.nm[m.w].ln.forEach(l => svgSet(l, 'opacity', 0)); }
 }
 // 一颗流星：从高处斜着划下来，拖一条长尾巴，落在 ZK 或 DZC 那组（完全随机二选一）里随便一颗星上
-function meteor(gr, now) {
+function meteor(gr, now, pend) {
   if (!gr.nm || !gr.nm.length || gr.met.m) return;
-  const w = Math.floor(Math.random() * gr.nm.length), wd = gr.nm[w], [x, y] = wd.pts[Math.floor(Math.random() * wd.pts.length)], s = Math.random() < .5 ? -1 : 1;
-  const sx = x + s * (160 + Math.random() * 80), sy = y - 220 - Math.random() * 60, dur = 1000;
+  const w = pend ? pend.w : Math.floor(Math.random() * gr.nm.length), wd = gr.nm[w], [x, y] = wd.pts[pend ? pend.k : Math.floor(Math.random() * wd.pts.length)], s = Math.random() < .5 ? -1 : 1;
+  // 从别的组飞过来的：从进来的那一侧缝边外面斜着飞进来
+  const left = (nightSky.w - gr.bw) / 2;
+  const sx = pend ? (pend.from ? nightSky.w - left + 16 : -left - 16) : x + s * (160 + Math.random() * 80), sy = pend ? y - 120 - Math.random() * 40 : y - 220 - Math.random() * 60, dur = pend ? 900 : 1000;
   gr.met.m = { w, x, y, sx, sy, t0: now, dur, t1: now + dur, lines: wd.ed.length * 90 + 160 };
+}
+// 在另外两组时来的流星：先定好落在哪组字母的哪颗星上，从顶上划进来，在靠天蝎座那一边绕一个圈、停一下，再从那边的缝边飞出去；
+// 那一侧的箭头外面一圈光一直一下下往外扩，等人转回天蝎座
+function crossMeteor(ns, now, cg) {
+  const g0 = ns.grps[0], w = Math.floor(Math.random() * g0.nm.length), side = cg === 1 ? 0 : 1;
+  g0.pend = { w, k: Math.floor(Math.random() * g0.nm[w].pts.length), from: side === 0 };
+  const cx = side ? ns.w - 56 : 56, cy = ns.h * .34;
+  ns.cm = { t0: now, side, sx: ns.w * (side ? .3 : .7), sy: 24, cx, cy, ex: side ? ns.w + 40 : -40, ey: cy + 48, hist: [] };
+  sfx(c => { const t = c.currentTime + .02; whirr(c, t, .6); pluck(t + .9, 2637, .08); pluck(t + 1.6, 3136, .08); });
+}
+function crossPos(m, a) {
+  const R = 28, A = 900, B = 2300, C = 3000;
+  if (a < A) { const u = a / A, e = 1 - Math.pow(1 - u, 2); return [m.sx + (m.cx - m.sx) * e, m.sy + (m.cy - R - m.sy) * e]; }
+  if (a < B) { const u = (a - A) / (B - A), th = -Math.PI / 2 + u * Math.PI * 2.25 * (m.side ? 1 : -1); return [m.cx + Math.cos(th) * R, m.cy + Math.sin(th) * R]; }
+  const th = -Math.PI / 2 + Math.PI * 2.25 * (m.side ? 1 : -1), bx = m.cx + Math.cos(th) * R, by = m.cy + Math.sin(th) * R, u = Math.min(1, (a - B) / (C - B)), e = u * u;
+  return [bx + (m.ex - bx) * e, by + (m.ey - by) * e];
+}
+function crossDraw(ns, now) {
+  const m = ns.cm, a = now - m.t0, g = ns.g;
+  if (a > 3000) { ns.cm = null; sarr[m.side].classList.add('lure'); return; }
+  m.hist.push([...crossPos(m, a), now]);
+  while (m.hist.length && now - m.hist[0][2] > 420) m.hist.shift();
+  g.lineCap = 'round';
+  for (let i = 1; i < m.hist.length; i++) {
+    const f = i / m.hist.length;
+    g.globalAlpha = f * .85; g.strokeStyle = '#fff8ec'; g.lineWidth = .4 + f * 1.6;
+    g.beginPath(); g.moveTo(m.hist[i - 1][0], m.hist[i - 1][1]); g.lineTo(m.hist[i][0], m.hist[i][1]); g.stroke();
+  }
+  const [hx, hy] = m.hist[m.hist.length - 1];
+  g.globalAlpha = 1; g.fillStyle = '#fffdf6'; g.beginPath(); g.arc(hx, hy, 2, 0, 6.283); g.fill();
+  g.lineCap = 'butt';
 }
 function fireworks(ns, now, t) {
   const g = ns.g;
