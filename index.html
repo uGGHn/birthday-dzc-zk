@@ -762,12 +762,11 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .gdots i{width:8px;height:8px;background:rgba(246,226,176,.45);clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%)}
 .gdots i.on{background:#fff6dc;scale:2;animation:twinkle 2.4s ease-in-out infinite}
 #end.sa .gdots{opacity:1}
-/* 开门时的一句旁白：在星座下面那片空处浮出来，几秒后淡去 */
-.ocap{position:absolute;z-index:7;left:16px;right:16px;top:calc(var(--py,400px) - 8px);margin:0;text-align:center;pointer-events:none;opacity:0;
-  font:16px/24px var(--serif);letter-spacing:2px;color:#f6e2b0;text-shadow:0 0 12px rgba(255,214,140,.5),0 1px 2px rgba(0,0,0,.8)}
 /* 两组情侣星座下面的一行小字 */
 .gnote{position:absolute;left:50%;translate:-50% 0;white-space:nowrap;font:12px/16px var(--sans);letter-spacing:2px;color:var(--chalk-2);opacity:0;transition:opacity 1.6s 1s}
-.grp.on .gnote{opacity:.8}
+.grp.on .gnote,.grp .gnote.show{opacity:.8}
+.gnote{transform-origin:50% 0;transition:opacity 1.6s 1s,transform 2s var(--ease),color 2s,text-shadow 2s}
+.grp .gnote.big{opacity:1;transform:scale(var(--gs,1.4));color:#f6e2b0;text-shadow:0 0 12px rgba(255,214,140,.7),0 1px 3px rgba(0,0,0,.8);transition:opacity 1.2s .4s,transform 1.2s var(--ease) .4s}
 /* 片尾字幕：在缝里从下往上滚；滚的时候星座和提示让一让 */
 .credits{position:absolute;left:0;right:0;top:0;text-align:center;pointer-events:none;opacity:0;transition:opacity .8s}
 #end.cred .credits{opacity:1}
@@ -1097,7 +1096,7 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
           </div></div></div>
         <div class="shade"></div>
         <!-- 抬头：天文台的圆顶。中间一道缝，两扇门往两边拉开，星空从缝里露出来；左右滑是圆顶带着人转 -->
-        <div class="obs"><div class="otilt"><div class="ocam"><div class="osky"><canvas class="sky" aria-hidden="true"></canvas><div class="cons" aria-hidden="true"></div><div class="credits" aria-hidden="true"></div><i class="sdim"></i><i class="leaf l"></i><i class="leaf r"></i></div><svg class="dome" aria-hidden="true"></svg></div></div><button class="sarr l" type="button" aria-label="上一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="sarr r" type="button" aria-label="下一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="shint" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5L4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>左右滑，看看另外两组星座</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="desk" aria-hidden="true"></div><p class="ocap" aria-hidden="true">今晚的星星，替我们说生日快乐</p><p class="chint" aria-hidden="true"><i></i>轻点卡片，看看祝福</p><p class="khint" aria-hidden="true"><i></i>轻点星空，回到星空</p></div>
+        <div class="obs"><div class="otilt"><div class="ocam"><div class="osky"><canvas class="sky" aria-hidden="true"></canvas><div class="cons" aria-hidden="true"></div><div class="credits" aria-hidden="true"></div><i class="sdim"></i><i class="leaf l"></i><i class="leaf r"></i></div><svg class="dome" aria-hidden="true"></svg></div></div><button class="sarr l" type="button" aria-label="上一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="sarr r" type="button" aria-label="下一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="shint" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5L4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>左右滑，看看另外两组星座</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="desk" aria-hidden="true"></div><p class="chint" aria-hidden="true"><i></i>轻点卡片，看看祝福</p><p class="khint" aria-hidden="true"><i></i>轻点星空，回到星空</p></div>
       </section>
     </div>
     <div id="rope"></div>
@@ -2859,7 +2858,7 @@ const ART = { sco: SCO_ART,
 // 一组两个星座的（一对情侣）在竖屏上下排：每个星座只取它自己那半边（400 宽）放大；天蝎座一个占整个 800 宽，下面补两颗以 ZK、DZC 命名的星
 const CROP = { sco: 0, aqr: 0, leo: 400, cap: 0, psc: 400 };
 // 另外两组（两对情侣）第一次转到时，星座下面浮出一行小字：朋友们都在这片天下
-const GNOTE = ['朋友们也在这片天下', '一个都不少'];
+const GNOTE = ['今晚所有的星星，替我们祝你们生日快乐', '朋友们也在这片天下', '一个都不少'];
 // 用星星拼字母：每个字母 6～7 颗星，坐标在一个宽 0.6、高 1 的格子里（0～1）
 const LETTER = {
   Z: [[0, 0], [.5, 0], [1, 0], [.5, .5], [0, 1], [.5, 1], [1, 1]],
@@ -2869,7 +2868,7 @@ const LETTER = {
 };
 cons.innerHTML = GROUPS.map((ks, gi) => '<div class="grp">'
   + ks.map(k => `<svg class="art" data-k="${k}" viewBox="${ks.length > 1 ? `${CROP[k]} 0 400 280` : '0 0 280 800'}">${ks.length > 1 ? ART[k] : `<g transform="translate(0 800) rotate(-90)">${ART[k]}</g>`}</svg><span class="cname" data-k="${k}">${CONS[k].name}</span>`).join('')
-  + (gi ? `<span class="gnote">${GNOTE[gi - 1]}</span>` : '')
+  + `<span class="gnote">${GNOTE[gi]}</span>`
   + `<svg class="cst"></svg><span class="gdots">${[0, 1, 2].map(j => `<i${j === gi ? ' class="on"' : ''}></i>`).join('')}</span></div>`).join('');
 // 生日歌转一圈正好唱完：天蝎座唱头两句（一颗星一个音，最后毒刺高八度叮一下）；之后先转到的那组唱第三句、最后那组唱第四句。
 // [音, 第几拍]，一拍 0.3 秒；一组里的星按先后均匀分到各个音上，一个音分到几颗就依次亮，多出来的轻轻带一个高八度的音
@@ -2923,11 +2922,11 @@ function nightLayout(ns) {
   ns.grps.forEach(gr => {
     // 天蝎座单独一组：竖着摆（头和钳子朝上、尾巴往下卷），正好填满竖屏
     const pair = gr.cons.length > 1, cw = pair ? 400 : 280, chh = pair ? 280 : 800;
-    const kc = pair ? Math.min(gw / 400, (avail - 2 * NAME - DOT - 24) / 560) : Math.min(gw / 280, (avail - NAME - DOT) / 800) * .95;
+    const kc = pair ? Math.min(gw / 400, (avail - 2 * NAME - DOT - 24) / 560) : Math.min(gw / 280, (avail - NAME - DOT - 24) / 800) * .95;
     const fwc = cw * kc, fhc = chh * kc;
-    const gh = (pair ? 2 * (fhc + NAME) + 24 : fhc + NAME) + DOT, bw = pair ? fwc : gw, bx = (w - bw) / 2, by = gt + (avail - gh) / 2;
+    const gh = (pair ? 2 * (fhc + NAME) : fhc + NAME) + 24 + DOT, bw = pair ? fwc : gw, bx = (w - bw) / 2, by = gt + (avail - gh) / 2;
     gr.el.setAttribute('style', `left:${bx.toFixed(1)}px;top:${by.toFixed(1)}px;width:${bw.toFixed(1)}px;height:${gh.toFixed(1)}px`);
-    gr.cons.forEach((c, ci) => Object.assign(c, { kc, rot: !pair, ox: CROP[c.k], fx: (bw - fwc) / 2, fy: (pair ? 24 : 0) + ci * (fhc + NAME), fw: fwc, fh: fhc }));
+    gr.cons.forEach((c, ci) => Object.assign(c, { kc, rot: !pair, ox: CROP[c.k], fx: (bw - fwc) / 2, fy: 24 + ci * (fhc + NAME), fw: fwc, fh: fhc }));
     // ZK、DZC 两组星星字母：等天蝎座的星和线排好以后（grpBuild 里）再找地方放
     gr.nm = pair ? null : [];
     gr.bw = bw; gr.fh0 = fhc;
@@ -3068,6 +3067,7 @@ function nightRestore() {
   const ns = nightSky, now = performance.now() - 60000;
   endRoom.classList.add('up', 'sopen');
   ns.t0 = now; ns.next = 0; ns.nextMet = 60000 + 15000;
+  ns.grps[0].el.querySelector('.gnote').classList.add('show');
   (P.seen || []).forEach((gi, n) => grpStart(ns, ns.grps[gi], n, now, true));
   ns.seen = Math.max(0, (P.seen || []).length - 1);
   ns.panned = (P.seen || []).length > 1;
@@ -3106,12 +3106,13 @@ function focusCard(on) {
 function openShutter() {
   const ns = nightSky; if (!ns) return;
   endRoom.classList.add('sopen');
-  // 门一拉开，天上浮出一句旁白，几秒后淡去（星座开始亮时它还在下面那片空处，不压星座）
-  const cap = obs.querySelector('.ocap');
-  if (!reduce && cap.animate) cap.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none', offset: .15 }, { opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 5200, delay: 500, easing: 'ease-out' });
   // 电机嗡嗡地转、门滑开，最后咔哒一声到位
   sfx(c => { const t = c.currentTime + .02; [0, .5, 1].forEach(d => whirr(c, t + d, .7)); thud(t + 1.75, 90, .12, .3, 600, 1); stamp(t + 1.8, .4); });
-  const go = () => { ns.t0 = performance.now(); grpStart(ns, ns.grps[0], 0, ns.t0); if (reduce) nightDraw(ns, ns.t0, true); };
+  const gn = ns.grps[0].el.querySelector('.gnote');
+  const go = () => { ns.t0 = performance.now(); grpStart(ns, ns.grps[0], 0, ns.t0); if (reduce) nightDraw(ns, ns.t0, true);
+    // 第一次抬头：顶上这一句先放大、亮着，5 秒后慢慢退成和另外两组一样的小字（放大后不超出缝）
+    gn.style.setProperty('--gs', Math.min(1.4, (ns.w - 16) / Math.max(1, gn.offsetWidth)).toFixed(3));
+    gn.classList.add('show'); if (!reduce) { gn.classList.add('big'); setTimeout(() => gn.classList.remove('big'), 5000); } };
   if (reduce) go(); else setTimeout(go, 600);
 }
 // 一组第一次转到：开始一颗颗亮，唱它那一句（第 n 句，天蝎座是第 0 句）。每颗星亮的时刻 T、它那条线长多久 G 都在这时排好
@@ -3288,10 +3289,10 @@ const LETTER_E = { Z: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]], K: [[0, 
 function wordsPlace(gr) {
   const c = gr.cons[0], W = gr.bw, H = gr.fh0, segs = c.c.edges.map(([i, j]) => [c.S[i], c.S[j]]), placed = [];
   const dSeg = (x, y, [a, b]) => { const dx = b[0] - a[0], dy = b[1] - a[1], u = clamp(((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy), 0, 1); return Math.hypot(x - a[0] - u * dx, y - a[1] - u * dy); };
-  const free = (x, y) => x > 4 && x < W - 4 && y > 4 && y < H - 4 && segs.every(sg => dSeg(x, y, sg) > 12) && c.S.every(([sx, sy]) => Math.hypot(x - sx, y - sy) > 14);
+  const free = (x, y) => x > 4 && x < W - 4 && y > 28 && y < H + 20 && segs.every(sg => dSeg(x, y, sg) > 12) && c.S.every(([sx, sy]) => Math.hypot(x - sx, y - sy) > 14);
   const make = txt => {
     for (let L = 40; L >= 20; L -= 4) for (let k = 0; k < 240; k++) {
-      const ww = (txt.length * .6 + (txt.length - 1) * .4) * L, x0 = Math.random() * (W - ww), y0 = Math.random() * (H - L);
+      const ww = (txt.length * .6 + (txt.length - 1) * .4) * L, x0 = Math.random() * (W - ww), y0 = 28 + Math.random() * (H - L - 8);
       if (x0 < 0 || y0 < 0 || placed.some(o => !(x0 > o[2] + 16 || x0 + ww < o[0] - 16 || y0 > o[3] + 16 || y0 + L < o[1] - 16))) continue;
       const pts = [], ed = [];
       [...txt].forEach((ch, i) => { const n0 = pts.length;
