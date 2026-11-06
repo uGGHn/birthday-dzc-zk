@@ -163,7 +163,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .wseal.g::before{border-color:rgba(243,213,143,.72)}
 @keyframes slam-w{from{opacity:0;transform:rotate(-12deg) scale(1.8)}to{opacity:.94;transform:rotate(-12deg) scale(1)}}
 /* 「再等等」：时光快进——牌子暗下去，大钟弹出来、指针越转越快，日历一页页飞走，「一天、一个月、一年」，闹铃一响，钟炸开：等到了 */
-.wclock{position:absolute;left:56px;top:63px;width:64px;height:64px;pointer-events:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+/* 钟和牌面两行字居中对齐：钟 48×48，中心在 (88, 96) */
+.wclock{position:absolute;left:64px;top:72px;width:48px;height:48px;pointer-events:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
 .wclock svg{display:block}
 .wclock .mh,.wclock .hh{transform-box:view-box;transform-origin:20px 20px}
 .wcal{position:absolute;left:50%;top:100%;margin-top:4px;translate:-50% 0;padding:0 8px;border-radius:8px;background:rgba(20,12,16,.78);
@@ -2979,6 +2980,7 @@ function nightLayout(ns) {
   const T = Math.round(H * .22), sl = 32, OW = W + 2 * M, OH = H + 2 * M + T, x0 = M + sl, x1 = M + W - sl, y1 = H + M - 112, w = x1 - x0, h = y1;
   osky.style.cssText = `left:${x0}px;top:0;width:${w}px;height:${h}px`;
   domeSvg.setAttribute('viewBox', `0 0 ${OW} ${OH}`); domeSvg.innerHTML = domeArt(OW, OH, x0, x1, y1, H, M);
+  Object.assign(ns, { mer: domeSvg.querySelector('.mer'), zx: (OW / 2).toFixed(1), zy: (M + H * .3).toFixed(1) });
   // 卡片：看卡时立在台面上（台面在屏幕底上 72px），高度占台面以上的六成；看天时往下沉，只露出上沿 96px（名字那一栏）
   const L = inRoom(lwrap), fit = parseFloat(letter.style.getPropertyValue('--fit')) || 1, lh = letter.offsetHeight, top = H - 72;
   const ch = Math.min(lh * fit, top * .6), us = ch / lh, cy0 = L.y + L.h / 2;
@@ -3054,7 +3056,7 @@ function domeArt(OW, OH, x0, x1, y1, H, M) {
   return '<defs><linearGradient id="gDome" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0f0a0e"/><stop offset=".72" stop-color="#1c1317"/><stop offset="1" stop-color="#33231a"/></linearGradient>'
     + `<mask id="mWall"><rect width="${OW}" height="${OH}" fill="#fff"/><rect x="${x0}" y="0" width="${x1 - x0}" height="${y1}" fill="#000"/></mask></defs>`
     + `<g mask="url(#mWall)"><rect width="${OW}" height="${OH}" fill="url(#gDome)"/>`
-    + `<g fill="none" stroke="#f2d9c0" stroke-opacity=".07">${rings}<path d="${mer}"/></g>`
+    + `<g fill="none" stroke="#f2d9c0" stroke-opacity=".07">${rings}<path class="mer" d="${mer}"/></g>`
     // 缝的包边：两条竖的、底下一条横的
     + `<rect x="${x0 - 6}" y="0" width="6" height="${y1 + 6}" fill="#3a2b2c"/><rect x="${x1}" y="0" width="6" height="${y1 + 6}" fill="#3a2b2c"/>`
     + `<rect x="${x0 - 6}" y="${y1}" width="${x1 - x0 + 12}" height="6" fill="#3a2b2c"/>`
@@ -3337,8 +3339,19 @@ function nightDraw(ns, now, still) {
   const T = now / 1000, A = still ? 0 : 10;
   const rx = (Math.sin(T * .53) + .35 * Math.sin(T * 1.31 + 1)) * A, ry = (.8 * Math.sin(T * .41 + 2) + .3 * Math.sin(T * 1.07)) * A * .7;
   const rot = still ? 0 : Math.sin(T * .29 + .5) * .8, off = ns.vpx * ns.S / ns.w;
+  const dOff = off - (ns.offP == null ? off : ns.offP); ns.offP = off;
+  if (dOff) { ns.rk.forEach(r => { r.x -= dOff; r.sx -= dOff; }); ns.fw.forEach(p => { p.x -= dOff; }); ns.glow.forEach(o => { o.x -= dOff; }); }
+  // 2b 圆顶跟着望远镜转：天先转过去，圆顶慢半拍（电机带着）追上；追的时候缝和整个圆顶往回落一点，
+  // 内壁上的经线绕着天顶转（转一组星座≈转 36°）——缝始终对着要看的那片天
+  const dt = Math.min(64, now - (ns.lastNow || now)); ns.lastNow = now;
+  ns.domeX = ns.domeX == null ? ns.vpx : ns.domeX + (ns.vpx - ns.domeX) * (1 - Math.exp(-dt / 260));
+  // 圆顶落后天一截（转了小半组以上）：电机低低地转起来，追到位咔哒一声
+  if (!still && Math.abs(ns.vpx - ns.domeX) > ns.w * .2 && now > (ns.motor || 0)) { ns.motor = now + 1400;
+    sfx(c => { const t = c.currentTime + .02; nz(c, t, 1.1, 'bandpass', 240, 1.6, .06, dry, 170, .3); thud(t + 1, 90, .05, .2); }); }
+  const lag = still ? 0 : clamp(-(ns.vpx - ns.domeX) * ns.S / ns.w * .14, -24, 24);
+  if (ns.mer) ns.mer.setAttribute('transform', `rotate(${(-(ns.domeX / ns.w) * 36 % 12).toFixed(2)} ${ns.zx} ${ns.zy})`);
   // 圆顶（近）整个跟着晃；缝里的天远，星座只跟一半、近星少一些、远星和银河更少
-  ocam.style.transform = still ? '' : `translate(${rx.toFixed(1)}px,${ry.toFixed(1)}px) rotate(${rot.toFixed(3)}deg)`;
+  ocam.style.transform = still ? '' : `translate(${(rx + lag).toFixed(1)}px,${ry.toFixed(1)}px) rotate(${rot.toFixed(3)}deg)`;
   ns.sx = -.5 * rx; ns.sy = -.5 * ry; ns.ax = -.35 * rx; ns.ay = -.35 * ry;
   g.setTransform(ns.dpr, 0, 0, ns.dpr, 0, 0); g.clearRect(0, 0, ns.w, ns.h);
   g.fillStyle = '#e8e2ff';
@@ -3417,26 +3430,43 @@ function grpDraw(ns, gr, gi, now, still) {
 // 两组字母放在哪：天蝎座那块地方里随机找，字母上的星离天蝎座的星、线都至少 12px，两组之间也隔开；放不下就把字母缩小一点再找
 const LETTER_E = { Z: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]], K: [[0, 1], [1, 2], [1, 3], [3, 4], [1, 5], [5, 6]],
   D: [[0, 1], [1, 2], [0, 3], [3, 4], [4, 5], [5, 6], [6, 2]], C: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]] };
+// ZK、DZC 两组字的位置是固定的：像真的星座一样一直在那儿，谁打开、刷新几次、什么手机都在天蝎座旁边同一个地方。
+// 做法：在天蝎座自己的坐标里（星图 280×800 那套，按 kc 缩放到屏幕）用一串固定的「随机数」找位置，结果只跟星图有关、跟屏幕无关；
+// 字母一格 64（主流手机上约 28~40px），左右最多伸出星图 90（主流手机星图两边都留得下）。万一某块屏放不下，再按屏幕找一次（也用固定的数）
+function seeded(n) { return () => { n |= 0; n = n + 0x6D2B79F5 | 0; let t = Math.imul(n ^ n >>> 15, 1 | n); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function wordsPlace(gr) {
-  const c = gr.cons[0], W = gr.bw, H = gr.fh0, segs = c.c.edges.map(([i, j]) => [c.S[i], c.S[j]]), placed = [];
-  const dSeg = (x, y, [a, b]) => { const dx = b[0] - a[0], dy = b[1] - a[1], u = clamp(((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy), 0, 1); return Math.hypot(x - a[0] - u * dx, y - a[1] - u * dy); };
-  const free = (x, y) => x > 4 && x < W - 4 && y > 28 && y < H + 20 && segs.every(sg => dSeg(x, y, sg) > 12) && c.S.every(([sx, sy]) => Math.hypot(x - sx, y - sy) > 14);
-  const make = txt => {
-    for (let L = 40; L >= 20; L -= 4) for (let k = 0; k < 240; k++) {
-      const ww = (txt.length * .6 + (txt.length - 1) * .4) * L, x0 = Math.random() * (W - ww), y0 = 28 + Math.random() * (H - L - 8);
-      if (x0 < 0 || y0 < 0 || placed.some(o => !(x0 > o[2] + 16 || x0 + ww < o[0] - 16 || y0 > o[3] + 16 || y0 + L < o[1] - 16))) continue;
-      const pts = [], ed = [];
-      [...txt].forEach((ch, i) => { const n0 = pts.length;
-        LETTER[ch].forEach(([u, v]) => pts.push([x0 + i * L + u * .6 * L + (Math.random() - .5) * L * .18, y0 + v * L + (Math.random() - .5) * L * .18, .6 + Math.random() * 1.2,
-          400 + Math.random() * 1400, Math.random() * 6.28]));
-        LETTER_E[ch].forEach(([a, b]) => ed.push([n0 + a, n0 + b])); });
-      if (!pts.every(([x, y]) => free(x, y))) continue;
-      placed.push([x0, y0, x0 + ww, y0 + L]);
-      return { pts, ed, ph: Math.random() * 6.28 };
-    }
-    return null;
+  const c = gr.cons[0], k = c.kc;
+  // 在某套坐标里找：u 是一单位等于屏幕上多少 px（星图坐标是 kc，屏幕坐标是 1），原点都在星图左上角
+  const tryIn = (X0, X1, Y0, Y1, Ls, gap, near, u, rnd, fit) => {
+    const S = c.S.map(([x, y]) => [(x - c.fx) / u, (y - c.fy) / u]), segs = c.c.edges.map(([i, j]) => [S[i], S[j]]), placed = [];
+    const dSeg = (x, y, [a, b]) => { const dx = b[0] - a[0], dy = b[1] - a[1], u = clamp(((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy), 0, 1); return Math.hypot(x - a[0] - u * dx, y - a[1] - u * dy); };
+    const free = (x, y) => x > X0 && x < X1 && y > Y0 && y < Y1 && segs.every(sg => dSeg(x, y, sg) > near) && S.every(([sx, sy]) => Math.hypot(x - sx, y - sy) > near + 2);
+    const make = txt => {
+      for (const L of Ls) for (let q = 0; q < 400; q++) {
+        const ww = (txt.length * .6 + (txt.length - 1) * .4) * L, x0 = X0 + rnd() * (X1 - X0 - ww), y0 = Y0 + rnd() * (Y1 - Y0 - L);
+        const jit = [...txt].map(ch => LETTER[ch].map(() => [rnd() - .5, rnd() - .5]));
+        if (placed.some(o => !(x0 > o[2] + gap || x0 + ww < o[0] - gap || y0 > o[3] + gap || y0 + L < o[1] - gap))) continue;
+        const pts = [], ed = [];
+        [...txt].forEach((ch, i) => { const n0 = pts.length;
+          LETTER[ch].forEach(([u, v], j) => pts.push([x0 + i * L + u * .6 * L + jit[i][j][0] * L * .18, y0 + v * L + jit[i][j][1] * L * .18]));
+          LETTER_E[ch].forEach(([a, b]) => ed.push([n0 + a, n0 + b])); });
+        if (!pts.every(([x, y]) => free(x, y)) || !fit(pts)) continue;
+        placed.push([x0, y0, x0 + ww, y0 + L]);
+        return { txt, pts, ed };
+      }
+      return null;
+    };
+    const r = [make('ZK'), make('DZC')];
+    return r.every(Boolean) ? r : null;
   };
-  return Math.random() < .5 ? [make('ZK'), make('DZC')].filter(Boolean) : [make('DZC'), make('ZK')].filter(Boolean);
+  const W = gr.bw, H = gr.fh0, inBox = pts => pts.every(([x, y]) => { const px = c.fx + x * k, py = c.fy + y * k; return px > 4 && px < W - 4 && py > 28 && py < H + 20; });
+  let ws = tryIn(-90, 370, 56, 820, [64], 28, 24, k, seeded(20261009), inBox);
+  if (ws) ws.forEach(wd => { wd.pts = wd.pts.map(([x, y]) => [c.fx + x * k, c.fy + y * k]); });
+  else ws = (tryIn(4 - c.fx, W - 4 - c.fx, 28 - c.fy, H + 20 - c.fy, [40, 36, 32, 28, 24, 20], 16, 12, 1, seeded(1012), () => true) || []).map(wd => Object.assign(wd, { pts: wd.pts.map(([x, y]) => [c.fx + x, c.fy + y]) }));
+  // 星的大小、闪烁节奏也固定（同一串数）
+  const rr = seeded(912);
+  ws.forEach(wd => { wd.pts = wd.pts.map(([x, y]) => [x, y, .6 + rr() * 1.2, 400 + rr() * 1400, rr() * 6.28]); wd.ph = rr() * 6.28; });
+  return ws;
 }
 // 若隐若现：整组字慢慢浮出来又淡下去（两组错开），每颗星大小不一、各按自己的节奏乱闪；流星落到某颗上，这一组就连上线，停 3 秒淡出
 function wordsDraw(gr, lit, t, now, still) {
@@ -3506,7 +3536,8 @@ function ambMeteor(ns, now) {
 // 点亮字母的那颗：在天蝎座就直接从高处斜着划到某颗字母星上；在别的组，就先从顶上划进来、在靠天蝎座那边的缝边绕圈等着，
 // 天一转到能看见天蝎座，它就从当时的位置一路飞过去落下（跟着天走，轨迹是连着的）
 function letterMeteor(ns, now, cg) {
-  const g0 = ns.grps[0], w = Math.floor(Math.random() * g0.nm.length), kk = Math.floor(Math.random() * g0.nm[w].pts.length), [sx, sy] = g0.nm[w].pts[kk];
+  // 专属链接打开的：这次看天的第一颗先落在自己的名字上；之后每颗随机二选一
+  const g0 = ns.grps[0], mine = WHO && !ns.metN ? g0.nm.findIndex(wd => wd.txt === WHO.toUpperCase()) : -1, w = mine >= 0 ? mine : Math.floor(Math.random() * g0.nm.length), kk = Math.floor(Math.random() * g0.nm[w].pts.length), [sx, sy] = g0.nm[w].pts[kk];
   const m = { k: 'letter', K: MET_KIND.letter, g: cg, w, kk, hist: [], sp: [], c: MET_KIND.letter.c, t0: now };
   const tgt = () => starScr(ns, g0, sx, sy);
   m.land = () => { landMet(g0, w, kk, performance.now()); m.dead = performance.now(); };
@@ -3517,7 +3548,7 @@ function letterMeteor(ns, now, cg) {
     m.wait = true; orbitTo(ns, m, cg, [ns.w * (cg === 1 ? .7 : .3), 24], now, 900);
     sfx(c => { const t = c.currentTime + .02; whirr(c, t, .6); pluck(t + .9, 2637, .08); pluck(t + 1.6, 3136, .08); });
   }
-  ns.lm = m; ns.mets.push(m);
+  ns.lm = m; ns.mets.push(m); ns.metN = (ns.metN || 0) + 1;
 }
 // 去 g 组靠天蝎座那一侧的缝边，在那儿慢慢绕小圈；那边的箭头亮起来
 function orbitTo(ns, m, g, from, now, dur) {
