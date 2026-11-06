@@ -154,10 +154,11 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .wfly{position:absolute;z-index:2;pointer-events:none}
 .wfly svg{display:block;overflow:visible}
 /* 每实现一个，牌子右下角盖一方章：按「会实现」是「实现」，按「再等等」是「等到了」；朱漆牌上的章是金色的 */
-.wseal{left:108px;top:92px;grid-auto-rows:12px;align-content:center;width:36px;height:36px;border-radius:4px;font-size:12px;line-height:12px;
+/* 章盖在牌子右下角、压出牌边一点（像压角的闲章）：两行字最宽到 x=138、最低到 y=121，章从 x=140 起、右边和牌边齐，哪个字都不压 */
+.wseal{left:140px;top:120px;grid-auto-rows:12px;align-content:center;width:36px;height:36px;border-radius:4px;font-size:12px;line-height:12px;
   transform:rotate(-12deg);animation:slam-w .2s cubic-bezier(.3,1.6,.5,1) both}
 .wseal.set{animation:none;opacity:.94}
-.wseal.l3{height:48px;top:84px}
+.wseal.l3{height:48px;top:108px}
 .wseal.g{color:#f3d58f;border-color:#f3d58f}
 .wseal.g::before{border-color:rgba(243,213,143,.72)}
 @keyframes slam-w{from{opacity:0;transform:rotate(-12deg) scale(1.8)}to{opacity:.94;transform:rotate(-12deg) scale(1)}}
@@ -1853,9 +1854,6 @@ function wishSeal(st, it, k) {
   const s = document.createElement('span');
   s.className = 'wseal' + (it.tier === 1 ? ' g' : '') + (k ? ' l3' : '');
   s.innerHTML = [...(k ? '等到了' : '实现')].map(c => `<i>${c}</i>`).join('');
-  // 章不盖住点出来的那个字：那个字在牌面右半边，章就盖在左下
-  const ln = it.key.split('\n')[it.at[0]];
-  if (88 + (it.at[1] - (ln.length - 1) / 2) * 20 > 90) s.style.left = '32px';
   return st.piece.appendChild(s);
 }
 // 某样东西的中心在厅里的位置（镜头推近时的缩放除掉）；不给 el 就是许愿牌牌面的中心
@@ -3089,9 +3087,8 @@ function grpBuild(gr) {
         stroke: '#f6e7d2', 'stroke-width': .8, 'stroke-linecap': 'round', opacity: 0 }));
       wd.st = wd.pts.map(([x, y, r]) => add('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: r.toFixed(2), fill: '#fff6dc', opacity: 0 }));
     });
-    // 流星：一个亮头、一串越往后越淡越细的尾巴；落点外扩一圈细环
-    gr.met = { tail: [0, 1, 2, 3, 4, 5, 6, 7].map(i => add('line', { stroke: '#fff8ec', 'stroke-linecap': 'round', 'stroke-width': (1.8 - i * .2).toFixed(1), opacity: 0 })),
-      head: add('circle', { r: 2, fill: '#fffdf6', opacity: 0 }), ring: add('circle', { r: 2, fill: 'none', stroke: '#fff4e2', 'stroke-width': 1, opacity: 0 }), m: null };
+    // 流星落到字母上：落点外扩一圈细环（流星本身画在画布上，见 METS）
+    gr.met = { ring: add('circle', { r: 2, fill: 'none', stroke: '#fff4e2', 'stroke-width': 1, opacity: 0 }), m: null };
   }
   gr.el.querySelector('.gdots').style.top = `${(gr.gh - 12).toFixed(1)}px`;
   const gn = gr.el.querySelector('.gnote'); if (gn) gn.style.top = '0px';
@@ -3111,7 +3108,7 @@ function nightOn() {
   const ns = nightSky = { next: SCO_DONE + 800, t0: performance.now(), half: 0, far: 0, px: 0, px0: null, snap: null, seen: 0, panned: false,
     grps: [...cons.children].map((el, i) => ({ el, cst: el.querySelector('.cst'), cons: GROUPS[i].map(k => ({ k, c: CONS[k] })), t0: null })) };
   nightLayout(ns);
-  ns.t0 = Infinity; ns.nextMet = 15000; ns.idleAt = Infinity;
+  ns.t0 = Infinity; ns.nextMet = 15000; ns.idleAt = Infinity; ns.mets = []; ns.lm = null; ns.nextAmb = 0;
   endRoom.classList.add('night');
   if (!reduce) requestAnimationFrame(nightFrame);
 }
@@ -3252,7 +3249,6 @@ function skyStep(ns, now) {
   if (gr.t0 == null) grpStart(ns, gr, ++ns.seen, now);
   // 自己转过来的：唱完再停一会儿（至少 6 秒）就转下一组；人自己滑的：再等 40 秒
   ns.idleAt = now + (ns.auto ? Math.max(6000, gr.t0 + gr.done + 800 - now) : 40000); ns.auto = false;
-  if (gr === ns.grps[0] && gr.pend) { sarr.forEach(b => b.classList.remove('lure')); meteor(gr, now + 300, gr.pend); gr.pend = null; }
 }
 shint.onclick = () => { if (nightSky) skyTo(nightSky, Math.round(nightSky.px / nightSky.w) + 1, performance.now()); };
 sarr.forEach((b, j) => { b.onclick = () => { if (nightSky) { audio(); skyTo(nightSky, Math.round(nightSky.px / nightSky.w) + (j ? 1 : -1), performance.now()); } }; });
@@ -3344,12 +3340,13 @@ function nightDraw(ns, now, still) {
   endRoom.classList.toggle('sa', t > SCO_DONE + 200);
   const g0 = ns.grps[0];
   const cg = wrap(Math.round(ns.px / ns.w), 3);
-  if (!still && t > ns.nextMet && g0.t0 != null && g0.nm && !ns.snap && ns.px0 == null && !endRoom.classList.contains('fc') && !g0.met.m && !g0.pend && !ns.cm) {
-    if (cg === 0) meteor(g0, now); else crossMeteor(ns, now, cg);
+  if (!still && t > ns.nextMet && g0.t0 != null && g0.nm && !ns.snap && ns.px0 == null && !endRoom.classList.contains('fc') && !g0.met.m && !ns.lm) {
+    letterMeteor(ns, now, cg);
     ns.nextMet = t + 30000;
   }
-  if (ns.cm) crossDraw(ns, now);
-  if (!still && now > ns.idleAt && !ns.snap && ns.px0 == null && !ns.cm && !endRoom.classList.contains('fc') && !endRoom.classList.contains('cred')) autoTurn(ns, now);
+  if (!still && t > SCO_DONE && now > ns.nextAmb) { ambMeteor(ns, now); ns.nextAmb = now + rnd(4000, 10000); }
+  if (!still) metDraw(ns, now);
+  if (!still && now > ns.idleAt && !ns.snap && ns.px0 == null && !endRoom.classList.contains('fc') && !endRoom.classList.contains('cred')) autoTurn(ns, now);
   // 「轻点卡片」排在「左右滑」后面：转过一组以后（或者一直没转、过了 8 秒）才浮出来
   endRoom.classList.toggle('ch', ns.panned || t > SCO_DONE + 8000);
 }
@@ -3441,61 +3438,141 @@ function wordsDraw(gr, lit, t, now, still) {
     wd.st.forEach((c, j) => { const [, , r, per, ph] = wd.pts[j], tw = still ? 1 : .55 + .45 * Math.sin(now / per + ph);
       svgSet(c, 'opacity', Math.max(on * (.12 + .7 * br) * tw, lk * (.7 + .3 * tw))); });
   });
-  if (!m || now < m.t0) return;
-  const M = gr.met, u = (now - m.t0) / m.dur;
-  if (u < 1) {
-    const e = 1 - Math.pow(1 - u, 2), hx = m.sx + (m.x - m.sx) * e, hy = m.sy + (m.y - m.sy) * e, len = Math.hypot(m.x - m.sx, m.y - m.sy), ux = (m.x - m.sx) / len, uy = (m.y - m.sy) / len;
-    const tl = Math.min(170, len * Math.min(1, u * 2.5)) * (1 - Math.max(0, u - .85) * 4);
-    svgSet(M.head, 'opacity', 1); svgSet(M.head, 'cx', hx); svgSet(M.head, 'cy', hy);
-    M.tail.forEach((l, i) => { const a = i / 8 * tl, b = (i + 1) / 8 * tl;
-      svgSet(l, 'opacity', (1 - i / 8) * .85); svgSet(l, 'x1', hx - ux * a); svgSet(l, 'y1', hy - uy * a); svgSet(l, 'x2', hx - ux * b); svgSet(l, 'y2', hy - uy * b); });
-    return;
-  }
-  svgSet(M.head, 'opacity', 0); M.tail.forEach(l => svgSet(l, 'opacity', 0));
-  const a = now - m.t1;
+  if (!m) return;
+  const M = gr.met, a = now - m.t1;
   svgSet(M.ring, 'opacity', a < 600 ? (1 - a / 600) * .9 : 0); svgSet(M.ring, 'cx', m.x); svgSet(M.ring, 'cy', m.y); svgSet(M.ring, 'r', 2 + a / 600 * 16);
   if (!m.hit) { m.hit = true; sfx(c => { const t = c.currentTime + .01; pluck(t, 2637, .14); pluck(t + .08, 3136, .1); }); }
   if (a > m.lines + 4200) { gr.met.m = null; gr.nm[m.w].ln.forEach(l => svgSet(l, 'opacity', 0)); }
 }
-// 一颗流星：从高处斜着划下来，拖一条长尾巴，落在 ZK 或 DZC 那组（完全随机二选一）里随便一颗星上
-function meteor(gr, now, pend) {
-  if (!gr.nm || !gr.nm.length || gr.met.m) return;
-  const w = pend ? pend.w : Math.floor(Math.random() * gr.nm.length), wd = gr.nm[w], [x, y] = wd.pts[pend ? pend.k : Math.floor(Math.random() * wd.pts.length)], s = Math.random() < .5 ? -1 : 1;
-  // 从别的组飞过来的：从进来的那一侧缝边外面斜着飞进来
-  const left = (nightSky.w - gr.bw) / 2;
-  const sx = pend ? (pend.from ? nightSky.w - left + 16 : -left - 16) : x + s * (160 + Math.random() * 80), sy = pend ? y - 120 - Math.random() * 40 : y - 220 - Math.random() * 60, dur = pend ? 900 : 1000;
-  gr.met.m = { w, x, y, sx, sy, t0: now, dur, t1: now + dur, lines: wd.ed.length * 90 + 160 };
+// ================= 流星 =================
+// 都画在星空画布上，坐标记在「某一组的天」里：天左右转，流星跟着天一起走，跨过缝边不会断、也不会被裁掉。
+// 一种是点亮字母的那颗（30 秒一颗，最亮、最清楚）；另一种是天上随手划过的，五个样子参考真实流星：
+//   微弱（细、短、一闪就没）、普通、若隐若现（一路忽明忽暗、中途猛亮一下）、
+//   火流星（又大又亮、带颜色——镁的绿或钠的橙、掉碎屑、身后留一道慢慢散开的余迹）、掠空（几乎贴着天横着慢慢划过一大段）
+const MET_KIND = {
+  faint:  { w: 5, tl: 140, wd: .8, al: .4, hr: .9, c: '#e8eeff', dur: [380, 520], len: [70, 110] },
+  normal: { w: 4, tl: 220, wd: 1.4, al: .75, hr: 1.4, c: '#fff8ec', dur: [600, 800], len: [140, 200] },
+  flick:  { w: 2, tl: 300, wd: 1.5, al: .9, hr: 1.4, c: '#fff4e0', dur: [1000, 1300], len: [160, 220], flick: true },
+  fire:   { w: 1, tl: 320, wd: 3, al: 1, hr: 3, c: null, dur: [1200, 1500], len: [220, 300], fire: true, train: 2200 },
+  graze:  { w: 1, tl: 520, wd: 1.2, al: .55, hr: 1.2, c: '#fff1dc', dur: [2200, 2600], len: [0, 0], graze: true },
+  letter: { tl: 300, wd: 1.8, al: .95, hr: 2.2, c: '#fffdf6' }
+};
+const MET_POOL = Object.entries(MET_KIND).flatMap(([k, o]) => Array(o.w || 0).fill(k));
+const rnd = (a, b) => a + Math.random() * (b - a);
+// 第 g 组的天现在在屏幕上平移了多少（和 grpDraw 里每组的位移一致，含手持晃动）
+function metOff(ns, g) { return (wrap(g * ns.w - ns.vpx + 1.5 * ns.w, 3 * ns.w) - 1.5 * ns.w) / ns.w * ns.S + ns.sx; }
+// 天蝎座某颗字母星现在在画布上的位置（组会缩放、平移，直接量它的框）
+function starScr(ns, gr, x, y) {
+  const r = gr.el.getBoundingClientRect(), c = ns.g.canvas.getBoundingClientRect(), k = r.width / gr.el.offsetWidth;
+  return [r.left - c.left + x * k, r.top - c.top + y * k];
 }
-// 在另外两组时来的流星：先定好落在哪组字母的哪颗星上，从顶上划进来，在靠天蝎座那一边绕一个圈、停一下，再从那边的缝边飞出去；
-// 那一侧的箭头外面一圈光一直一下下往外扩，等人转回天蝎座
-function crossMeteor(ns, now, cg) {
-  const g0 = ns.grps[0], w = Math.floor(Math.random() * g0.nm.length), side = cg === 1 ? 0 : 1;
-  g0.pend = { w, k: Math.floor(Math.random() * g0.nm[w].pts.length), from: side === 0 };
-  const cx = side ? ns.w - 56 : 56, cy = ns.h * .34;
-  ns.cm = { t0: now, side, sx: ns.w * (side ? .3 : .7), sy: 24, cx, cy, ex: side ? ns.w + 40 : -40, ey: cy + 48, hist: [] };
-  sfx(c => { const t = c.currentTime + .02; whirr(c, t, .6); pluck(t + .9, 2637, .08); pluck(t + 1.6, 3136, .08); });
+const bez = (a, b, c, u) => (1 - u) * (1 - u) * a + 2 * (1 - u) * u * b + u * u * c;
+// 一段飞行：从 from（屏幕坐标，记成 g 组的天）飞到 to()（每帧现算的屏幕坐标），往上拱一点弧；u 用缓动
+function leg(ns, m, from, to, dur, now, then) {
+  m.leg = { g: m.g, fx: from[0] - metOff(ns, m.g), fy: from[1], to, dur, t0: now, then };
 }
-function crossPos(m, a) {
-  const R = 28, A = 900, B = 2300, C = 3000;
-  if (a < A) { const u = a / A, e = 1 - Math.pow(1 - u, 2); return [m.sx + (m.cx - m.sx) * e, m.sy + (m.cy - R - m.sy) * e]; }
-  if (a < B) { const u = (a - A) / (B - A), th = -Math.PI / 2 + u * Math.PI * 2.25 * (m.side ? 1 : -1); return [m.cx + Math.cos(th) * R, m.cy + Math.sin(th) * R]; }
-  const th = -Math.PI / 2 + Math.PI * 2.25 * (m.side ? 1 : -1), bx = m.cx + Math.cos(th) * R, by = m.cy + Math.sin(th) * R, u = Math.min(1, (a - B) / (C - B)), e = u * u;
-  return [bx + (m.ex - bx) * e, by + (m.ey - by) * e];
+function legPos(ns, L, now) {
+  const u = clamp((now - L.t0) / L.dur, 0, 1), e = 1 - Math.pow(1 - u, 2), fx = L.fx + metOff(ns, L.g), [tx, ty] = L.to();
+  const mx = (fx + tx) / 2, my = Math.min(L.fy, ty) - Math.hypot(tx - fx, ty - L.fy) * .18;
+  return [bez(fx, mx, tx, e), bez(L.fy, my, ty, e), u];
 }
-function crossDraw(ns, now) {
-  const m = ns.cm, a = now - m.t0, g = ns.g;
-  if (a > 3000) { ns.cm = null; sarr[m.side].classList.add('lure'); return; }
-  m.hist.push([...crossPos(m, a), now]);
-  while (m.hist.length && now - m.hist[0][2] > 420) m.hist.shift();
-  g.lineCap = 'round';
-  for (let i = 1; i < m.hist.length; i++) {
-    const f = i / m.hist.length;
-    g.globalAlpha = f * .85; g.strokeStyle = '#fff8ec'; g.lineWidth = .4 + f * 1.6;
-    g.beginPath(); g.moveTo(m.hist[i - 1][0], m.hist[i - 1][1]); g.lineTo(m.hist[i][0], m.hist[i][1]); g.stroke();
+// 天上随手划过的一颗
+function ambMeteor(ns, now) {
+  const k = pick(MET_POOL), K = MET_KIND[k], g = wrap(Math.round(ns.px / ns.w), 3), dir = Math.random() < .5 ? -1 : 1;
+  let x0, y0, x1, y1;
+  if (K.graze) { x0 = dir > 0 ? -40 : ns.w + 40; x1 = dir > 0 ? ns.w * .9 : ns.w * .1; y0 = rnd(.08, .2) * ns.h; y1 = y0 + rnd(24, 56); }
+  else { const L = rnd(...K.len), th = rnd(.35, .9); x0 = rnd(.15, .85) * ns.w; y0 = rnd(.04, .3) * ns.h; x1 = x0 + dir * Math.cos(th) * L; y1 = y0 + Math.sin(th) * L; }
+  const o = metOff(ns, g);
+  ns.mets.push({ k, K, g, t0: now, dur: rnd(...K.dur), a: [x0 - o, y0], b: [x1 - o, y1], hist: [], sp: [], c: K.c || pick(['#b8ffcf', '#ffcf96', '#d9c2ff']), fl: rnd(.35, .7) });
+}
+// 点亮字母的那颗：在天蝎座就直接从高处斜着划到某颗字母星上；在别的组，就先从顶上划进来、在靠天蝎座那边的缝边绕圈等着，
+// 天一转到能看见天蝎座，它就从当时的位置一路飞过去落下（跟着天走，轨迹是连着的）
+function letterMeteor(ns, now, cg) {
+  const g0 = ns.grps[0], w = Math.floor(Math.random() * g0.nm.length), kk = Math.floor(Math.random() * g0.nm[w].pts.length), [sx, sy] = g0.nm[w].pts[kk];
+  const m = { k: 'letter', K: MET_KIND.letter, g: cg, w, kk, hist: [], sp: [], c: MET_KIND.letter.c, t0: now };
+  const tgt = () => starScr(ns, g0, sx, sy);
+  m.land = () => { landMet(g0, w, kk, performance.now()); m.dead = performance.now(); };
+  if (cg === 0) {
+    const [tx, ty] = tgt(), s = Math.random() < .5 ? -1 : 1;
+    leg(ns, m, [tx + s * rnd(160, 240), ty - rnd(220, 280)], tgt, 1000, now, m.land);
+  } else {
+    m.wait = true; orbitTo(ns, m, cg, [ns.w * (cg === 1 ? .7 : .3), 24], now, 900);
+    sfx(c => { const t = c.currentTime + .02; whirr(c, t, .6); pluck(t + .9, 2637, .08); pluck(t + 1.6, 3136, .08); });
   }
-  const [hx, hy] = m.hist[m.hist.length - 1];
-  g.globalAlpha = 1; g.fillStyle = '#fffdf6'; g.beginPath(); g.arc(hx, hy, 2, 0, 6.283); g.fill();
-  g.lineCap = 'butt';
+  ns.lm = m; ns.mets.push(m);
+}
+// 去 g 组靠天蝎座那一侧的缝边，在那儿慢慢绕小圈；那边的箭头亮起来
+function orbitTo(ns, m, g, from, now, dur) {
+  const side = g === 1 ? 0 : 1, cx = (side ? ns.w - 56 : 56) - metOff(ns, g), cy = ns.h * .34, R = 22;
+  m.g = g; m.orb = null; m.side = side;
+  leg(ns, m, from, () => [cx + metOff(ns, g), cy - R], dur, now, () => { m.orb = { cx, cy, R, t0: performance.now(), g }; m.leg = null; sarr.forEach((b, j) => b.classList.toggle('lure', j === side)); });
+}
+function landMet(gr, w, k, now) {
+  const [x, y] = gr.nm[w].pts[k];
+  gr.met.m = { w, x, y, t1: now, lines: gr.nm[w].ed.length * 90 + 160 };
+}
+function metHead(ns, m, now) {
+  if (m.leg) {
+    const [x, y, u] = legPos(ns, m.leg, now);
+    if (u >= 1) { const f = m.leg.then; m.leg = null; f && f(); }
+    return [x, y, 1];
+  }
+  if (m.orb) { const O = m.orb, th = -Math.PI / 2 + (now - O.t0) / 2400 * 6.283 * (m.side ? 1 : -1); return [O.cx + metOff(ns, O.g) + Math.cos(th) * O.R, O.cy + Math.sin(th) * O.R, .85]; }
+  const u = (now - m.t0) / m.dur; if (u >= 1) return null;
+  const o = metOff(ns, m.g), x = m.a[0] + (m.b[0] - m.a[0]) * u + o, y = m.a[1] + (m.b[1] - m.a[1]) * u;
+  // 亮度：慢慢亮起、最后一截熄掉；若隐若现的一路忽明忽暗，中途某处猛亮一下；火流星末段炸亮一下
+  let b = Math.min(1, u / .18) * Math.min(1, (1 - u) / .25);
+  if (m.K.flick) b *= (.35 + .65 * Math.abs(Math.sin(u * 19))) + 1.4 * Math.exp(-Math.pow((u - m.fl) / .05, 2));
+  if (m.K.fire) b *= 1 + 1.2 * Math.exp(-Math.pow((u - .8) / .06, 2));
+  return [x, y, b];
+}
+function metDraw(ns, now) {
+  const g = ns.g, ref = metOff(ns, 0);
+  // 记在天蝎座那组的天里：天转，尾巴跟着一起走
+  ns.mets = ns.mets.filter(m => {
+    const h = m.dead ? null : metHead(ns, m, now);
+    if (h) {
+      m.hist.push([h[0] - ref, h[1], now, h[2]]);
+      if (m.K.fire && Math.random() < .5) m.sp.push([h[0] - ref, h[1], rnd(-.02, .02), rnd(.01, .04), now]);
+    }
+    const keep = m.K.train || m.K.tl;
+    while (m.hist.length && now - m.hist[0][2] > keep) m.hist.shift();
+    m.sp = m.sp.filter(p => now - p[4] < 600);
+    if (!h && !m.hist.length && !m.sp.length) return false;
+    g.lineCap = 'round';
+    // 余迹：火流星划过的地方留一道淡淡的、慢慢变宽变淡的光痕
+    if (m.K.train) for (let i = 1; i < m.hist.length; i++) {
+      const A = m.hist[i - 1], B = m.hist[i], age = (now - B[2]) / m.K.train; if (age < .1) continue;
+      g.globalAlpha = (1 - age) * .16; g.strokeStyle = m.c; g.lineWidth = 1.5 + age * 4;
+      g.beginPath(); g.moveTo(A[0] + ref, A[1]); g.lineTo(B[0] + ref, B[1]); g.stroke();
+    }
+    for (let i = 1; i < m.hist.length; i++) {
+      const A = m.hist[i - 1], B = m.hist[i], f = 1 - (now - B[2]) / m.K.tl; if (f <= 0) continue;
+      g.globalAlpha = Math.min(1, f * m.K.al * B[3]); g.strokeStyle = m.k === 'fire' && f < .6 ? m.c : m.K.c || '#fff8ec'; g.lineWidth = .3 + f * m.K.wd;
+      g.beginPath(); g.moveTo(A[0] + ref, A[1]); g.lineTo(B[0] + ref, B[1]); g.stroke();
+    }
+    m.sp.forEach(p => { const a = now - p[4]; g.globalAlpha = (1 - a / 600) * .8; g.fillStyle = m.c;
+      g.beginPath(); g.arc(p[0] + ref + p[2] * a, p[1] + p[3] * a, 1, 0, 6.283); g.fill(); });
+    if (h) {
+      const r = m.K.hr * Math.min(1.6, .6 + .4 * h[2]);
+      if (m.K.fire || m.k === 'letter') { const R = r * 5, rg = g.createRadialGradient(h[0], h[1], 0, h[0], h[1], R);
+        rg.addColorStop(0, m.K.fire ? m.c : '#fff6dc'); rg.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = Math.min(1, .5 * h[2]); g.fillStyle = rg; g.fillRect(h[0] - R, h[1] - R, R * 2, R * 2); }
+      g.globalAlpha = Math.min(1, m.K.al * h[2] + .1); g.fillStyle = '#fffdf6'; g.beginPath(); g.arc(h[0], h[1], r, 0, 6.283); g.fill();
+    }
+    g.lineCap = 'butt';
+    return true;
+  });
+  g.globalAlpha = 1;
+  // 等着的那颗：天转到能看见天蝎座一半以上，就从当时的位置飞过去；转到另一组，就跟过去换到那组的缝边等
+  const m = ns.lm; if (!m || m.dead) { if (m && m.dead && !ns.mets.includes(m)) ns.lm = null; return; }
+  if (m.wait) {
+    const g0 = ns.grps[0], u0 = Math.abs(metOff(ns, 0) - ns.sx) / ns.S, cg = wrap(Math.round(ns.px / ns.w), 3), h = metHead(ns, m, now) || [ns.w / 2, 24];
+    if (u0 < .6) {
+      m.wait = false; m.orb = null; sarr.forEach(b => b.classList.remove('lure'));
+      const [sx, sy] = g0.nm[m.w].pts[m.kk];
+      m.g = cg; leg(ns, m, h, () => starScr(ns, g0, sx, sy), 900, now, m.land);
+    } else if (m.orb && !ns.snap && ns.px0 == null && cg !== m.orb.g) orbitTo(ns, m, cg, h, now, 1100);
+  }
 }
 function fireworks(ns, now, t) {
   const g = ns.g;
