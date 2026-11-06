@@ -679,7 +679,8 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 .orn{position:relative;display:block;width:120px;height:16px;margin:16px auto 0;
   background:linear-gradient(to right,transparent,rgba(176,138,79,.8) 40%,transparent 40% 60%,rgba(176,138,79,.8) 60%,transparent) center/100% 1px no-repeat}
 .orn::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;background:#b08a4f;transform:rotate(45deg)}
-.letter .m{margin-top:8px;text-align:center;font:20px/32px var(--serif);color:var(--ink-2)}
+/* 主句三级：「都是虚惊一场」32 最重；上半句 24、比正文深一档；正文 16 浅墨 */
+.letter .m{margin-top:8px;text-align:center;font:24px/32px var(--serif);color:#4a3533}
 .letter .m>span:last-child{margin-top:4px;font-size:32px;line-height:44px;color:var(--ink)}
 .letter .m .key{position:relative;color:#9e2a22}
 .letter .m .key::after{content:"";position:absolute;z-index:-1;left:-4px;right:-4px;bottom:4px;height:12px;border-radius:4px;
@@ -826,6 +827,9 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webk
 #end.sopen .osky::after{animation:seam 1s ease-out}
 @keyframes seam{0%{opacity:0}20%{opacity:.9}100%{opacity:0}}
 .dome{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+/* 内壁的经线单独一层：圆顶转的时候只转这一层（合成器转，不重画整个圆顶）；缝和包边那块挖掉 */
+.dmer{position:absolute;inset:0;pointer-events:none}
+.dmer svg{position:absolute;left:0;top:0;overflow:visible;will-change:transform}
 /* 两扇缝门：深色钢板，一道道横向的加强筋；拉开时缩到两边的内壁后面 */
 .leaf{position:absolute;top:0;bottom:0;width:50%;transition:translate 1.8s cubic-bezier(.45,0,.2,1)}
 .leaf.l{left:0;background:repeating-linear-gradient(transparent 0 46px,rgba(255,224,196,.08) 46px 48px),linear-gradient(90deg,#1a1216,#2b1f23 70%,#3a2a2c);box-shadow:inset -1px 0 0 rgba(255,230,200,.25)}
@@ -1120,7 +1124,7 @@ button.seal:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
           </div></div></div>
         <div class="shade"></div>
         <!-- 抬头：天文台的圆顶。中间一道缝，两扇门往两边拉开，星空从缝里露出来；左右滑是圆顶带着人转 -->
-        <div class="obs"><div class="otilt"><div class="ocam"><div class="osky"><canvas class="sky" aria-hidden="true"></canvas><div class="cons" aria-hidden="true"></div><div class="credits" aria-hidden="true"></div><i class="sdim"></i><i class="leaf l"></i><i class="leaf r"></i></div><svg class="dome" aria-hidden="true"></svg></div></div><button class="sarr l" type="button" aria-label="上一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="sarr r" type="button" aria-label="下一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="shint" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5L4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>左右滑，看看另外两组星座</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="desk" aria-hidden="true"></div><p class="chint" aria-hidden="true"><i></i>轻点卡片，看看祝福</p><p class="khint" aria-hidden="true"><i></i>轻点星空，回到星空</p></div>
+        <div class="obs"><div class="otilt"><div class="ocam"><div class="osky"><canvas class="sky" aria-hidden="true"></canvas><div class="cons" aria-hidden="true"></div><div class="credits" aria-hidden="true"></div><i class="sdim"></i><i class="leaf l"></i><i class="leaf r"></i></div><svg class="dome" aria-hidden="true"></svg><div class="dmer" aria-hidden="true"><svg></svg></div></div></div><button class="sarr l" type="button" aria-label="上一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="sarr r" type="button" aria-label="下一组星座"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="shint" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5L4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>左右滑，看看另外两组星座</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="desk" aria-hidden="true"></div><p class="chint" aria-hidden="true"><i></i>轻点卡片，看看祝福</p><p class="khint" aria-hidden="true"><i></i>轻点星空，回到星空</p></div>
       </section>
     </div>
     <div id="rope"></div>
@@ -1798,8 +1802,10 @@ function markDone(st, byDocent) {
   st.btns.forEach(b => { b.disabled = true; b.classList.remove('glow', 'miss'); });
   st.lamps.forEach(l => l.classList.add('on'));
   st.lampsEl.setAttribute('aria-label', '过关了');
-  st.stamp.innerHTML = byDocent ? '<i>揭</i><i>晓</i>' : '<i>看</i><i>穿</i>';
-  st.stamp.setAttribute('aria-label', byDocent ? '讲解员揭晓了' : '看穿了');
+  // 隐藏展厅没有要看穿的规则：展签上盖的是「实现」
+  const wish = st.L === WISH;
+  st.stamp.innerHTML = byDocent ? '<i>揭</i><i>晓</i>' : wish ? '<i>实</i><i>现</i>' : '<i>看</i><i>穿</i>';
+  st.stamp.setAttribute('aria-label', byDocent ? '讲解员揭晓了' : wish ? '愿望都实现了' : '看穿了');
   st.drule.textContent = st.L.rule;
   st.room.querySelector('.bl').removeAttribute('aria-hidden');
   st.room.querySelectorAll('.ev').forEach(col => [...col.children].forEach((t, n) =>
@@ -1852,7 +1858,7 @@ function wishPrep(st) {
   st.room.style.setProperty('--wg', [0, .35, .7, 1][n >> 2]);
   // 全部实现过：架子上挂着最后一块、盖好章，红绳上的牌子都亮着
   if (st.sv.done) {
-    st.item = WISHES[n - 1]; paint(st.piece, st.L, st.item); wishSeal(st, st.item, 0).classList.add('set');
+    st.item = WISHES[n - 1]; paint(st.piece, st.L, st.item);
     st.slots.forEach(s => s.firstChild.classList.add('lit'));
   }
 }
@@ -1973,7 +1979,8 @@ function wishHit(st, it, k, n) {
 }
 // 炸开的那一下：章砸下去、亮一盏灯、镜头一顶，金色火星和一圈冲击环（一次比一次多、比一次大），叮一声（一次比一次高）
 function wishBoom(st, it, k, n) {
-  wishSeal(st, it, k);
+  // 最后一块不在牌上盖章：展签上那枚「实现」就是它的章（隐藏展厅只留一枚章）
+  if (n < WISHES.length) wishSeal(st, it, k);
   st.lamps[(n - 1) % 4].classList.add('on');
   st.lampsEl.setAttribute('aria-label', `实现了 ${n} 个愿望`);
   if (!wfast) bump(1.006 + n * .0012 + (k ? .006 : 0), 420);
@@ -2062,7 +2069,7 @@ async function wishLevel(st, t) {
   await wishBanner(st, `第${'一二三'[t]}层`, WISH.tiers[t][0]);
 }
 // 最后一块「愿望全部成真」：全场先暗下来、停一下，再一起炸开——两侧礼花炮、满屏金雨、最响的一声；
-// 红绳上 12 块牌从第一块到最后一块，一块块亮成一串；然后盖「看穿」、墙上写出第四句祝福、规则卡揭底
+// 红绳上 12 块牌从第一块到最后一块，一块块亮成一串；然后在展签上盖「实现」、墙上写出第四句祝福、规则卡揭底
 async function wishFinale(st, it, k) {
   const bl = st.room.querySelector('.blink');
   if (!reduce && bl.animate) bl.animate([{ opacity: 0 }, { opacity: .9, offset: .7 }, { opacity: .9, offset: .9 }, { opacity: 0 }], { duration: 440 });
@@ -2581,7 +2588,7 @@ function aimSpots() {
   endRoom.style.setProperty('--spot', spot + 'px');
   endRoom.style.setProperty('--aim', (Math.atan2(spot, dy) * 180 / Math.PI).toFixed(2) + 'deg');
 }
-// 地上的观展记录：每个展厅一枚章（自己看穿的是「看穿」，讲解员揭晓的是「揭晓」，隐藏展厅是金色的），章下写厅号，再写用了多久
+// 地上的观展记录：每个展厅一枚章（自己看穿的是「看穿」，讲解员揭晓的是「揭晓」，隐藏展厅是金色的「实现」），章下写厅号，再写用了多久
 const ROT = [-8, 4, -4, 8];
 function fmt(ms) {
   const s = Math.max(1, Math.round(ms / 1000)), m = Math.floor(s / 60);
@@ -2592,8 +2599,8 @@ function record() {
   const marks = P.lv.slice(0, 3).map(v => [v.by, false]);
   if (P.hid === 'clear') marks.push([P.lv[3].by, true]);
   rst.innerHTML = marks.map(([by, gold], k) => `<span class="rsw"><span class="rs${gold ? ' gold' : ''}" style="--i:${k};--rot:${ROT[k]}deg" role="img"`
-    + ` aria-label="${gold ? '隐藏展厅' : `第 ${k + 1} 展厅`}，${by === 'docent' ? '讲解员揭晓' : '看穿了'}">`
-    + (by === 'docent' ? '<i>揭</i><i>晓</i>' : '<i>看</i><i>穿</i>') + `</span><b aria-hidden="true">0${k + 1}</b></span>`).join('')
+    + ` aria-label="${gold ? '隐藏展厅，实现了' : `第 ${k + 1} 展厅，${by === 'docent' ? '讲解员揭晓' : '看穿了'}`}">`
+    + (gold ? '<i>实</i><i>现</i>' : by === 'docent' ? '<i>揭</i><i>晓</i>' : '<i>看</i><i>穿</i>') + `</span><b aria-hidden="true">0${k + 1}</b></span>`).join('')
     // 没进过隐藏展厅：第 4 枚章的位置留一个虚线空框和问号，票角写一句，勾着人再进一次
     + (P.hid === 'clear' ? '' : `<span class="rsw"><span class="rs empty" style="--i:3;--rot:${ROT[3]}deg" role="img" aria-label="还有一间隐藏展厅没走到">？</span><b aria-hidden="true">04</b></span>`)
     // 请过讲解员的人永远进不去：空框旁边写明门道，勾着人重新入场再来一遍
@@ -2994,7 +3001,14 @@ function nightLayout(ns) {
   const T = Math.round(H * .22), sl = 32, OW = W + 2 * M, OH = H + 2 * M + T, x0 = M + sl, x1 = M + W - sl, y1 = H + M - 112, w = x1 - x0, h = y1;
   osky.style.cssText = `left:${x0}px;top:0;width:${w}px;height:${h}px`;
   domeSvg.setAttribute('viewBox', `0 0 ${OW} ${OH}`); domeSvg.innerHTML = domeArt(OW, OH, x0, x1, y1, H, M);
-  Object.assign(ns, { mer: domeSvg.querySelector('.mer'), zx: (OW / 2).toFixed(1), zy: (M + H * .3).toFixed(1) });
+  // 经线：以天顶为圆心的放射线，画一次；转动只改这一层的 transform
+  const zx = OW / 2, zy = M + H * .3, dm = obs.querySelector('.dmer'), ms = dm.firstChild;
+  let mer = ''; for (let a = 0; a < 360; a += 12) { const t = a * Math.PI / 180; mer += `M${zx.toFixed(1)} ${zy.toFixed(1)}L${(zx + Math.cos(t) * OH * 1.5).toFixed(1)} ${(zy + Math.sin(t) * OH * 1.5).toFixed(1)}`; }
+  ms.setAttribute('width', OW); ms.setAttribute('height', OH); ms.setAttribute('viewBox', `0 0 ${OW} ${OH}`);
+  ms.innerHTML = `<path d="${mer}" fill="none" stroke="#f2d9c0" stroke-opacity=".07"/>`;
+  ms.style.transformOrigin = `${zx.toFixed(1)}px ${zy.toFixed(1)}px`;
+  dm.style.clipPath = `path(evenodd,'M0 0H${OW}V${OH}H0Z M${x0 - 6} 0H${x1 + 6}V${y1 + 6}H${x0 - 6}Z')`;
+  ns.mer = ms;
   // 卡片：看卡时立在台面上（台面在屏幕底上 72px），高度占台面以上的六成；看天时往下沉，只露出上沿 96px（名字那一栏）
   const L = inRoom(lwrap), fit = parseFloat(letter.style.getPropertyValue('--fit')) || 1, lh = letter.offsetHeight, top = H - 72;
   const ch = Math.min(lh * fit, top * .6), us = ch / lh, cy0 = L.y + L.h / 2;
@@ -3062,15 +3076,14 @@ function deskArt(W) {
 }
 function domeArt(OW, OH, x0, x1, y1, H, M) {
   const zx = OW / 2, zy = M + H * .3, f = v => v.toFixed(1);
-  let rings = '', mer = '', leds = '';
+  let rings = '', leds = '';
   for (let r = 64; r < OH * 1.4; r += 64) rings += `<ellipse cx="${f(zx)}" cy="${f(zy)}" rx="${r}" ry="${f(r * .9)}"/>`;
-  for (let a = 0; a < 360; a += 12) { const t = a * Math.PI / 180; mer += `M${f(zx)} ${f(zy)}L${f(zx + Math.cos(t) * OH * 1.5)} ${f(zy + Math.sin(t) * OH * 1.5)}`; }
   for (let y = 20; y < y1 - 8; y += 32) leds += `<circle cx="${x0 - 12}" cy="${y}" r="1.6"/><circle cx="${x1 + 12}" cy="${y}" r="1.6"/>`;
   const tx = OW * .72, ty = OH, len = H * .2 + (OH - 2 * M - H) + M - 24;
   return '<defs><linearGradient id="gDome" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0f0a0e"/><stop offset=".72" stop-color="#1c1317"/><stop offset="1" stop-color="#33231a"/></linearGradient>'
     + `<mask id="mWall"><rect width="${OW}" height="${OH}" fill="#fff"/><rect x="${x0}" y="0" width="${x1 - x0}" height="${y1}" fill="#000"/></mask></defs>`
     + `<g mask="url(#mWall)"><rect width="${OW}" height="${OH}" fill="url(#gDome)"/>`
-    + `<g fill="none" stroke="#f2d9c0" stroke-opacity=".07">${rings}<path class="mer" d="${mer}"/></g>`
+    + `<g fill="none" stroke="#f2d9c0" stroke-opacity=".07">${rings}</g>`
     // 缝的包边：两条竖的、底下一条横的
     + `<rect x="${x0 - 6}" y="0" width="6" height="${y1 + 6}" fill="#3a2b2c"/><rect x="${x1}" y="0" width="6" height="${y1 + 6}" fill="#3a2b2c"/>`
     + `<rect x="${x0 - 6}" y="${y1}" width="${x1 - x0 + 12}" height="6" fill="#3a2b2c"/>`
@@ -3363,7 +3376,7 @@ function nightDraw(ns, now, still) {
   if (!still && Math.abs(ns.vpx - ns.domeX) > ns.w * .2 && now > (ns.motor || 0)) { ns.motor = now + 1400;
     sfx(c => { const t = c.currentTime + .02; nz(c, t, 1.1, 'bandpass', 240, 1.6, .06, dry, 170, .3); thud(t + 1, 90, .05, .2); }); }
   const lag = still ? 0 : clamp(-(ns.vpx - ns.domeX) * ns.S / ns.w * .14, -24, 24);
-  if (ns.mer) { const a = (-(ns.domeX / ns.w) * 36 % 12).toFixed(1); if (a !== ns.merA) { ns.merA = a; ns.mer.setAttribute('transform', `rotate(${a} ${ns.zx} ${ns.zy})`); } }
+  if (ns.mer) { const a = (-(ns.domeX / ns.w) * 36 % 12).toFixed(2); if (a !== ns.merA) { ns.merA = a; ns.mer.style.transform = `rotate(${a}deg)`; } }
   // 圆顶（近）整个跟着晃；缝里的天远，星座只跟一半、近星少一些、远星和银河更少
   ocam.style.transform = still ? '' : `translate(${(rx + lag).toFixed(1)}px,${ry.toFixed(1)}px) rotate(${rot.toFixed(3)}deg)`;
   ns.sx = -.5 * rx; ns.sy = -.5 * ry; ns.ax = -.35 * rx; ns.ay = -.35 * ry;
