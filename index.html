@@ -1163,7 +1163,7 @@ const LEVELS = [
     // 每个愿望里挑一个字挂到红绳上，十二个字连起来是一副对联：上联「吃喝玩乐」、下联「升官发财」、横批「美梦成真」
     tiers: [['许个小的', [['怎么吃\n都不胖', '吃'], ['奶茶随便喝\n不长肉', '喝'], ['想去哪玩\n就去哪', '玩'], ['不加班\n天天乐', '乐']]],
             ['许个大的', [['丁总上市\n身价狂升', '升'], ['张律官司\n场场都赢', '官'], ['年终奖发\n一百个月', '发'], ['彩票头奖\n发大财', '财']]],
-            ['许个最大的', [['永远十八\n越活越美', '美'], ['睡到自然醒\n梦都是甜的', '梦'], ['名字成了\n一颗星星', '成'], ['以上\n全部成真', '真']]]],
+            ['许个最大的', [['永远十八\n越活越美', '美'], ['睡到自然醒\n梦都是甜的', '梦'], ['名字成了\n一颗星星', '成'], ['愿望\n全部成真', '真']]]],
     intro: '隐藏展厅：一路没请讲解员，才进得来',
     rule: '没有规则：\n每个愿望，都会实现。',
     bless: ['天蝎快乐，', '新的一岁顺顺的～'] }
@@ -1826,7 +1826,7 @@ function shake(a, dur) {
 // 一键全部实现：后面的愿望一个接一个自动实现，所有停顿压到三成，粒子照放
 let wfast = false;
 const wt = ms => reduce ? 0 : wfast ? Math.round(ms * .3) : ms;
-// 祝福厅：12 个愿望，按「会实现」「再等等」都会实现，一个比一个炸；满 4 个升一层，第 12 个「以上，全部实现」。
+// 祝福厅：12 个愿望，按「会实现」「再等等」都会实现，一个比一个炸；满 4 个升一层，第 12 个「愿望全部成真」。
 // 每一下按「缩一下 → 顿一帧 → 盖章炸开 → 余韵」走；实现了的牌子飞到两侧的红绳上
 // at：那个字在第几行第几个（牌面上把它点成别的颜色）
 const WISHES = WISH.tiers.flatMap(([, ws], tier) => ws.map(([key, c]) => { const ls = key.split('\n'), j = ls.findIndex(l => l.includes(c));
@@ -2055,7 +2055,7 @@ async function wishLevel(st, t) {
   st.lampsEl.className = `lamps t${t}`; st.lamps.forEach(l => l.classList.remove('on'));
   await wishBanner(st, `第${'一二三'[t]}层`, WISH.tiers[t][0]);
 }
-// 最后一块「以上，全部实现」：全场先暗下来、停一下，再一起炸开——两侧礼花炮、满屏金雨、最响的一声；
+// 最后一块「愿望全部成真」：全场先暗下来、停一下，再一起炸开——两侧礼花炮、满屏金雨、最响的一声；
 // 红绳上 12 块牌从第一块到最后一块，一块块亮成一串；然后盖「看穿」、墙上写出第四句祝福、规则卡揭底
 async function wishFinale(st, it, k) {
   const bl = st.room.querySelector('.blink');
@@ -2453,7 +2453,7 @@ function duck(c, t) {
 }
 // 升空：大多是一声细细的「嗖——」，三颗里约有一颗是带哨的，音越拉越高
 function lift(c, ns, r) {
-  const t = c.currentTime + .02, len = r.dur / 1000, p = fwPan(c, ns, r.sx), v = r.big ? 1 : .5;
+  const t = c.currentTime + .02, len = r.dur / 1000, p = fwPan(c, ns, r.sx), v = 1 - .75 * r.z;
   if (r.big && Math.random() < .35) tone(c, t, 'sine', 1100, 2600, len * .95, .05 * v, p, len * .5);
   else nz(c, t, len, 'bandpass', 900, 1.4, .07 * v, p, 2600, len * .6);
 }
@@ -2461,25 +2461,25 @@ function lift(c, ns, r) {
 // 再交给回响拖一条尾巴。音量只看大小朵，高低只差一点点；越高越远、声音越晚到、越闷一些（先看见光，后听到响）。
 // 碎花在火星爆点的时候噼啪一串；金柳一直有细细的沙沙声
 function fwBoom(c, ns, r) {
-  const far = clamp(1 - r.y / ns.h, 0, 1), t = c.currentTime + .03 + far * .2 + (r.big ? 0 : .1);
-  shell(c, t, (r.big ? 1 : .55) * (1 - far * .12), 1 - far * .3, fwPan(c, ns, r.x), r.big, r.kind, x => fwPan(c, ns, r.x + x * ns.w * .4));
+  const z = r.z, t = c.currentTime + .03 + z * .9;
+  shell(c, t, 1 - .62 * z, 1 - .6 * z, fwPan(c, ns, r.x), r.big, r.kind, x => fwPan(c, ns, r.x + x * ns.w * .4), z, r.lm);
 }
 // 祝福厅升层那一声也用同一颗「嘭」，在正中、轻一些
 function boom(c, t, big) { shell(c, t, big ? .6 : .35, 1, fwOut(c), big, 'peony', () => fwOut(c)); }
-function shell(c, t, v, dark, p, big, kind, side) {
-  const r = { big, kind };
-  nz(c, t, .03, 'highpass', 1800, .7, .55 * v, p);
-  nz(c, t, r.big ? 1 : .7, 'lowpass', 2600 * dark, .8, .9 * v, p, 240);
-  tone(c, t, 'triangle', 200, 80, .4, .3 * v, p);
-  tone(c, t, 'sine', 70, 40, r.big ? 1 : .6, .45 * v, p);
+function shell(c, t, v, dark, p, big, kind, side, z = 0, lm = 1) {
+  const r = { big, kind }, hi = 1 - .85 * z;
+  nz(c, t, .03, 'highpass', 1800, .7, .55 * v * hi, p);
+  nz(c, t, (r.big ? 1 : .7) * (1 + .5 * z), 'lowpass', 2600 * dark, .8, .9 * v, p, 240);
+  tone(c, t, 'triangle', 200, 80, .4 + .3 * z, .3 * v, p);
+  tone(c, t, 'sine', 70, 40, r.big ? 1 : .6, .45 * v * (1 - .5 * z), p);
   duck(c, t);
   if (r.kind === 'crackle') {
     for (let k = 0; k < (r.big ? 32 : 16); k++) {
-      const tk = t + .75 + Math.random() * .45, pp = side(Math.random() - .5);
-      nz(c, tk, .02, 'highpass', 2400 + Math.random() * 3000, .8, (.12 + Math.random() * .12) * v, pp);
+      const tk = t + (.75 + Math.random() * .5) * lm, pp = side(Math.random() - .5);
+      nz(c, tk, .02, 'highpass', (2400 + Math.random() * 3000) * (1 - .5 * z), .8, (.12 + Math.random() * .12) * v * (1 - .5 * z), pp);
     }
-  } else if (r.kind === 'willow') nz(c, t + .2, 2.4, 'bandpass', 5200, .7, .05 * v, p, 3000, .6);
-  else if (r.big) for (let k = 0; k < 6; k++) nz(c, t + .9 + Math.random() * .6, .02, 'bandpass', 2400 + Math.random() * 2400, 1.2, .06 * v, p);
+  } else if (r.kind === 'willow') nz(c, t + .2, 2.4 * lm, 'bandpass', 5200 * (1 - .4 * z), .7, .05 * v, p, 3000, .6);
+  else if (r.big) for (let k = 0; k < 6; k++) nz(c, t + (.9 + Math.random() * .6) * lm, .02, 'bandpass', 2400 + Math.random() * 2400, 1.2, .06 * v * hi, p);
 }
 snd.onclick = () => {
   muted = !muted;
@@ -3108,7 +3108,7 @@ function nightOn() {
   const ns = nightSky = { next: SCO_DONE + 800, t0: performance.now(), half: 0, far: 0, px: 0, px0: null, snap: null, seen: 0, panned: false,
     grps: [...cons.children].map((el, i) => ({ el, cst: el.querySelector('.cst'), cons: GROUPS[i].map(k => ({ k, c: CONS[k] })), t0: null })) };
   nightLayout(ns);
-  ns.t0 = Infinity; ns.nextMet = 15000; ns.idleAt = Infinity; ns.mets = []; ns.lm = null; ns.nextAmb = 0;
+  ns.t0 = Infinity; ns.nextMet = 15000; ns.idleAt = Infinity; ns.mets = []; ns.lm = null; ns.nextAmb = 0; ns.fq = [];
   endRoom.classList.add('night');
   if (!reduce) requestAnimationFrame(nightFrame);
 }
@@ -3119,7 +3119,7 @@ function skyFinale(ns) {
   if (endRoom.classList.contains('fc')) { ns.wait = () => skyFinale(ns); return; }
   endRoom.classList.add('fin');
   setTimeout(() => rollCredits(ns), reduce ? 0 : 2400);
-  if (!reduce) [0, 280, 560].forEach(d => setTimeout(() => { if (nightSky === ns) launch(ns, performance.now(), true); }, d));
+  if (!reduce) [[0, { z: .1, half: 0 }], [200, { z: .1, half: 1 }], [560, { z: .9 }]].forEach(([d, o]) => setTimeout(() => { if (nightSky === ns) launch(ns, performance.now(), o); }, d));
   sfx(c => { const t = c.currentTime + .05; [NOTE.C6, NOTE.E6, NOTE.G6, NOTE.C7].forEach((f, j) => pluck(t + j * .09, f, .28)); });
 }
 // 片尾字幕：一行行从缝的下沿慢慢往上滚出去，约 10 秒；看天时轻点星空可以跳过。滚完才算看完，左上角出「重新入场」
@@ -3145,7 +3145,7 @@ function nightRestore() {
   nightOn();
   const ns = nightSky, now = performance.now() - 60000;
   endRoom.classList.add('up', 'sopen');
-  ns.t0 = now; ns.next = 0; ns.nextMet = 60000 + 15000;
+  ns.t0 = now; ns.next = 0; ns.fq = []; ns.nextMet = 60000 + 15000;
   ns.grps[0].el.querySelector('.gnote').classList.add('show');
   (P.seen || []).forEach((gi, n) => grpStart(ns, ns.grps[gi], n, now, true));
   ns.seen = Math.max(0, (P.seen || []).length - 1);
@@ -3263,16 +3263,34 @@ const FWC = ['#ffd98f', '#ff9aa8', '#fff6dc', '#f0b866', '#ffd98f', '#ff9aa8', '
 // 花型：大朵六种轮着随机——牡丹（一色）、双色（外圈一色、芯另一色）、环（一圈整齐的光点）、金柳（金色长丝慢慢垂下来）、
 // 碎花（散开后每颗火星「啪」地爆成一个白亮点，伴一串噼啪）、变色（散到一半换一种颜色）；远处的小朵只有牡丹、环、碎花
 const KINDS = ['peony', 'two', 'ring', 'willow', 'crackle', 'change'], KINDS_S = ['peony', 'ring', 'crackle'];
-function launch(ns, now, force) {
-  const big = force || Math.random() < .55, c = pick(FWC);
-  let b;
-  if (big) { ns.half = 1 - ns.half; b = place(ns.big, .5 + Math.random() * .3, ns.half); }
-  else { ns.far = 1 - ns.far; b = place(ns.far ? ns.right : ns.left, .32 + Math.random() * .1); }
-  const behind = big && b.x > ns.card[0] + 12 && b.x < ns.card[2] - 12, sx = b.x + (Math.random() - .5) * (big ? 24 : 12);
-  let kind = pick(big ? KINDS : KINDS_S); if (kind === ns.lastKind) kind = pick(big ? KINDS : KINDS_S); ns.lastKind = kind;
-  const r = Object.assign(b, { big, c, kind, sx, sy: behind ? ns.card[1] + 48 : ns.h + 8, t: now, dur: (behind ? 700 : big ? 1100 : 900) + Math.random() * 300 });
+// 远近 z：0 是近处（卡片上方那片天里炸、朵大、亮），1 是很远（顶上两边那条窄天里炸、朵小、暗）。
+// 升空时间 = 飞多高 × 多远：同样高，远的看上去升得更慢；近处低低炸开的一下就到了。
+// o 可以指定 z、左右哪半边（half）、颜色、花型、这一朵整体寿命的倍数（lm：散得快还是慢）
+function launch(ns, now, o = {}) {
+  const z = o.z != null ? o.z : pick([rnd(0, .3), rnd(0, .3), rnd(.3, .62), rnd(.66, 1)]), c = o.c || pick(FWC), big = z < .5;
+  const half = o.half != null ? o.half : (ns.half = 1 - ns.half);
+  const b = z < .64 ? place(ns.big, .8 - .66 * z, half) : place(half ? ns.right : ns.left, .36 - .4 * (z - .64));
+  const behind = z < .3 && b.x > ns.card[0] + 12 && b.x < ns.card[2] - 12, sx = b.x + (Math.random() - .5) * 24 * (1 - z * .6);
+  const pool = big ? KINDS : KINDS_S;
+  let kind = o.kind || pick(pool); if (!o.kind && kind === ns.lastKind) kind = pick(pool); ns.lastKind = kind;
+  const sy = behind ? ns.card[1] + 48 : ns.h + 8, hf = clamp((sy - b.y) / ns.h, 0, 1);
+  const r = Object.assign(b, { z, big, c, kind, sx, sy, t: now, lm: o.lm || rnd(.7, 1.45), dur: (behind ? 640 : 760 + 760 * hf) * (1 + 1.2 * z) * rnd(.9, 1.1) });
   ns.rk.push(r);
   sfx(c => lift(c, ns, r));
+}
+// 放烟花的节奏：大多一颗一颗、间隔忽长忽短（偶尔停一会儿）；有时两三颗一组，各有摆法，位置左右随机、远近错开：
+//   一大一小（近的一颗 + 对面远处一颗）、双子（两颗中等左右对开、同色同型、几乎同时）、
+//   大中小（近、中、远依次升起，层层往远处退）、大大小（左右两颗近的齐放，中间远处再补一颗小的）
+function fwPlan(ns, now) {
+  const at = (d, o) => ns.fq.push([now + d, o]), h = Math.random() < .5 ? 0 : 1, q = Math.random();
+  let gap;
+  if (q < .62) { at(0, {}); gap = rnd(1100, 3400); }
+  else if (q < .76) { at(0, { z: rnd(0, .25), half: h }); at(rnd(150, 500), { z: rnd(.7, 1), half: 1 - h }); gap = rnd(2600, 4200); }
+  else if (q < .86) { const c = pick(FWC), kind = pick(['peony', 'ring', 'two']), z = rnd(.3, .5); at(0, { z, half: 0, c, kind }); at(rnd(0, 120), { z, half: 1, c, kind }); gap = rnd(2800, 4400); }
+  else if (q < .94) { at(0, { z: rnd(0, .2), half: h }); at(rnd(300, 600), { z: rnd(.35, .55), half: 1 - h }); at(rnd(700, 1100), { z: rnd(.75, 1), half: h }); gap = rnd(3400, 5000); }
+  else { at(0, { z: rnd(.08, .22), half: 0 }); at(rnd(60, 200), { z: rnd(.08, .22), half: 1 }); at(rnd(400, 800), { z: rnd(.8, 1) }); gap = rnd(3600, 5200); }
+  if (Math.random() < .12) gap += rnd(2000, 4000);
+  return gap;
 }
 function rkAt(r, at) {
   const u = clamp((at - r.t) / r.dur, 0, 1), e = 1 - Math.pow(1 - u, 2.2);
@@ -3280,16 +3298,16 @@ function rkAt(r, at) {
 }
 // 炸开：中心先亮一团，火星往外散；快熄的时候噼啪闪几下。远处的小朵火星少、暗一些、线细一些
 function burst(ns, now, r) {
-  const big = r.big, dim = big ? 1 : .7, kd = r.kind, c2 = pick(FWC.filter(x => x !== r.c));
+  const big = r.big, dim = 1 - .42 * r.z, kd = r.kind, c2 = pick(FWC.filter(x => x !== r.c)), lm = r.lm;
   ns.glow.push({ x: r.x, y: r.y, t: now, c: r.c, sc: r.sc, dim, big });
   const add = (n, o) => { for (let i = 0; i < n; i++) { const a = i / n * 6.283 + Math.random() * (o.even ? .02 : .08);
     ns.fw.push(Object.assign({ x: r.x, y: r.y, ca: Math.cos(a), sa: Math.sin(a), t: now, c: r.c, sc: r.sc, dim, gr: 1, tl: 80 },
-      o, { v: FW.v * (o.v0 + Math.random() * (o.v1 - o.v0)), life: o.l0 + Math.random() * (o.l1 - o.l0) })); } };
-  const m = big ? 1 : .46;
+      o, { v: FW.v * (o.v0 + Math.random() * (o.v1 - o.v0)), life: (o.l0 + Math.random() * (o.l1 - o.l0)) * lm })); } };
+  const m = 1 - .58 * r.z;
   if (kd === 'ring') { add(Math.round(72 * m), { v0: .9, v1: .96, l0: 1500, l1: 1800, even: true }); if (big) add(20, { v0: .15, v1: .35, l0: 900, l1: 1300, c: '#fff6dc' }); }
-  else if (kd === 'willow') add(80, { v0: .45, v1: .8, l0: 2400, l1: 3000, c: '#ffcf7a', gr: 1.6, tl: 240, glit: true });
-  else if (kd === 'two') { add(84, { v0: .7, v1: 1, l0: 1500, l1: 1900 }); add(44, { v0: .25, v1: .45, l0: 1200, l1: 1500, c: c2 }); }
-  else if (kd === 'change') add(96, { v0: .55, v1: 1, l0: 1600, l1: 2000, c2 });
+  else if (kd === 'willow') add(Math.round(80 * m), { v0: .45, v1: .8, l0: 2400, l1: 3000, c: '#ffcf7a', gr: 1.6, tl: 240, glit: true });
+  else if (kd === 'two') { add(Math.round(84 * m), { v0: .7, v1: 1, l0: 1500, l1: 1900 }); add(Math.round(44 * m), { v0: .25, v1: .45, l0: 1200, l1: 1500, c: c2 }); }
+  else if (kd === 'change') add(Math.round(96 * m), { v0: .55, v1: 1, l0: 1600, l1: 2000, c2 });
   else if (kd === 'crackle') add(Math.round(72 * m), { v0: .5, v1: 1, l0: 1500, l1: 1800, pop: true });
   else add(Math.round(96 * m), { v0: .55, v1: 1, l0: 1400, l1: 1900 });
   ns.fw.forEach(p => { if (p.pop && p.t === now) p.pa = (.5 + Math.random() * .25) * p.life; });
@@ -3344,7 +3362,7 @@ function nightDraw(ns, now, still) {
     letterMeteor(ns, now, cg);
     ns.nextMet = t + 30000;
   }
-  if (!still && t > SCO_DONE && now > ns.nextAmb) { ambMeteor(ns, now); ns.nextAmb = now + rnd(4000, 10000); }
+  if (!still && t > SCO_DONE && now > ns.nextAmb) { ambMeteor(ns, now); ns.nextAmb = now + (Math.random() < .15 ? rnd(400, 1200) : rnd(3000, 12000)); }
   if (!still) metDraw(ns, now);
   if (!still && now > ns.idleAt && !ns.snap && ns.px0 == null && !endRoom.classList.contains('fc') && !endRoom.classList.contains('cred')) autoTurn(ns, now);
   // 「轻点卡片」排在「左右滑」后面：转过一组以后（或者一直没转、过了 8 秒）才浮出来
@@ -3450,11 +3468,11 @@ function wordsDraw(gr, lit, t, now, still) {
 //   微弱（细、短、一闪就没）、普通、若隐若现（一路忽明忽暗、中途猛亮一下）、
 //   火流星（又大又亮、带颜色——镁的绿或钠的橙、掉碎屑、身后留一道慢慢散开的余迹）、掠空（几乎贴着天横着慢慢划过一大段）
 const MET_KIND = {
-  faint:  { w: 5, tl: 140, wd: .8, al: .4, hr: .9, c: '#e8eeff', dur: [380, 520], len: [70, 110] },
-  normal: { w: 4, tl: 220, wd: 1.4, al: .75, hr: 1.4, c: '#fff8ec', dur: [600, 800], len: [140, 200] },
-  flick:  { w: 2, tl: 300, wd: 1.5, al: .9, hr: 1.4, c: '#fff4e0', dur: [1000, 1300], len: [160, 220], flick: true },
-  fire:   { w: 1, tl: 320, wd: 3, al: 1, hr: 3, c: null, dur: [1200, 1500], len: [220, 300], fire: true, train: 2200 },
-  graze:  { w: 1, tl: 520, wd: 1.2, al: .55, hr: 1.2, c: '#fff1dc', dur: [2200, 2600], len: [0, 0], graze: true },
+  faint:  { w: 5, tl: 140, wd: .8, al: .4, hr: .9, c: '#e8eeff', dur: [240, 700], len: [50, 130] },
+  normal: { w: 4, tl: 220, wd: 1.4, al: .75, hr: 1.4, c: '#fff8ec', dur: [420, 1400], len: [110, 240] },
+  flick:  { w: 2, tl: 300, wd: 1.5, al: .9, hr: 1.4, c: '#fff4e0', dur: [800, 2000], len: [140, 260], flick: true },
+  fire:   { w: 1, tl: 320, wd: 3, al: 1, hr: 3, c: null, dur: [1000, 2200], len: [200, 320], fire: true, train: 2200 },
+  graze:  { w: 1, tl: 520, wd: 1.2, al: .55, hr: 1.2, c: '#fff1dc', dur: [1800, 3600], len: [0, 0], graze: true },
   letter: { tl: 300, wd: 1.8, al: .95, hr: 2.2, c: '#fffdf6' }
 };
 const MET_POOL = Object.entries(MET_KIND).flatMap(([k, o]) => Array(o.w || 0).fill(k));
@@ -3577,10 +3595,11 @@ function metDraw(ns, now) {
 function fireworks(ns, now, t) {
   const g = ns.g;
   // 卡片放大读字时不放新的：放了也全挡在卡片后面
-  if (t > ns.next) { launch(ns, now); ns.next = t + 1400 + Math.random() * 1400; }
+  if (t > ns.next) ns.next = t + fwPlan(ns, now);
+  ns.fq = ns.fq.filter(([a, o]) => { if (now < a) return true; launch(ns, now, o); return false; });
   ns.rk = ns.rk.filter(r => {
     // 尾焰：往回 0.1 秒内的几个位置连成一小条，越往后越淡越细；远处的小朵整体淡一些、细一些
-    const k = r.big ? 1 : .6;
+    const k = 1 - .6 * r.z;
     let [px, py] = rkAt(r, now - 100);
     g.strokeStyle = r.c;
     for (let i = 1; i <= 5; i++) {
